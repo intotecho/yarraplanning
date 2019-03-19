@@ -1,0 +1,102 @@
+{
+  "schema": {
+    "fields": [
+      {
+        "mode": "NULLABLE", 
+        "name": "Application_Number", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Date_Received", 
+        "type": "DATE"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Property_Address", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Description", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Advert_Date", 
+        "type": "DATE"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Determination", 
+        "type": "DATE"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Decision", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Estimated_Cost", 
+        "type": "FLOAT"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Application_Status",   
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Ward", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Results_Page", 
+        "type": "INTEGER"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "accuracy", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "formatted_address", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "google_place_id", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "latitude", 
+        "type": "FLOAT"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "longitude", 
+        "type": "FLOAT"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "geocoderesults", 
+        "type": "INTEGER"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "postcode", 
+        "type": "INTEGER"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "type", 
+        "type": "STRING"
+      }
+    ]
+  }, 
+  "type": "TABLE"
+}
