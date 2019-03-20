@@ -65,78 +65,102 @@ if 'Overlay' not in input_df.columns:
 input_df.columns = ['Overlay', 'AddressName', 'Type', 'Number', 'Suburb', 'PropertyType', 'PropertyId', 'HeritageStatus', 'EstimatedDate']
 input_count = len(input_df['Overlay'])
 
-#Convert all â€™ symbols to apostrophe
+#Convert all â€™ symbols to apostrophe if needed.
 input_df['Overlay']= (input_df['Overlay'].str.replace(u'â€™', "\'"))
 input_df['PropertyType']= (input_df['PropertyType'].str.replace(u'â€™', "\'"))
 input_df['AddressName']= (input_df['AddressName'].str.replace(u'â€™', "\'"))
 
-# Remove blank lines - WARNING - Only do this after merged multiline entries
-input_df['Overlay'].replace('', np.nan, inplace=True)
-input_df.dropna(subset=['Overlay'], inplace=True)
+# There are some rows which are completely empty so drop them first.
+input_df.dropna(how='all', inplace=True)
 
-#selection = input_df.loc[(input_df['Overlay'].str.len() > 6)] 
-#output_df = selection
-
-
-#output_df = input_df.apply(shiftAddress, axis=0)
-#output_df = input_df[['Suburb']].apply(lambda x: x if row['Overlay'].str.len() <= 5 else row['Number'], axis=0)
+# Mege multiline entries to a single row.
+# If Overlay on rw N is blank and Overlay on row N+2 is blank, then merge Nu,ber[n] and Number[n+2] into Number[n+1]
+# Create a new column that concatenates the overlay from the line above and the line below. If this is blank, we have a split row.
+#input_df['splitlines'] = input_df['Overlay'].shift(axis=0, periods=-1).str.cat(input_df['Overlay'].shift(axis=0, periods=1))
 
 
-#input_df['Overlay'].where(input_df['Overlay'].str.len() <= 5, other=input_df['Overlay'].str[0:len(re.match(r'HO[\d]*', input_df['Overlay']).group(0))-1], inplace=True)
+input_df['splitlines'] = input_df['Overlay'].shift(axis=0, periods=-1)
+input_df = input_df.replace(np.nan, '', regex=True)
+input_df['splitlines'] = input_df['splitlines'].str.cat(input_df['Overlay'].shift(axis=0, periods=1))
+input_df['upper_blanklines'] = input_df['splitlines'].shift(axis=0, periods=1)
+input_df['lower_blanklines'] = input_df['splitlines'].shift(axis=0, periods=-1)
+
+def mergspliterows(df, column) :
+    # Where cond is True, keep the original value. Where False, replace with corresponding value from other.
+    # If splitlines is not empty or column is not empty then cond should be true and keep original value. 
+    # if splitlines is empty and column is empty then transform column to the concatenation of above and below.
+    
+    df[column].where( ((df['splitlines'].str.len() != 0) | (df[column].str.len() != 0)), 
+                         other=df[column].shift(axis=0, periods=1).str.cat(df[column].shift(axis=0, periods=-1)), 
+                         inplace=True)
+    return df
+
+def deletespliterows(df) :
+    # if splitlines is empty drop the row above and the row below
+    #df = df.drop(df['upper_blanklines'], axis=0)
+    #df = df.drop(df['lower_blanklines'], axis=0)
+    df = df[df['upper_blanklines'].str.len() != 0 ]
+    df = df[df['lower_blanklines'].str.len() != 0 ]
+    return df
+
+
+
+# for each split row, if the Number is also blank then combine Number from the row above concatenated with the Nu,ber from row below.
+# do the same for PropertyType and Type
+input_df = mergspliterows(input_df, 'Number')
+input_df = mergspliterows(input_df, 'PropertyType')
+input_df = mergspliterows(input_df, 'Type')
+
+input_df = deletespliterows(input_df) 
+
+# Remove temporary columns
+input_df.drop(['splitlines'], axis=1, inplace = True)
+input_df.drop(['upper_blanklines'], axis=1,  inplace = True)
+input_df.drop(['lower_blanklines'], axis=1,  inplace = True)
+
 
 # shift (copy) three columns to the right when the Overlay string is too long.
 input_df['Number'].where(input_df['Overlay'].str.len() <= 5, other=input_df['Type'], inplace=True)
 input_df['Type'].where(input_df['Overlay'].str.len() <= 5, other=input_df['AddressName'], inplace=True)
 input_df['AddressName'].where(input_df['Overlay'].str.len() <= 5, other=input_df['Overlay'], inplace=True)
-#input_df['Overlay'].where(input_df['Overlay'].str.len() <= 5, other=input_df['Overlay'].str[0:len(re.match(r'HO[\d]*', input_df['Overlay']).group(0))-1], inplace=True)
+
+# Create a new DF with the first column split into two strings ['HO123' 'Bendigo Street 4']
+overlay_df = input_df['Overlay'].str.split(pat=r'(HO[\d]*)', n=1, expand=True)
+# have  look at this DF.
+overlay_df.to_csv("{}".format("splits.csv"), mode='w', header=True, index=False, encoding='utf8')
+#print(overlay_df.size)
+
+#Copy the split strings toback  the first two columns.
+input_df['AddressName'].where(input_df['Overlay'].str.len() <= 5, other=overlay_df[2], inplace=True)
+input_df['Overlay'] = overlay_df[1]
 
 
+# Remove blank lines - WARNING - Only do this after merged multiline entries
+input_df['Overlay'].replace('', np.nan, inplace=True)
+input_df.dropna(subset=['Overlay'], how='all', inplace=True)
 
-# Add a dummy column to simplfy the code. Its the length of the name of the overlay H01 or HO12 or HO123
-#pattern = re.compile("HO[\d]*")
-#input_df['NotHOlen'] = input_df['Overlay'].str[input_df['HOlen'].str.len()-1:]
-#input_df['NotHOlen'] = input_df['Overlay'].str[input_df['HOlen'].str.len()-1:]
+# Remove rows for which all of the below columns contain blank values.
+input_df = input_df[( input_df['AddressName'].str.len() != 0) & 
+                     (input_df['Type'].str.len() != 0) &
+                     (input_df['Number'].str.len() != 0) &
+                     (input_df['Suburb'].str.len() != 0) &
+                     (input_df['PropertyType'].str.len() != 0) &
+                     (input_df['PropertyId'].str.len() != 0) &
+                     (input_df['HeritageStatus'].str.len() != 0) &
+                     (input_df['EstimatedDate'].str.len() != 0)
+                     ]
 
-#input_df['HOlen'] = input_df['Overlay'].str.extract(r'(HO[\d]*)', expand=False)
-
-input_df['HOlen'] = input_df['Overlay'].str.split(pat=r'(HO[\d]*)', n=1, expand=False)
-test_df = input_df['Overlay'].str.split(pat=r'(HO[\d]*)', n=1, expand=True)
-#input_df['AddressName'] = test_df[2]
-input_df['AddressName'].where(input_df['Overlay'].str.len() <= 5, other=test_df[], inplace=True)
-input_df['Overlay'] = test_df[1]
-
-#input_df['Overlay'].where(len(input_df['HOlen'].tolist()) < 1, other=input_df['HOlen'][1], inplace=True)
-#input_df['Overlay'].where(input_df['Overlay'].str.len() <= 5, other=input_df['HOlen'][1], inplace=True)
 
 # Find rows where the Overlay and AddressName are merged  
 #mask = (input_df['Overlay'].str.len() > 5)
 #lines_to_fix  = input_df.loc[mask].apply
 
-
+#### ---- save the results. ---- ####
 
 output_df = input_df
 
-# output the results.
 output_df.to_csv("{}".format(output_filename), mode='w', header=True, index=False, encoding='utf8')
-
 output_count = len(output_df['Overlay'])
-
 print('Cleaned {} lines to {} lines'.format(input_count, output_count))
-exit()
+exit(0)
 
-'''
-def shiftAddress(x):
-    print(x['Suburb'])
-    if  x['Overlay'].str.len() > 5:
-        x['Suburb'] = x['Number'] 
-        x['Number'] = x['Type'] 
-        x['Type'] = x['AddressName'] 
-        x['AddressName'] = x['AddressName'].str.slice(0, 5) 
-
-df.apply({
-          'AddressName':shiftAddressName,
-          'Type':shiftPropertType, 
-          'Number':shiftAddressName, 
-          'Suburb': shiftSuburb
-          }, axis=0)
-'''
