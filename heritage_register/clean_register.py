@@ -138,22 +138,43 @@ input_df['Overlay'] = overlay_df[1]
 # Remove blank lines - WARNING - Only do this after merged multiline entries
 input_df['Overlay'].replace('', np.nan, inplace=True)
 input_df.dropna(subset=['Overlay'], how='all', inplace=True)
-
 # Remove rows for which all of the below columns contain blank values.
-input_df = input_df[( input_df['AddressName'].str.len() != 0) & 
-                     (input_df['Type'].str.len() != 0) &
-                     (input_df['Number'].str.len() != 0) &
-                     (input_df['Suburb'].str.len() != 0) &
-                     (input_df['PropertyType'].str.len() != 0) &
-                     (input_df['PropertyId'].str.len() != 0) &
-                     (input_df['HeritageStatus'].str.len() != 0) &
+# Note that AddressName is not included in this list. So the code will still delete lines that only contain an Overlay and AddressName
+# These lines are like 'HO309, - Barkly Gardens Precinct, Richmond,,,,,,; i.e. they describe the precinct name only, not a place. So can be dropped.
+input_df = input_df[ 
+                     (input_df['Type'].str.len() != 0) |
+                     (input_df['Number'].str.len() != 0) |
+                     (input_df['Suburb'].str.len() != 0) |
+                     (input_df['PropertyType'].str.len() != 0) |
+                     (input_df['PropertyId'].str.len() != 0) |
+                     (input_df['HeritageStatus'].str.len() != 0) |
                      (input_df['EstimatedDate'].str.len() != 0)
                      ]
 
 
-# Find rows where the Overlay and AddressName are merged  
-#mask = (input_df['Overlay'].str.len() > 5)
-#lines_to_fix  = input_df.loc[mask].apply
+# shift (copy) three columns to the right when the PropertyID contains the heritage status of Contributory This fixesd 27 rows.
+input_df['EstimatedDate'].where((input_df['PropertyId'].str.contains('Contributory|Individually') == False), other=input_df['HeritageStatus'], inplace=True)
+input_df['HeritageStatus'].where((input_df['PropertyId'].str.contains('Contributory|Individually') == False), other=input_df['PropertyId'], inplace=True)
+input_df['PropertyId'].where((input_df['PropertyId'].str.contains('Contributory|Individually') == False), other=input_df['PropertyType'], inplace=True)
+
+
+# shift (copy) four columns to the right when the PropertyType contains the heritage status of Contributory This fixesd 259 rows.
+input_df['EstimatedDate'].where((input_df['PropertyType'].str.contains('Contributory|Individually') == False), other=input_df['PropertyId'], inplace=True)
+input_df['HeritageStatus'].where((input_df['PropertyType'].str.contains('Contributory|Individually') == False), other=input_df['PropertyType'], inplace=True)
+input_df['PropertyId'].where((input_df['PropertyType'].str.contains('Contributory|Individually') == False), other=input_df['Suburb'], inplace=True)
+input_df['Suburb'].where((input_df['PropertyType'].str.contains('Contributory|Individually') == False), other=input_df['Number'], inplace=True)
+input_df['PropertyType'].where((input_df['PropertyType'].str.contains('Contributory|Individually') == False), other='blank', inplace=True)
+# Next line wont work because PropertyId  is now changed. 
+#input_df['PropertyType'].where((input_df['PropertyId'].str.contains('Contributory|Individually') == False), other='nope', inplace=True)
+
+# shift (copy) X columns to the right when the Suburb contains the heritage status This only partially fixes 94 rows.
+# Need to investigate why these lines don't contain a property id anymore. It was in the Number column when parsed by Tabula.
+input_df['EstimatedDate'].where((input_df['Suburb'].str.contains('Contributory|Individually') == False), other=input_df['PropertyType'], inplace=True)
+input_df['HeritageStatus'].where((input_df['Suburb'].str.contains('Contributory|Individually') == False), other=input_df['Suburb'], inplace=True)
+input_df['PropertyId'].where((input_df['Suburb'].str.contains('Contributory|Individually') == False), other=input_df['Number'], inplace=True)
+input_df['PropertyType'].where((input_df['Suburb'].str.contains('Contributory|Individually') == False), other='', inplace=True)
+input_df['Suburb'].where((input_df['Suburb'].str.contains('Contributory|Individually') == False), other=input_df['Type'], inplace=True)
+
 
 #### ---- save the results. ---- ####
 
