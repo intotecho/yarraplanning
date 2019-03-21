@@ -10,12 +10,12 @@ The link moves, and was last seen at:
 https://www.yarracity.vic.gov.au/the-area/planning-for-yarras-future/yarra-planning-scheme-and-amendments/incorporated-documents
 https://www.yarracity.vic.gov.au/-/media/files/planning-scheme-amendments/amendment-c231/am-c231--september--appendix-8.pdf?la=en&hash=F7D784016EBAF0750310399CCCDCE29D30A5B1C2
 
-This file can be processed into a CSV table by Tabula. 
+This file can be processed into a CSV table by Tabula.
 https://github.com/tabulapdf/tabula
-However there are a number of issues process the file, leading to 
-1. Records with multiline text being  split over several rows of the CSV. 
+However there are a number of issues process the file, leading to
+1. Records with multiline text being  split over several rows of the CSV.
    These need to be detected and merged.
-2. Records where multiple fields and merged into one field 
+2. Records where multiple fields and merged into one field
    so all the remaining fields are shifted.
 3. Headings and blank rows.
 
@@ -27,9 +27,9 @@ so that the output is ready for uploading to BigQuery or other databases.
 import pandas as pd
 import numpy as np
 import logging
-import re
+
 logger = logging.getLogger("root")
-logger.setLevel(logging.INFO) 
+logger.setLevel(logging.INFO)
 # create console handler
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
@@ -41,11 +41,14 @@ logger.addHandler(ch)
 # Set your input file here
 input_filename = "revew_of_heritage_overlay_areas_2007_rev_may_2017.csv"
 
-# Set your output file name here. It can be the same as the input file but safer to write to a new file.
+# Set your output file name here.
 output_filename = "yarra_heritage_register.csv"
 
 # Specify the columns we wish to read from the apps file. We want them all.
-register_columns_in = ['Overlay', 'Address', 'Type',	'Number', 'Suburb', 'Property Type', 'Property No.', 'Heritage Status',	'Estimated Date']
+register_columns_in = [
+    'Overlay', 'Address', 'Type',	'Number', 'Suburb',
+    'Property Type', 'Property No.', 'Heritage Status',
+    'Estimated Date']
 
 suburbs = [
     'Abbotsford',
@@ -91,7 +94,10 @@ street_types = [
 
 # Read the input data to a Pandas Dataframe
 try:
-    input_df = pd.read_csv(input_filename, encoding='utf8', usecols=register_columns_in)
+    input_df = pd.read_csv(
+        input_filename,
+        encoding='utf8',
+        usecols=register_columns_in)
 except Exception as e:
     logger.error("Input File Not Found. Exception {} ".format(e))
     exit()
@@ -99,7 +105,10 @@ if 'Overlay' not in input_df.columns:
     raise ValueError("Missing Address column in input data")
 
 # Rename columns to be BigQuery compatible
-input_df.columns = ['Overlay', 'AddressName', 'Type', 'Number', 'Suburb', 'PropertyType', 'PropertyId', 'HeritageStatus', 'EstimatedDate']
+input_df.columns = [
+    'Overlay', 'AddressName', 'Type', 'Number', 'Suburb',
+    'PropertyType', 'PropertyId', 'HeritageStatus', 'EstimatedDate']
+
 input_count = len(input_df['Overlay'])
 
 '''
@@ -117,18 +126,23 @@ input_df.dropna(how='all', inplace=True)
 # then row N contains a record that needs to merge in some fields from the row
 # above and below. First step is to create a splitlines column that is only
 # empty when both the row above and below have no Overlay.
-# Create a new column that concatenates the overlay from the line above 
+# Create a new column that concatenates the overlay from the line above
 # and the line below. If this is blank, we have a split row.
 # upper_blanklines are rows above a splitline, lower_blanklines are rows below.
 # both upper and lower can be deleted once their data has been merged.
 '''
 input_df['splitlines'] = input_df['Overlay'].shift(axis=0, periods=-1)
 input_df = input_df.replace(np.nan, '', regex=True)
-input_df['splitlines'] = input_df['splitlines'].str.cat(input_df['Overlay'].shift(axis=0, periods=1))
+input_df['splitlines'] = \
+    input_df['splitlines'].str.cat(input_df['Overlay'].shift(
+        axis=0,
+        periods=1))
+
 input_df['upper_blanklines'] = input_df['splitlines'].shift(axis=0, periods=1)
 input_df['lower_blanklines'] = input_df['splitlines'].shift(axis=0, periods=-1)
 
-def mergspliterows(df, column) :
+
+def mergspliterows(df, column):
     '''
     # Where cond is True, keep the original value.
     # Where False, replace with corresponding value from other.
@@ -137,14 +151,16 @@ def mergspliterows(df, column) :
     # i.e. if splitlines is empty and column is empty then transform column
     # to the concatenation of above and below.
     '''
-    df[column].where( 
-        ((df['splitlines'].str.len() != 0) | (df[column].str.len() != 0)), 
-          other=df[column].shift(axis=0, periods=1).
-              str.cat(df[column].shift(axis=0, periods=-1)), 
-          inplace=True)
+    df[column].where(
+        ((df['splitlines'].str.len() != 0) | (df[column].str.len() != 0)),
+        other=df[column].shift(axis=0, periods=1).str.cat(df[column].shift(
+            axis=0,
+            periods=-1)),
+        inplace=True)
     return df
 
-def deletespliterows(df) :
+
+def deletespliterows(df):
     '''
     # if splitlines is empty drop the row above and the row below
     #df = df.drop(df['upper_blanklines'], axis=0)
@@ -162,7 +178,7 @@ input_df = mergspliterows(input_df, 'Number')
 input_df = mergspliterows(input_df, 'PropertyType')
 input_df = mergspliterows(input_df, 'Type')
 
-input_df = deletespliterows(input_df) 
+input_df = deletespliterows(input_df)
 
 # Remove temporary columns
 input_df.drop(['splitlines'], axis=1, inplace=True)
@@ -173,11 +189,11 @@ input_df.drop(['lower_blanklines'], axis=1,  inplace=True)
 input_df['Overlay'].replace('', np.nan, inplace=True)
 input_df.dropna(subset=['Overlay'], how='all', inplace=True)
 # Remove rows for which all of the below columns contain blank values.
-# Note that AddressName is not included in this list. 
+# Note that AddressName is not included in this list.
 # Still delete lines that only contain an Overlay and AddressName
 # These lines are like 'HO309, - Barkly Gardens Precinct, Richmond,,,,,,;
 # i.e. they describe the precinct name only, not a place. So can be dropped.
-input_df = input_df[ 
+input_df = input_df[
                      (input_df['Type'].str.len() != 0) |
                      (input_df['Number'].str.len() != 0) |
                      (input_df['Suburb'].str.len() != 0) |
@@ -187,97 +203,107 @@ input_df = input_df[
                      (input_df['EstimatedDate'].str.len() != 0)
                      ]
 
+
 def copycol(df, from_field, to_field, cond):
     df[to_field].where(cond, other=df[from_field], inplace=True)
     df[from_field].where(cond, other='', inplace=True)
     return df
 
 
-# Shift (copy) three columns to the right when the PropertyID contains status.
+# --  When the PropertyID contains a HeritageStatus.
 input_df['keycolumn'] = input_df['PropertyId'].copy()
-condition = (input_df['keycolumn'].
-        str.contains('Contributory|Individually|Register', case=False)==False)
-
+condition = (
+    input_df['keycolumn'].
+    str.contains('Contributory|Individually|Register', case=False) == 0)
 copycol(input_df, 'HeritageStatus', 'EstimatedDate', condition)
 copycol(input_df, 'PropertyId', 'HeritageStatus', condition)
 copycol(input_df, 'PropertyType', 'PropertyId', condition)
 
+# --  When the PropertyType contains a HeritageStatus.
 input_df['keycolumn'] = input_df['PropertyType'].copy()
-condition = (input_df['keycolumn'].
-        str.contains('Contributory|Individually|Register', case=False)==False)
-
+condition = (
+    input_df['keycolumn'].
+    str.contains('Contributory|Individually|Register', case=False) == 0)
 copycol(input_df, 'PropertyId', 'EstimatedDate', condition)
 copycol(input_df, 'PropertyType', 'HeritageStatus', condition)
 copycol(input_df, 'Suburb', 'PropertyId', condition)
 copycol(input_df, 'Number', 'PropertyType', condition)
 
-# --  When the PropertyType contains status 
+# --  When the Suburb contains a HeritageStatus.
 input_df['keycolumn'] = input_df['Suburb'].copy()
-condition = (input_df['keycolumn'].
-        str.contains('Contributory|Individually|Register', case=False)==False)
+condition = (
+    input_df['keycolumn'].
+    str.contains('Contributory|Individually|Register', case=False) == 0)
+
 copycol(input_df, 'PropertyType', 'EstimatedDate', condition)
 copycol(input_df, 'Suburb', 'HeritageStatus', condition)
 copycol(input_df, 'Number', 'PropertyId', condition)
 copycol(input_df, 'Type', 'PropertyType', condition)
 copycol(input_df, 'AddressName', 'Suburb', condition)
 
-# --  When Number contains a Suburb 
+# --  When Number contains a Suburb and
 input_df['keycolumn'] = input_df['Number'].copy()
-condition = (input_df['keycolumn'].
-        str.contains('|'.join(suburbs), regex=False)==False)
+condition = (
+    input_df['keycolumn'].
+    str.contains('|'.join(suburbs), regex=False) == 0)
 copycol(input_df, 'Number', 'Suburb', condition)
 copycol(input_df, 'Type', 'Number', condition)
 
 
-# --  When EstimateDate contains a HeritageStatus 
+# --  When EstimateDate contains a HeritageStatus. (Shifted other way)
 input_df['keycolumn'] = input_df['EstimatedDate'].copy()
-condition = (input_df['keycolumn'].
-        str.contains('Contributory|Individually|Register', case=False)==False)
+condition = (
+    input_df['keycolumn'].
+    str.contains('Contributory|Individually|Register', case=False) == 0)
 copycol(input_df, 'HeritageStatus', 'PropertyId', condition)
 copycol(input_df, 'EstimatedDate', 'HeritageStatus', condition)
 
-# --  When Type contains a Street Type  
+# --  When Type contains a Street Type
 input_df['keycolumn'] = input_df['Type'].copy()
-condition = (input_df['keycolumn'].
-        str.contains('|'.join(street_types), regex=False)==False)
+condition = (
+    input_df['keycolumn'].
+    str.contains('|'.join(street_types), regex=False) == 0)
 copycol(input_df, 'Number', 'Suburb', condition)
 copycol(input_df, 'Type', 'Number', condition)
 
-
-
-# --  When AddressName contains a Street Type and Suburb is blank.
+# --When AddressName contains a Street Type and Suburb is blank.
 input_df['keycolumn'] = input_df['AddressName'].copy()
-condition = ((input_df['keycolumn'].
-        str.contains('|'.join(street_types))==False) | 
-        (input_df['Suburb'].str.len() > 0 ))
+condition = (
+    (input_df['keycolumn'].
+        str.contains('|'.join(street_types)) == 0) |
+    (input_df['Suburb'].str.len() > 0))
 copycol(input_df, 'Number', 'Suburb', condition)
 copycol(input_df, 'Type', 'Number', condition)
 copycol(input_df, 'AddressName', 'Type', condition)
 
-# --  When AddressName contains a StreetType & both Suburb and Number are not blank
+# --  When AddressName is a StreetType & both Suburb and Number are not blank
 input_df['keycolumn'] = input_df['AddressName'].copy()
-condition = ((input_df['keycolumn'].
-        str.contains('|'.join(street_types) )==False) | 
-        (input_df['Suburb'].str.len() == 0 ) | 
-        (input_df['Number'].str.len() > 0 ))
+condition = (
+    (input_df['keycolumn'].
+        str.contains('|'.join(street_types)) == 0) |
+    (input_df['Suburb'].str.len() == 0) |
+    (input_df['Number'].str.len() > 0))
 # Only want to copy suburb if blank.
 copycol(input_df, 'Type', 'Number', condition)
 copycol(input_df, 'AddressName', 'Type', condition)
 
 # --  When AddressName contains a StreetType, Suburb is not blank but Number is
 input_df['keycolumn'] = input_df['AddressName'].copy()
-condition = ((input_df['keycolumn'].
-        str.contains('|'.join(street_types) )==False) | 
-        (input_df['Suburb'].str.len() == 0 ) | 
-        (input_df['Number'].str.len() == 0 ))
+condition = (
+    (input_df['keycolumn'].
+        str.contains('|'.join(street_types)) == 0) |
+    (input_df['Suburb'].str.len() == 0) |
+    (input_df['Number'].str.len() == 0))
 # Only want to copy suburb if blank.
 copycol(input_df, 'AddressName', 'Type', condition)
 
 
-# If AddressName is a number, copy Type to Suburb and AddressName to Number. Type is in Overlay
+# If AddressName is a number, copy Type to Suburb and AddressName to Number.
+# Type is in Overlay
 input_df['keycolumn'] = input_df['AddressName'].copy()
-condition = ((input_df['keycolumn'].
-        str.isnumeric()==False))
+condition = (
+    (input_df['keycolumn'].
+        str.isnumeric() == 0))
 # Only want to copy suburb if blank.
 copycol(input_df, 'Type', 'Suburb', condition)
 copycol(input_df, 'AddressName', 'Number', condition)
@@ -286,22 +312,31 @@ copycol(input_df, 'AddressName', 'Number', condition)
 # --- SPLIT AND PROCESS OVERLAY  ----
 '''
 # If Overlay is longer than HOxxx, split it into sub strings.
-# Create a new DF with the first column split into two strings ['HO123' 'Bendigo Street 4']
-overlay_df = input_df['Overlay'].str.split(pat=r'(HO[\d]*)|(Street)|(Avenue)', n=2, expand=True)
-overlay_df.columns = ['unused', 'overlaykey', 'b1', 'b2', 'addressname', 'b4','is_street', 'is_avenue', 'addrnumber']
+# new df splits Overlay into two strings ['HO123', 'and the rest']
+overlay_df = input_df['Overlay'].str.split(
+    pat=r'(HO[\d]*)|(Street)|(Avenue)',
+    n=2,
+    expand=True)
+
+overlay_df.columns = [
+    'unused', 'overlaykey', 'b1', 'b2', 'addressname',
+    'b4', 'is_street', 'is_avenue', 'addrnumber']
 overlay_df['addressname'] = overlay_df['addressname'].str.strip()
 # Write this new overlay dataframe for diagnostics.
-overlay_df.to_csv("{}".format("splits.csv"),
+overlay_df.to_csv(
+    "{}".format("splits.csv"),
     mode='w', header=True, index=False, encoding='utf8')
 
 
 def merge_in(input_df, overlay_df, from_field, to_field):
     # Copy from overlay_df to input_df if the condition is false.
     # ie. if from_field is not blank and to field is blank.
-    condition = ((overlay_df[from_field].str.len() == 0) | ( input_df[to_field].str.len() > 0 ))
-    input_df[to_field].where(condition,
-                other=overlay_df[from_field],
-                inplace=True)
+    condition = ((overlay_df[from_field].str.len() == 0) |
+                 (input_df[to_field].str.len() > 0))
+    input_df[to_field].where(
+        condition,
+        other=overlay_df[from_field],
+        inplace=True)
     return input_df
 
 
@@ -318,7 +353,12 @@ input_df.drop(['keycolumn'], axis=1,  inplace=True)
 
 # ---- save the results. ---- #
 output_df = input_df
-output_df.to_csv("{}".format(output_filename), mode='w', header=True, index=False, encoding='utf8')
+output_df.to_csv("{}".format(
+    output_filename),
+    mode='w',
+    header=True,
+    index=False,
+    encoding='utf8')
 output_count = len(output_df['Overlay'])
 print('Cleaned {} lines to {} lines'.format(input_count, output_count))
 exit(0)
