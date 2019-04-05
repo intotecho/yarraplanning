@@ -354,6 +354,14 @@ condition = (
 # Only want to copy suburb if blank.
 copycol(input_df, 'AddressName', 'Type', condition)
 
+# --  When Suburb is blank and PropertyType is not blank, Copy PropertyType to Suburb
+input_df['keycolumn'] = input_df['Suburb'].copy()
+condition = (
+    (input_df['Suburb'].str.len() != 0) |
+    (input_df['PropertyType'].str.len() == 0))
+# Only want to copy suburb if blank.
+copycol(input_df, 'PropertyType', 'Suburb', condition)
+
 # logger.debug('8 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
 
 # If AddressName is a number, copy Type to Suburb and AddressName to Number.
@@ -475,12 +483,23 @@ input_df['NormalAddress'] = \
 
 # Remove some of the spurious descriptions [part|tower|rear|sign|mural]
 regex = re.compile(
-  r'(.*)( \()(part|near|tower|rear|sign|mural|west|hall|Ground ?Floor|First ?Floor)(\))(.*)'
+  r'(.*)( \()(part|near|tower|rear|sign|mural|west|hall|northern|Ground ?Floor|First ?Floor)(\))(.*)'
 )
 input_df['NormalAddress'] = input_df['NormalAddress'].str.replace(
     regex,
     "\\1\\5",
     regex=True)
+
+
+# Change '341 part (341-347) Fitzroy' to '341-347 FITZROY'
+regex = re.compile(
+  r'(.*)(\d*)( part ? ?\()(.*)(\))(.*)'
+)
+input_df['NormalAddress'] = input_df['NormalAddress'].str.replace(
+    regex,
+    "\\4\\6",
+    regex=True)
+
 
 # Remove some of the spurious descriptions [part|tower|rear|sign|mural]
 input_df['NormalAddress'] = input_df['NormalAddress'].str.replace(
