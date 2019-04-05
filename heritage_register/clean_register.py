@@ -3,10 +3,10 @@
 """
 The Yarra Heritage Register is recorded in the document  PDF file
 Review Of Heritage Overlay Areas 2007 Appendix 8 Revised May 2017.pdf
-This reference doc in the planning scheme  is ammended from time to time.
+This reference doc in the planning scheme is ammended from time to time
+but only when there is a planning scheme amendment.
 
 The link moves, and was last seen at:
-
 https://www.yarracity.vic.gov.au/the-area/planning-for-yarras-future/yarra-planning-scheme-and-amendments/incorporated-documents
 https://www.yarracity.vic.gov.au/-/media/files/planning-scheme-amendments/amendment-c231/am-c231--september--appendix-8.pdf?la=en&hash=F7D784016EBAF0750310399CCCDCE29D30A5B1C2
 
@@ -27,7 +27,7 @@ so that the output is ready for uploading to BigQuery or other databases.
 import pandas as pd
 import numpy as np
 import logging
-
+import re
 logger = logging.getLogger("root")
 logger.setLevel(logging.INFO)
 # create console handler
@@ -39,16 +39,16 @@ logger.addHandler(ch)
 # ------------------ CONFIGURATION -------------------------------
 
 # Set your input file here
-input_filename = "revew_of_heritage_overlay_areas_2007_rev_may_2017.csv"
-
+# e.g. "revew_of_heritage_overlay_areas_2007_rev_may_2017.csv"
+input_filename = "tabula_yarra_heritage_database_c191_Jan2019.csv"
 # Set your output file name here.
-output_filename = "yarra_heritage_register.csv"
+output_filename = "yarra_heritage_register_C191_auto.csv"
 
 # Specify the columns we wish to read from the apps file. We want them all.
 register_columns_in = [
     'Overlay', 'Address', 'Type',	'Number', 'Suburb',
     'Property Type', 'Property No.', 'Heritage Status',
-    'Estimated Date']
+    'Estimated Date', 'Overflow']
 
 suburbs = [
     'Abbotsford',
@@ -69,27 +69,70 @@ suburbs = [
     '(west) Clifton Hill'
     ]
 
-street_types = [
-    'Abbotsford',
-    'Avenue',
-    'Boulevard',
-    'Court',
-    'Crescent',
-    'Crofts',
-    'Drive',
-    'Esplanade',
-    'Grove',
-    'Highway',
-    'Lane',
-    'Parade',
-    'Place',
-    'Richmond',
-    'Road',
-    'Street',
-    'Terrace',
-    'Vaucluse',
-    'Way'
-]
+
+# Reference DataFrame of Street Types and their Abreviations.
+streetTypde_df = pd.DataFrame({
+    'street_types': [
+        'Avenue',
+        'Boulevard',
+        'Court',
+        'Crescent',
+        'Crofts',
+        'Drive',
+        'Esplanade',
+        'Grove',
+        'Highway',
+        'Lane',
+        'Parade',
+        'Place',
+        'Road',
+        'Street',
+        'Terrace',
+        'Vaucluse',
+        'Way'],
+    'street_abbr': [
+        'Ave',
+        'Bvd',
+        'Ct',
+        'Cres',  # Sometimes Prefixed with 'The' in Applications
+        'Crofts',
+        'Drive',
+        'Esplanade',  # Sometimes Prefixed with 'The' in Applications
+        'Gr',
+        'Hwy',
+        'Lane',  # Once abbreviated to 'Ln' in Buckhurst,  usually 'Lane'
+        'Pde',
+        'Pl',
+        'Rd',
+        'St',
+        'Tce',
+        'Vaucluse',  # Sometimes Prefixed with 'The' in Applications
+        'Way']
+    })
+
+
+'''
+StreetTypeinRegister	Abbr	Comments
+Crescent	Cres	Prefix with 'The'
+Esplanade	Esplanade	Prefix with 'The'
+Vaucluse	Vaucluse	Prefix with 'The'
+Lane	Lane	Ln used once for Buckhurst Ln
+'''
+
+
+''' Need to fix this
+Abinger
+Street
+null
+Richmond
+Malt House (Former)
+194930
+Individually Significant
+1880-1890
+Jan-24 Abinger St Richmond
+'''
+
+
 # ------------------ DATA LOADING --------------------------------
 
 # Read the input data to a Pandas Dataframe
@@ -105,9 +148,10 @@ if 'Overlay' not in input_df.columns:
     raise ValueError("Missing Address column in input data")
 
 # Rename columns to be BigQuery compatible
+# You have to add a column heading for 'Overflow' manually to the input file.
 input_df.columns = [
-    'Overlay', 'AddressName', 'Type', 'Number', 'Suburb',
-    'PropertyType', 'PropertyId', 'HeritageStatus', 'EstimatedDate']
+    'Overlay', 'AddressName', 'Type', 'Number', 'Suburb',   'PropertyType',
+    'PropertyId', 'HeritageStatus', 'EstimatedDate', 'Overflow']
 
 input_count = len(input_df['Overlay'])
 
@@ -229,6 +273,12 @@ copycol(input_df, 'PropertyType', 'HeritageStatus', condition)
 copycol(input_df, 'Suburb', 'PropertyId', condition)
 copycol(input_df, 'Number', 'PropertyType', condition)
 
+
+'''
+A little diagnostic to see which step caused a change to the matching row
+logger.debug('2 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
+'''
+
 # --  When the Suburb contains a HeritageStatus.
 input_df['keycolumn'] = input_df['Suburb'].copy()
 condition = (
@@ -241,7 +291,8 @@ copycol(input_df, 'Number', 'PropertyId', condition)
 copycol(input_df, 'Type', 'PropertyType', condition)
 copycol(input_df, 'AddressName', 'Suburb', condition)
 
-# --  When Number contains a Suburb and
+
+# --  When Number contains a Suburb
 input_df['keycolumn'] = input_df['Number'].copy()
 condition = (
     input_df['keycolumn'].
@@ -257,9 +308,11 @@ condition = (
     str.contains('Contributory|Individually|Register', case=False) == 0)
 copycol(input_df, 'HeritageStatus', 'PropertyId', condition)
 copycol(input_df, 'EstimatedDate', 'HeritageStatus', condition)
+copycol(input_df, 'Overflow', 'EstimatedDate', condition)
 
-# --  When Type contains a Street Type
-input_df['keycolumn'] = input_df['Type'].copy()
+# --  When AddressName contains a StreetType it's OK
+input_df['keycolumn'] = input_df['AddressName'].copy()
+street_types = streetTypde_df['street_types']
 condition = (
     input_df['keycolumn'].
     str.contains('|'.join(street_types), regex=False) == 0)
@@ -276,6 +329,8 @@ copycol(input_df, 'Number', 'Suburb', condition)
 copycol(input_df, 'Type', 'Number', condition)
 copycol(input_df, 'AddressName', 'Type', condition)
 
+# logger.debug('2 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
+
 # --  When AddressName is a StreetType & both Suburb and Number are not blank
 input_df['keycolumn'] = input_df['AddressName'].copy()
 condition = (
@@ -287,6 +342,8 @@ condition = (
 copycol(input_df, 'Type', 'Number', condition)
 copycol(input_df, 'AddressName', 'Type', condition)
 
+# logger.debug('7 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
+
 # --  When AddressName contains a StreetType, Suburb is not blank but Number is
 input_df['keycolumn'] = input_df['AddressName'].copy()
 condition = (
@@ -297,6 +354,7 @@ condition = (
 # Only want to copy suburb if blank.
 copycol(input_df, 'AddressName', 'Type', condition)
 
+# logger.debug('8 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
 
 # If AddressName is a number, copy Type to Suburb and AddressName to Number.
 # Type is in Overlay
@@ -307,6 +365,8 @@ condition = (
 # Only want to copy suburb if blank.
 copycol(input_df, 'Type', 'Suburb', condition)
 copycol(input_df, 'AddressName', 'Number', condition)
+
+# logger.debug('9 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
 
 '''
 # --- SPLIT AND PROCESS OVERLAY  ----
@@ -340,6 +400,8 @@ def merge_in(input_df, overlay_df, from_field, to_field):
     return input_df
 
 
+# logger.debug('10 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
+
 merge_in(input_df, overlay_df, 'addressname', 'AddressName')
 merge_in(input_df, overlay_df, 'is_street', 'Type')
 merge_in(input_df, overlay_df, 'is_avenue', 'Type')
@@ -347,9 +409,89 @@ merge_in(input_df, overlay_df, 'addrnumber', 'Number')
 # Replace the overlay key column
 input_df['Overlay'] = overlay_df['overlaykey']
 
+# logger.debug('11 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
+
 # tidy up
+input_df.drop(['Overflow'], axis=1,  inplace=True)
 input_df.drop(['keycolumn'], axis=1,  inplace=True)
 
+# Update HeritageStatus when case is incorrect.
+# This was fixed in C191 and made consistent.
+'''
+input_df['Number'] = input_df['Number'].str.replace(
+     r'[Ii]ndividually [Ss]ignificant', 'Individually significant', regex=True)
+
+input_df['Number'] = input_df['Number'].str.replace(
+     r'Victorian Heritage register', 'Victorian Heritage Register', regex=True)
+'''
+
+
+# --- Fix street Numbers when converted to date buy Tabula ---
+# First converts 'Jan-13' to '1/13', then '13-Jan' to '13/1'.
+def fixdate(df, column, month, number):
+    df[column] = df[column].str.replace(
+            r"(.*)\-{}".format(month),
+            "\\1/{}".format(number))
+    df[column] = df[column].str.replace(
+                r"{}\-(.*)".format(month),
+                "{}/\\1".format(number))
+    return df
+
+
+fixdate(input_df, 'Number', 'Jan', 1)
+fixdate(input_df, 'Number', 'Feb', 2)
+fixdate(input_df, 'Number', 'Mar', 3)
+fixdate(input_df, 'Number', 'Apr', 4)
+fixdate(input_df, 'Number', 'May', 5)
+fixdate(input_df, 'Number', 'Jun', 6)
+fixdate(input_df, 'Number', 'Jul', 7)
+fixdate(input_df, 'Number', 'Aug', 8)
+fixdate(input_df, 'Number', 'Sep', 9)
+fixdate(input_df, 'Number', 'Oct', 10)
+fixdate(input_df, 'Number', 'Nov', 11)
+fixdate(input_df, 'Number', 'Dec', 12)
+
+# Normalise the (Unit n) to VicData address
+input_df['Number'] = input_df['Number'].str.replace(
+            r"(.*)( \()(Unit ?)(\d*)(\))",
+            "\\4/\\1",
+            regex=True)
+
+
+# Insert 'Street' when missing for Johnston Street HO505
+condition = (
+    (input_df['Type'].str.match("")) |
+    (input_df['AddressName'].str.match("Johnston")))
+input_df['Type'].where(condition, other="Street", inplace=True)
+
+# Make a new normalised address field.
+# This fomrat matches VicData addresses except for the postcode we don't have.
+
+input_df['NormalAddress'] = \
+    input_df['Number'] \
+    + ' ' + input_df['AddressName'].str.upper() \
+    + ' ' + input_df['Type'].str.upper() \
+    + ' ' + input_df['Suburb'].str.upper()
+
+# Remove some of the spurious descriptions [part|tower|rear|sign|mural]
+regex = re.compile(
+  r'(.*)( \()(part|near|tower|rear|sign|mural|west|hall|Ground ?Floor|First ?Floor)(\))(.*)'
+)
+input_df['NormalAddress'] = input_df['NormalAddress'].str.replace(
+    regex,
+    "\\1\\5",
+    regex=True)
+
+# Remove some of the spurious descriptions [part|tower|rear|sign|mural]
+input_df['NormalAddress'] = input_df['NormalAddress'].str.replace(
+            r'(.*)(\()(WEST)(\))(.*)',
+            "\\1\\5",
+            regex=True)
+# '-oonah' got converted by excel to '#NAME".
+input_df['PropertyType'] = input_df['PropertyType'].str.replace(
+            r'(\#NAME\?)',
+            "Oonah",
+            regex=True)
 
 # ---- save the results. ---- #
 output_df = input_df
