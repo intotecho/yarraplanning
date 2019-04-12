@@ -6,4 +6,8 @@ Addresses can be geocoded for free at a rate of 2500 addresses per day, limited 
 
 Data input and output is processed from CSV files.
 
-Please see full blog post at www.shanelynn.ie/
+Also merges the geolocation data back in and fixes the column names.
+
+Compatible with preemptible google shell.
+    
+Based on blog post at www.shanelynn.ie/

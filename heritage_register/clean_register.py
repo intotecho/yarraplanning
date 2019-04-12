@@ -483,7 +483,7 @@ input_df['NormalAddress'] = \
 
 # Remove some of the spurious descriptions [part|tower|rear|sign|mural]
 regex = re.compile(
-  r'(.*)( \()(part|near|tower|rear|sign|mural|west|hall|northern|Ground ?Floor|First ?Floor)(\))(.*)'
+  r'(.*)( \()(part|under|near|tower|rear|sign|mural|west|hall|northern|Ground ?Floor|First ?Floor)(\))(.*)'
 )
 input_df['NormalAddress'] = input_df['NormalAddress'].str.replace(
     regex,
