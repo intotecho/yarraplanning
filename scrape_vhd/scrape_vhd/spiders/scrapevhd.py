@@ -25,7 +25,9 @@ import re
 
 class ScrapevhdSpider(CrawlSpider):
     name = 'scrapevhd'
-    allowed_domains = ['heritagecouncil.vic.gov.au']
+    allowed_domains = ['vhd.heritagecouncil.vic.gov.au']
+    start_urls = []
+
     # specifies exported fields and order
     ITEM_PIPELINES = {
        'myproject.pipelines.ScrapeVhdPipeline': 300
@@ -50,45 +52,47 @@ class ScrapevhdSpider(CrawlSpider):
             'VHRlng',
             ]
     }
+    '''
+                restrict_xpaths=([
+                    '//ul[@class="search-results-listings"]',
+                    '//ul[@class="display-control-places"]',
+                    '//div[@class="listings-container detailed-view"]',
+                    '//div[@class="individual-listing-content"]',
+                    '//div[@id="record-details"]',
+                    '//div[@id="additional-info"]',
+                    '//div[@class="listing-sidebar-map"]']
+                ),
+    '''
     rules = (
-        # Extract links matching 'item.php' and parse them with the spider's method parse_item
-        # deny=('https://vhd.heritagecouncil.vic.gov.au/*',        )
-        
+        # Extract links matching search or place and parse them with the spider's method parse_item
+       
         Rule(
             LinkExtractor(
-                allow=('search.*',
-                       'place.*',),
-
-                restrict_xpaths=([
-                    './/ul[@class="search-results-listings"]',
-                    './/ul[@class="display-control-places"]',
-                    './/div[@class="listings-container detailed-view"]',
-                    './/div[@class="individual-listing-content"]',
-                    './/div[@id="record-details"]',
-                    './/div[@id="additional-info"]',
-                    './/div[@class="listing-sidebar-map"]']
-                ),
+                allow=('places.*',),
                 deny=('shipwreck.*',
-                    'img.*',
-                )
+                      'search.*',
+                      'img.*',)
             ),
             callback='parse_placedetails',
             follow=False
         ),
     )
 
+    def __init__(self, *args, **kwargs):
+        pages = range(0, 824)
+        #pages = range(30, 34)
+        for p in pages:
+            url = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=&kwt=exact&kwe=&aut_off=1&aut%%5B0%%5D=&cp=0&mun%%5B0%%5D=77&str=&sub=&pre=&arcs=0&arc=&tp=0&nme=&nmf=&his=&yt=0&yc=&idnt=hermes&idn=&do=s&collapse=true&type=place&spage=1&tab=places&view=detailed&rpp=25&ppage={}'.format(p)
+            self.start_urls.append(url)
+        super(ScrapevhdSpider, self).__init__(*args, **kwargs)
+        print(u'=== INIT ====')
+        print(self.start_urls)
+
     def stripif(self, string):
         if string:
             return string.strip()
         else:
             return 'none'
-
-
-    def start_requests(self):
-        pages = range(0, 824)
-        for p in pages:
-            url = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=&kwt=exact&kwe=&aut_off=1&aut%%5B0%%5D=&cp=0&mun%%5B0%%5D=77&str=&sub=&pre=&arcs=0&arc=&tp=0&nme=&nmf=&his=&yt=0&yc=&idnt=hermes&idn=&do=s&collapse=true&type=place&spage=%s&tab=places&view=detailed&rpp=25&ppage=2' %p
-            yield scrapy.Request(url=url,  callback=self.parse_searchresults)
 
     '''
     parse detail place page
@@ -98,9 +102,11 @@ class ScrapevhdSpider(CrawlSpider):
         item = response.meta
         match = re.search(r'/(search)\?', response.url)
         if match and match.group(1) == u'search':
-            page = re.search(r'page=(\d*)',  response.url).group(1)
-            sites = response.css("li.row")
-            self.log('\n\n === PAGE {} HAS  {} SITES TO SCRAPE\n\n'.format(page, len(sites)))
+            pagematch = re.search(r'page=(\d*)',  response.url)
+            if pagematch is not None:
+                page = pagematch.group(1)
+                sites = response.css("li.row")
+                self.logger.error('\n\n === PARSING SEARCH RESULTS PAGE {} HAS  {}\n\n'.format(page, len(sites)))
             return
 
         mapLocation = response.css('div .listing-sidebar-map').css('iframe::attr(src)').get()
@@ -126,12 +132,11 @@ class ScrapevhdSpider(CrawlSpider):
         self.logger.info("\n\n\n === YIELDING PLACE DETAILS {} {} ===\n\n\n".format(item['vhdplaceid'], item['VHRlng']  ))
         yield item
 
-
     '''
     parse search results page
     '''
 
-    def parse_searchresults(self, response):
+    def parse_start_url(self, response):
         page = re.search(r'page=(\d*)',  response.url).group(1)
         sites = response.css("li.row")
         self.log('\n\n === PAGE {} HAS  {} SITES TO SCRAPE\n\n'.format(page, len(sites)))
@@ -153,9 +158,9 @@ class ScrapevhdSpider(CrawlSpider):
             items['Summary'] = True
             items['Overlay'] = u''
             items['VHR'] = u''
- 
+
             if len(href) > 0:
-                self.logger.info("\n\n\n === SEARCH FOUND ITEM {} on PAGE {}===\n\n\n".format(items['vhdplaceid'], page))
+                self.logger.info("\n\n\n === SEARCH FOUND ITEM {} on PAGE {} === \n\n\n".format(items['vhdplaceid'], page))
                 yield scrapy.Request(
                     href,
                     meta=items,
