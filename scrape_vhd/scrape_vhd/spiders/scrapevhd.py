@@ -79,7 +79,7 @@ class ScrapevhdSpider(CrawlSpider):
     )
 
     def __init__(self, *args, **kwargs):
-        pages = range(0, 824)
+        pages = range(270, 824)
         #pages = range(30, 34)
         for p in pages:
             url = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=&kwt=exact&kwe=&aut_off=1&aut%%5B0%%5D=&cp=0&mun%%5B0%%5D=77&str=&sub=&pre=&arcs=0&arc=&tp=0&nme=&nmf=&his=&yt=0&yc=&idnt=hermes&idn=&do=s&collapse=true&type=place&spage=1&tab=places&view=detailed&rpp=25&ppage={}'.format(p)
@@ -102,7 +102,7 @@ class ScrapevhdSpider(CrawlSpider):
         item = response.meta
         match = re.search(r'/(search)\?', response.url)
         if match and match.group(1) == u'search':
-            pagematch = re.search(r'page=(\d*)',  response.url)
+            pagematch = re.search(r'ppage=(\d*)',  response.url)
             if pagematch is not None:
                 page = pagematch.group(1)
                 sites = response.css("li.row")
@@ -137,7 +137,10 @@ class ScrapevhdSpider(CrawlSpider):
     '''
 
     def parse_start_url(self, response):
-        page = re.search(r'page=(\d*)',  response.url).group(1)
+        # page = re.search(r'ppage=(\d*)',  response.url).group(1)
+        pagematch = re.search(r'page=(\d*)',  response.url)
+        if pagematch is not None:
+            page = pagematch.group(1)
         sites = response.css("li.row")
         self.log('\n\n === PAGE {} HAS  {} SITES TO SCRAPE\n\n'.format(page, len(sites)))
         for site in sites:
