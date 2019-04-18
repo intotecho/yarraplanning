@@ -131,10 +131,14 @@ input_df['IncludedInVHR'] = input_df['IncludedInVHR'].str.replace(r'\r', " ")
 input_df.fillna(" ", inplace=True)
 input_df['keyrow'] = (input_df['Overlay'].str.match(r'.*HO\d*.*') != 0)
 
-input_df['FenceControls'] = input_df['FenceControls'].apply(str)
+#input_df['FenceControls'] = input_df['FenceControls']
+
+# === REMOVE HEADINGS === 
 input_df = input_df[input_df['Overlay'].str.match(r'PS|map|ref') == 0]
+input_df = input_df[input_df['Overlay'].str.match(r'PS map ref') == 0]
 input_df = input_df[input_df['PaintControls'].str.match(r'Controls|Apply') == 0]
-input_df = input_df[input_df['FenceControls'].str.match('Clause 43\.01\-4') == 0]
+input_df = input_df[input_df['FenceControls'].str.match(r'Clause 43\.01\-4') == 0]
+input_df = input_df[input_df['FenceControls'].str.match(r'Controls|Apply') == 0]
 input_df.reset_index(inplace=True, drop=True)
 #print(input_df['FenceControls'].tolist())
 print ('=== HEAD ===')
@@ -143,15 +147,28 @@ print (input_df.head(20))
 #print (input_df.info())
 #print (input_df[3])
 #print (input_df['FenceControls'].tolist())
+
+print ('=== INTERMEDIATE ===')
+
+input_df.to_csv("{}".format(
+    "intermediate.csv"),
+    mode='w',
+    header=True,
+    index=False,
+    encoding='utf8')
+
 print ('=== LOOP ===')
 length = len(input_df)
-pattern = re.compile(r'\r')
+# pattern = re.compile(r'H\d*')
+
 for i in range(0, length-1):
     #if i >= length:
     #    print ('Exiting at row {} {}'.format(i, input_df.loc[i]))
     #    break
     heritagePlace = input_df.loc[i, 'HeritagePlace'].encode('utf-8')
-    includedInVHR = input_df.loc[i, 'IncludedInVHR'].encode('utf-8').strip
+    includedInVHR = input_df.loc[i, 'IncludedInVHR'].encode('utf-8')
+    paint = input_df.loc[i, 'PaintControls'].encode('utf-8')
+    internal = input_df.loc[i, 'InternalControls'].encode('utf-8')
     # print(includedInVHR)
     isKeyRow = input_df.loc[i, 'keyrow']
     if isKeyRow == True:
@@ -159,31 +176,61 @@ for i in range(0, length-1):
             isfollowingRowKey = input_df.loc[d, 'keyrow']
             if isfollowingRowKey == False:
                 try:
-                    heritagePlace = heritagePlace + u' ' + input_df.loc[d, 'HeritagePlace'].encode('utf-8')
-                    includedInVHR = includedInVHR + u' ' + input_df.loc[d, 'IncludedInVHR'].encode('utf-8').replace(u"\u2019", "'")
-
-                    print('{} {}'.format(i, includedInVHR))
-                except ValueError, TypeError:
+                    nextheritagePlace = input_df.loc[d, 'HeritagePlace'].encode('utf-8')
+                    nextVHR = input_df.loc[d, 'IncludedInVHR'].encode('utf-8')
+                    nextPaint = input_df.loc[d, 'PaintControls'].encode('utf-8')
+                    nextInternal = input_df.loc[d, 'InternalControls'].encode('utf-8')
+                    heritagePlace = heritagePlace  + nextheritagePlace #.encode('utf-8')
+                    includedInVHR = includedInVHR  + nextVHR #.encode('utf-8').replace(u"\u2019", "'")
+                    paint = paint  + nextPaint #.encode('utf-8').replace(u"\u2019", "'")
+                    internal = internal  + nextInternal #.encode('utf-8').replace(u"\u2019", "'")
+                    # print('{} {}'.format(i, includedInVHR))
+                except TypeError :
                     print ("exception: {}: {}".format(
-                        input_df.loc[i, 'HeritagePlace'],
+                        input_df.   loc[i, 'HeritagePlace'],
                         input_df.loc[d, 'HeritagePlace']))
             else:
                 break
-        input_df.loc[i, 'HeritagePlace'] = heritagePlace
-        input_df.loc[i, 'IncludedInVHR'] = includedInVHR
-        print(includedInVHR)
+        
+        input_df.loc[i, 'HeritagePlace'] = heritagePlace.strip()
+        input_df.loc[i, 'PaintControls'] = paint.strip()
+        input_df.loc[i, 'InternalControls'] = internal.strip()
+
+        includedInVHR = includedInVHR.strip()
+        
+        href =  re.search(r'(H\d*)', includedInVHR.decode("utf-8"))
+        if href: 
+            input_df.loc[i, 'VHR'] = href.group(1)
+        else:
+            input_df.loc[i, 'VHR'] = u''
+
+        included =  re.search(r'(\w*)', includedInVHR.decode("utf-8"))
+        if included: 
+            input_df.loc[i, 'IncludedInVHR'] = included.group(0)
+        else:
+            input_df.loc[i, 'IncludedInVHR'] = u' '
+
+        print(i, ', ', input_df.loc[i, 'Overlay'], ' ', input_df.loc[i, 'IncludedInVHR'], '+', input_df.loc[i, 'VHR'])
     else:
         pass
+# === DROP Non-Key  ROWS ====
+# input_df[input_df['keyrow'] ==True]
+input_df = input_df.drop(input_df[input_df.keyrow ==False].index)
 
+#input_df['IncludedInVHR'] = input_df['IncludedInVHR'].str.replace(r'\r', " ")
+#input_df['IncludedInVHR'] = input_df['IncludedInVHR'].str.replace(r'\n', " ")
+#input_df['VHR'] = input_df['IncludedInVHR']
+#input_df['VHR'] = input_df['IncludedInVHR'].str.decode('utf-8').replace(
+#    "(H\d*)",   "\1",  regex=True)
+#input_df['VHR'] = input_df['IncludedInVHR'].str.replace(
+##    r"(H\d*)",
+#    r"\\2")
+#
+#input_df['IncludedIn'] = ''
+#input_df['IncludedIn'] = input_df['IncludedInVHR'].str.match(r"No|\-|^$|",
+#    "\\1")
 
-input_df['VHR'] = input_df['IncludedInVHR'].str.replace(
-    r"(.*)(H\d*)(.*)",
-    "\\2")
-input_df['IncludedIn'] = 'No'
-input_df['IncludedIn'] = input_df['IncludedInVHR'].str.replace(
-    r"(\w*).*",
-    "\\1")
-
+input_df.drop('keyrow', 1, inplace=True)
 # ---- save the results. ---- #
 output_df = input_df
 output_df.to_csv("{}".format(

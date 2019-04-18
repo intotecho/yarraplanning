@@ -11,3 +11,17 @@
     height: 5%;
     min-height: 30px;
 }
+
+.heritageStatusColor {
+    color : blue;
+   }
+
+.heritageStatusColor[data-status="Contributory"]:after {
+    content : "Contributory";
+    color : green;
+   }
+
+.heritageStatusColor[data-status="Individually Significant"]:after {
+    content : "Individually Significant";
+    color : goldenrod;
+}
