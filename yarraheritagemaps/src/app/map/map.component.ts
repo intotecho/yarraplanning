@@ -87,15 +87,11 @@ export class MapComponent implements AfterViewInit {
     Promise.all([ pendingMap, this.pendingStyles ])
       .then(([_, mapStyles]) => {
         this._geoColumn = 'bndry';
-        this.map = new google.maps.Map(this.mapEl.nativeElement, {center: {lat: -37.83433865, lng: 144.96147273999998}, zoom: 5});
+        this.map = new google.maps.Map(this.mapEl.nativeElement, {center: {lat: -37.83433865, lng: 144.96147273999998}, zoom: 6});
         this.map.setOptions({styles: mapStyles});
 
         this.infoWindow = new google.maps.InfoWindow({content: ''});
-        /*
-        this.map.data.addListener('click', (e) => {
-          this.showInfoWindow(e.feature, e.latLng);
-        });
-        */
+
         const bounds = new google.maps.LatLngBounds();
         bounds.extend(new google.maps.LatLng(-37.83433865, 144.96147273999998));
         bounds.extend(new google.maps.LatLng(-37.775308171, 145.03859800099997));
@@ -118,11 +114,13 @@ export class MapComponent implements AfterViewInit {
   }
 
   addResultsToLayer(layer, rows, zIndex) {
+
     rows.forEach((row) => {
       try {
         const geometry = parseWKT(row[this._geoColumn]);
         const feature = {type: 'Feature', geometry, properties: row, zIndex: zIndex};
         layer.addGeoJson(feature);
+
       } catch (e) {
         // Parsing can fail (e.g. invalid WKT); just log the error.
         console.error(e);
@@ -131,83 +129,6 @@ export class MapComponent implements AfterViewInit {
     layer.setMap(this.map);
   }
 
-  // Convert to equivalent geodesic features.
-  convertFeaturesToGeodesic(data) {
-
-    const bounds = new google.maps.LatLngBounds();
-    data.forEach((f: google.maps.Data.Feature) => {
-      const g = f.getGeometry();
-
-      if (!g) { return; }
-
-      switch (g.getType()) {
-
-        case 'Point':
-        case 'MultiPoint':
-          break;
-
-        case 'LineString':
-          data.overrideStyle(f, { visible: false, 'zIndex': 100 });
-          this._geodesicFeatures.set(f, new google.maps.Polyline({
-            path: (<google.maps.Data.LineString>g).getArray(),
-            map: this.map,
-            geodesic: true
-          }));
-          break;
-
-        case 'MultiLineString':
-          data.overrideStyle(f, { visible: false, 'zIndex': 100 });
-          const polylinePathList = (<google.maps.Data.MultiLineString>g).getArray().map((line) => line.getArray());
-          this._geodesicFeatures.set(f, polylinePathList.map((polylinePath) => new google.maps.Polyline({
-            path: polylinePath,
-            map: this.map,
-            geodesic: true
-          })));
-          break;
-
-        case 'Polygon':
-          data.overrideStyle(f, { visible: false, 'zIndex': 100 });
-          const paths = (<google.maps.Data.Polygon>g).getArray().map((ring) => ring.getArray());
-          this._geodesicFeatures.set(f, new google.maps.Polygon({
-            paths: paths,
-            map: this.map,
-            geodesic: true
-          }));
-          break;
-
-        case 'MultiPolygon':
-          data.overrideStyle(f, { visible: false, 'zIndex': 100 });
-          const polygonPathsList = (<google.maps.Data.MultiPolygon>g).getArray()
-            .map((polygon) => polygon.getArray().map((ring) => ring.getArray()));
-          this._geodesicFeatures.set(f, polygonPathsList.map((polygonPaths) => new google.maps.Polygon({
-            paths: polygonPaths,
-            map: this.map,
-            geodesic: true
-          })));
-          break;
-
-        default:
-          console.warn(`Geodesic conversion not yet implemented for type "${g.getType()}".`);
-      }
-
-      // Add event listeners to converted features.
-      if (this._geodesicFeatures.has(f)) {
-        let geometries = this._geodesicFeatures.get(f);
-        geometries = Array.isArray(geometries) ? geometries : [geometries];
-        geometries.forEach((geom) => {
-          geom.addListener('click', (e) => this.showInfoWindow(f, e.latLng));
-        });
-        console.log('add click');
-      } else {
-        console.log('no click');
-      }
-      recursiveExtendBounds(g, bounds.extend, bounds);
-    });
-
-    if (!bounds.isEmpty()) {
-      this.map.fitBounds(bounds);
-    }
-  }
   /**
    * Converts row objects into GeoJSON, then loads into Maps API.
    */
@@ -230,10 +151,13 @@ export class MapComponent implements AfterViewInit {
       this._overlaysLayer.addListener('mouseover', (event) => {
         if (event.feature) {
           this.overlayInfo = event.feature.getProperty('ZONE_CODE');
-          this.overlayChanged.emit(this.overlayInfo );
+          if (this.overlayInfo !== null) {
+            this.overlayChanged.emit(this.overlayInfo );
+          } 
           event.feature.setProperty('higlighted', 1);
         }
       });
+
       this._overlaysLayer.addListener('mouseout', (event) => {
         if (event.feature) {
           this.overlayInfo = ''; // event.feature.getProperty('ZONE_CODE');
@@ -241,25 +165,46 @@ export class MapComponent implements AfterViewInit {
           event.feature.setProperty('higlighted', 0);
         }
       });
+
       this._overlaysLayer.addListener('dblclick', (event) => {
         if (event.feature) {
           this.overlayInfo = event.feature.getProperty('ZONE_CODE');
           this.overlaySelected.emit(this.overlayInfo );
           this.overlayChanged.emit(this.overlayInfo );
-          // console.log('Selected ' +  this.overlayInfo);
         }
       });
       this._overlaysLayer.addListener('click', (e) => {
-          console.error('DEBUG: Clicked on Heritage Underlay ' + e.feature.getProperty('ZONE_DESC'));
           google.maps.event.trigger(this._propertiesLayer, 'click', e);
       });
 
     } else {  // properties layer
+
       this._propertiesLayer.setMap(null);
+      const bounds = new google.maps.LatLngBounds();
+
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
+      const map = this.map;
+      this._propertiesLayer.addListener('addfeature', function(e) {
+        recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds);
+        }
+      });
       this.addResultsToLayer(this._propertiesLayer, this._rows, 100);
+
+      this._propertiesLayer.addListener('mouseover', (event) => {
+        if (event.feature) {
+          event.feature.setProperty('higlighted', 1);
+        }
+      });
+
+      this._propertiesLayer.addListener('mouseout', (event) => {
+        if (event.feature) {
+          event.feature.setProperty('higlighted', 0);
+        }
+      });
+
       this._propertiesLayer.addListener('click', (e) => {
-        console.error('DEBUG: Clicked Property ' + e );
         const feature = e ? e.feature : null;
         if (feature) {
           this.showInfoWindow(feature, e.latLng);
@@ -276,18 +221,16 @@ export class MapComponent implements AfterViewInit {
     this.styler.uncache();
     this._propertiesLayer.forEach((feature) => {
       const featureStyles = this.getStylesForFeature(feature, styles);
-      if (this._geodesicFeatures.has(feature)) {
-        const geodesicFeature = this._geodesicFeatures.get(feature);
-        if (Array.isArray(geodesicFeature)) {
-          geodesicFeature.forEach((f) => f.setOptions(featureStyles));
-        } else {
-          (<google.maps.Polyline> geodesicFeature).setOptions(featureStyles);
-        }
-      } else {
-        this._propertiesLayer.overrideStyle(feature, featureStyles);
-      }
-    });
-  }
+      this._propertiesLayer.overrideStyle(feature, featureStyles);
+      });
+
+      this._propertiesLayer.setStyle(function(feature:  google.maps.Data.Feature) {
+        return feature.getProperty('higlighted') === 1 ?
+        {'strokeColor': 'red' , 'zIndex' : 200} :
+        {'strokeColor': 'blue', 'zIndex' : 100 };
+      });
+
+    }
 
   /**
    * Returns applicable style rules for a given row.
@@ -328,27 +271,38 @@ export class MapComponent implements AfterViewInit {
       feature.forEachProperty((value, key) => {
         properties[key] = key === this._geoColumn ? truncateWKT(value) : value;
       });
-      this.infoWindow.setContent(`<pre>${JSON.stringify(properties, null, 2)}</pre>`);
+      if (properties.hasOwnProperty('HeritageStatus')) {
+        const status = properties['HeritageStatus'];
+        this.infoWindow.setContent(`<b>${properties['NormalAddress']}</b><br/>
+        <p data-status=${status} class="heritageStatusColor">${status}</p>
+        In Heritage Overlay ${properties['Overlay']}
+        `
+        );
+
+      } else {
+        this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);
+      }
       this.infoWindow.open(this.map);
       this.infoWindow.setPosition(latLng);
-    } else {
-      console.log('not a feature');
-    }
+    } 
   }
 }
 
-function recursiveExtendBounds(geometry: any, callback: Function, self) {
+
+function recursiveExtendBounds(geometry, callback, thisArg) {
+  if(geometry == null) {
+    return;
+  }
   if (geometry instanceof google.maps.LatLng) {
-    callback.call(self, geometry);
+    callback.call(thisArg, geometry);
   } else if (geometry instanceof google.maps.Data.Point) {
-    callback.call(self, geometry.get());
+    callback.call(thisArg, geometry.get());
   } else {
-    geometry.getArray().forEach((g) => {
-      recursiveExtendBounds(g, callback, self);
+    geometry.getArray().forEach(function(g) {
+      recursiveExtendBounds(g, callback, thisArg);
     });
   }
 }
-
 function truncateWKT(text: string): string {
   text = String(text);
   return text.length <= 500 ? text : text.substr(0, 500) + '…';
