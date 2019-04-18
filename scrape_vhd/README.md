@@ -23,7 +23,9 @@ For each result, visit the place page and scrape key data such as
 ## SAMPLE COMMANDS
 
 >cd ~/yarraplanning/scrape_vhd
->rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -o yarra_vhd-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
+>rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a buildindex="True" -o yarra_vhd-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
+
+>scrapy crawl scrapevhd -a buildindex="True" first to build the index file. Then False to get the place details.
 
 ## Output
 The file yarra_vhd-$DATE.csv can be uploaded to BigQuery
