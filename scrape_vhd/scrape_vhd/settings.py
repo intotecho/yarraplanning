@@ -14,7 +14,6 @@ BOT_NAME = 'scrape_vhd'
 SPIDER_MODULES = ['scrape_vhd.spiders']
 NEWSPIDER_MODULE = 'scrape_vhd.spiders'
 
-
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'scrape_vhd (+http://www.yourdomain.com)'
 
