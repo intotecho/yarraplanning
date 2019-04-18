@@ -188,12 +188,6 @@ input_df['lower_blanklines'] = input_df['splitlines'].shift(axis=0, periods=-1)
 
 def mergspliterows(df, column):
     '''
-    # Where cond is True, keep the original value.
-    # Where False, replace with corresponding value from other.
-    # If splitlines is not empty or column is not empty then cond should be
-    # true and keep original value.
-    # i.e. if splitlines is empty and column is empty then transform column
-    # to the concatenation of above and below.
     '''
     df[column].where(
         ((df['splitlines'].str.len() != 0) | (df[column].str.len() != 0)),
