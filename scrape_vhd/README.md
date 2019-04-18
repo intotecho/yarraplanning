@@ -15,14 +15,36 @@ For each result, visit the place page and scrape key data such as
 - Image Links to one image of the place on the VHD place page,
 - Thumbnail Links to a small image of the place on the VHD place page,
 
+
+## Install
+- Create a Micro Google Compute Engine with Ubunto 18 image, and HTTP/HTTPS access
+- Follow the setup guide  https://cloud.google.com/python/setup
+
+```bash
+sudo apt update
+sudo apt install python python-dev python3 python3-dev
+wget https://bootstrap.pypa.io/get-pip.py
+sudo python get-pip.py
+sudo apt install virtualenv
+mkdir vhd
+cd vhd
+virtualenv --python python3 env
+source env/bin/activate
+sudo apt-get install python-dev
+sudo apt-get install libxml2-dev libxslt1-dev
+pip install scrapy
+git clone https://github.com/intotecho/yarraplanning.git
+cd yarraplanning/scrape_vhd
+```
+
 ## USAGE:
-1. Install scrapy 
 2. Creating a scrapy project called scrape_vhd
 3. Copy this file to to spiders folder.
 
 ## SAMPLE COMMANDS
 
 >cd ~/yarraplanning/scrape_vhd
+> screen 
 >rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -o yarra_vhd-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
 
 ## Output
