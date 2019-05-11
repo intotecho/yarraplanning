@@ -23,7 +23,7 @@ import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/map';
 
-import { StyleProps, StyleRule } from '../services/styles.service';
+import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
 
 import {
@@ -31,15 +31,21 @@ import {
   SAMPLE_QUERY,
   OVERLAYS_QUERY,
   SAMPLE_FILL_COLOR,
+  OVERLAY_FILL_COLOR,
+  OVERLAY_FILL_OPACITY,
+  OVERLAY_STROKE_COLOR,
+  OVERLAY_STROKE_OPACITY,
   SAMPLE_FILL_OPACITY,
   MAX_RESULTS_PREVIEW,
   SAMPLE_CIRCLE_RADIUS,
   SAMPLE_PROJECT_ID,
   SAMPLE_DATACENTER,
-  matchingHeritageOverlays,
-  HeritageOverlay
 } from '../app.constants';
 
+import {
+  matchingHeritageOverlays,
+  HeritageOverlay
+} from '../overlays';
 
 
 import { query } from '@angular/animations';
@@ -82,7 +88,8 @@ export class MainComponent implements OnInit, OnDestroy {
   stepIndex: Number = 0;
 
   // Current style rules
-  styles: Array<StyleRule> = [];
+  // styles: Array<StyleRule> = [];
+  styles: LayerStyles = new LayerStyles();
 
   // CodeMirror configuration
   readonly cmConfig = {
@@ -149,7 +156,7 @@ export class MainComponent implements OnInit, OnDestroy {
     const stylesGroupMap = {};
     StyleProps.forEach((prop) => stylesGroupMap[prop.name] = this.createStyleFormGroup());
     this.stylesFormGroup = this._formBuilder.group(stylesGroupMap);
-    this.stylesFormGroup.valueChanges.debounceTime(500).subscribe(() => this.updateStyles());
+    this.stylesFormGroup.valueChanges.debounceTime(500).subscribe(() => this.updateStyles(''));
   }
 
 
@@ -191,7 +198,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
   onStepperChange(e: StepperSelectionEvent) {
     this.stepIndex = e.selectedIndex;
-    this.updateStyles();
+    this.updateStyles('');
 
     gtag('event', 'step', { event_label: `step ${this.stepIndex}` });
   }
@@ -243,16 +250,22 @@ export class MainComponent implements OnInit, OnDestroy {
         this.data = new MatTableDataSource(rows.slice(0, MAX_RESULTS_PREVIEW));
         if (this.columnNames.find(h => h === 'ZONE_CODE')) {
             this.updateOverlayNames();
-            this.updateStyles();
-          } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
-          this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, SAMPLE_FILL_COLOR.domain.length);
-          this.setNumStops(<FormGroup>this.stylesFormGroup.controls.circleRadius, SAMPLE_CIRCLE_RADIUS.domain.length);
-          this.stylesFormGroup.controls.fillOpacity.patchValue(SAMPLE_FILL_OPACITY);
-          this.stylesFormGroup.controls.fillColor.patchValue(SAMPLE_FILL_COLOR);
-          this.stylesFormGroup.controls.circleRadius.patchValue(SAMPLE_CIRCLE_RADIUS);
-          this.updateStyles();
-        }
+            // setup custom styling
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.strokeColor, OVERLAY_STROKE_COLOR.domain.length);
+            this.stylesFormGroup.controls.fillColor.patchValue(OVERLAY_FILL_COLOR);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(OVERLAY_FILL_OPACITY);
+            this.stylesFormGroup.controls.strokeColor.patchValue(OVERLAY_STROKE_COLOR);
+            this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
 
+            this.updateStyles('Overlays');
+
+          } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, SAMPLE_FILL_COLOR.domain.length);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(SAMPLE_FILL_OPACITY);
+            this.stylesFormGroup.controls.fillColor.patchValue(SAMPLE_FILL_COLOR);
+            this.updateStyles('HeritageStatus');
+          }
       })
       .catch((e) => {
         this.showMessage(parseErrorMessage(e));
@@ -263,9 +276,15 @@ export class MainComponent implements OnInit, OnDestroy {
       });
   }
 
-  updateStyles() {
-    if (this.stylesFormGroup.invalid) { return; }
-    this.styles = this.stylesFormGroup.getRawValue();
+  updateStyles(layer: String) {
+    if (this.stylesFormGroup.invalid) {
+      console.log('invalid style');
+      return;
+    }
+    const styles = new LayerStyles();
+    styles.styleRules = this.stylesFormGroup.getRawValue();
+    styles.layer = layer;
+    this.styles = styles;
   }
 
   getRowWidth() {

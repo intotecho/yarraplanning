@@ -15,6 +15,11 @@ However there are a number of issues process the file, leading to
    These need to be detected and merged.
 2. Some fields get shifted into the wrong column.
 
+3. Sometimes tabula completely threw some fileds away. 
+   So some manual editing of the tabula-43_01s_yarra_lattice_auto.csv file was done 
+   to create the input file tabula-43_01s_yarra_lattice.csv
+   The changes made can be seen by diffing the two files in the repo.
+    
 The objective of this script is to correct as many errors as possible
 so that the output is ready for uploading to BigQuery or other databases.
 
@@ -120,6 +125,7 @@ print ('=== SHIFT BLANK CELLS ===')
 Tabula has inserted some rows with nan. So the content is shifted to the right.
 This function will remocve the nan and shift the rest of the row to the left.
 All the real content has type string, not float.
+NOTE: This is a very slow function...
 '''
 def shiftLeftWhenColumnEmpty(s):
     firstColumn = 2
@@ -132,8 +138,6 @@ def shiftLeftWhenColumnEmpty(s):
     #    print('\nShifted: ', count)
     return s
 
-#input_df['keyrow'] = (input_df['Overlay'].str.match(r'.*HO\d*.*') != 0)
-#input_df = input_df[input_df.keyrow == True].apply(shiftLeftWhenColumnEmpty, axis=1)
 input_df = input_df.apply(shiftLeftWhenColumnEmpty, axis=1)
 
 print ('=== REMOVE TITLE ROWS ===')
@@ -148,11 +152,22 @@ ref,,Controls,Controls,Apply?,which are not,Register under the,permitted?,place?
 '''
 input_df['isTitleRow'] = \
                             (input_df['Overlay'] == 'PS')   |  \
+                            (input_df['Overlay'] == 'PS Heritage Place')   |  \
                             (input_df['Overlay'] == 'map')  |  \
                             (input_df['Overlay'] == 'ref')  |  \
                             (input_df['PaintControls'] == 'Apply?') | \
+                            (input_df['PaintControls'] == 'Clause 43.01-4') | \
                             (input_df['InternalControls'] == 'Clause 43.01-4')
-                            
+
+
+print ('=== INTERMEDIATE ===')
+input_df.to_csv("{}".format(
+    "intermediate.csv"),
+    mode='w',
+    header=True,
+    index=False,
+    encoding='utf8')
+
 input_df = input_df.drop(input_df[input_df.isTitleRow == True].index)
 input_df.reset_index(inplace=True, drop=True)
 
@@ -167,40 +182,14 @@ input_df['TreeControls'] = input_df['TreeControls'].str.replace(r'\r', " ")
 input_df['IncludedInVHR'] = input_df['IncludedInVHR'].str.replace(r'\r', " ")
 input_df.fillna(" ", inplace=True)
 input_df['keyrow'] = (input_df['Overlay'].str.match(r'.*HO\d*.*') != 0)
-#input_df['FenceControls'] = input_df['FenceControls']
-regex = re.compile(
-    r'.*(HO\d*).*(Interim control).*(Expiry date):.*(\d\d/\d\d/\d\d\d\d)'
-)
 
-input_df['Expiry'] = input_df['Overlay'].str.replace(
-    regex,
-    "\\4",
-    regex=True)
-
-input_df['Status'] = input_df['Overlay'].str.replace(
-    regex,
-    "\\2",
-    regex=True)
-
-input_df['Overlay'] = input_df['Overlay'].str.replace(
-    regex,
-    "\\1",
-    regex=True)
-
-print ('=== HEAD ===')
-print (input_df.head(20))
+#print ('=== HEAD ===')
+#print (input_df.head(20))
 #print (input_df.shape)
 #print (input_df.info())
 #print (input_df[3])
 #print (input_df['FenceControls'].tolist())
 
-print ('=== INTERMEDIATE ===')
-input_df.to_csv("{}".format(
-    "intermediate.csv"),
-    mode='w',
-    header=True,
-    index=False,
-    encoding='utf8')
 
 
 print ('=== LOOP ===')
@@ -211,30 +200,28 @@ For each keyrow, merge content from subsequent rows
 length = len(input_df)
 
 for i in range(0, length-1):
-    #if i >= length:
-    #    print ('Exiting at row {} {}'.format(i, input_df.loc[i]))
-    #    break
-    print(i)
-    heritagePlace = input_df.loc[i, 'HeritagePlace']  #  .encode('utf-8')
-    includedInVHR = input_df.loc[i, 'IncludedInVHR']  #  .encode('utf-8')
-    paint = input_df.loc[i, 'PaintControls']  # .encode('utf-8')
-    internal = input_df.loc[i, 'InternalControls']  # .encode('utf-8')
-    # print(includedInVHR)
+    overlay = input_df.loc[i, 'Overlay']
+    heritagePlace = input_df.loc[i, 'HeritagePlace']
+    includedInVHR = input_df.loc[i, 'IncludedInVHR']
+    paint = input_df.loc[i, 'PaintControls']
+    internal = input_df.loc[i, 'InternalControls']
     isKeyRow = input_df.loc[i, 'keyrow']
     if isKeyRow == True:
         for d in range(i+1, length):
             isfollowingRowKey = input_df.loc[d, 'keyrow']
             if isfollowingRowKey == False:
                 try:
-                    nextheritagePlace = input_df.loc[d, 'HeritagePlace']  #.encode('utf-8')
+                    nextoverlay = input_df.loc[d, 'Overlay']  
+                    nextheritagePlace = input_df.loc[d, 'HeritagePlace']  
                     nextVHR = input_df.loc[d, 'TreeControls'] + input_df.loc[d, 'IncludedInVHR'] # Tablula puts the H number into the wrong column E.g. HO67, HO292 
-                    nextPaint = input_df.loc[d, 'PaintControls'] #.encode('utf-8')
-                    nextInternal = input_df.loc[d, 'InternalControls'] #.encode('utf-8')
-                    heritagePlace = heritagePlace  + ' ' + nextheritagePlace #.encode('utf-8')
-                    includedInVHR = includedInVHR  + ' ' + nextVHR #.encode('utf-8').replace(u"\u2019", "'")
-                    paint = paint  + nextPaint #.encode('utf-8').replace(u"\u2019", "'")
-                    internal = internal  + nextInternal #.encode('utf-8').replace(u"\u2019", "'")
-                    # print('{} {}'.format(i, includedInVHR))
+                    nextPaint = input_df.loc[d, 'PaintControls'] 
+                    nextInternal = input_df.loc[d, 'InternalControls'] 
+
+                    overlay = overlay  + ' ' + nextoverlay
+                    heritagePlace = heritagePlace  + ' ' + nextheritagePlace
+                    includedInVHR = includedInVHR  + ' ' + nextVHR 
+                    paint = paint  + ' ' + nextPaint 
+                    internal = internal + ' ' + nextInternal 
                 except TypeError :
                     print ("exception: {}: {}".format(
                         input_df.   loc[i, 'HeritagePlace'],
@@ -242,6 +229,7 @@ for i in range(0, length-1):
             else:
                 break
         
+        input_df.loc[i, 'Overlay'] = overlay.strip()
         input_df.loc[i, 'HeritagePlace'] = heritagePlace.strip()
         input_df.loc[i, 'PaintControls'] = paint.strip()
         input_df.loc[i, 'InternalControls'] = internal.strip()
@@ -250,16 +238,27 @@ for i in range(0, length-1):
     else:
         pass
 
+input_df['HeritagePlace'] = input_df['HeritagePlace'].str.replace(r'\n', " ")
+
+
 # === DROP Non-Key  ROWS ====
 # input_df[input_df['keyrow'] ==True]
 input_df = input_df.drop(input_df[input_df.keyrow == False].index)
-
-#href =  re.search(r'(\w*) Ref No (H\d*)', includedInVHR )  #.decode("utf-8")
+input_df.drop('keyrow', 1, inplace=True)
 
 input_df['Included'] = input_df['IncludedInVHR'].str.extract(r'(\w*).*')
 input_df['VHR'] = input_df['IncludedInVHR'].str.extract(r'\w* Ref No *(H\d*)')
 
-input_df.drop('keyrow', 1, inplace=True)
+regex = re.compile(
+    r'^(HO\d{1,4})(.*(Interim).*(\d\d\/\d\d\/\d\d\d\d))?'
+)
+overlay_df = input_df['Overlay'].str.extract(regex, expand=True)
+print (overlay_df.head(20))
+input_df['Status'] = overlay_df[2]
+input_df['Expiry'] = overlay_df[3]
+input_df['Overlay'] = overlay_df[0]
+
+
 
 # === save the results. === #
 output_df = input_df

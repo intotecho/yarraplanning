@@ -15,9 +15,14 @@
  */
 
 import { Component, ElementRef, Input, Output, EventEmitter, ViewChild, AfterViewInit } from '@angular/core';
-import { StyleProps, StylesService, StyleRule } from '../services/styles.service';
+import { StyleProps, StylesService, StyleRule, LayerStyles } from '../services/styles.service';
 import * as parseWKT from 'wellknown';
-import { HERITAGE_OVERLAY_STYLE, HIGHLIGHTED_HERITAGE_OVERLAY_STYLE } from '../app.constants';
+import { OverlayProperties } from '../overlays';
+
+declare var geoXML3: any;
+import '../../../third_party/geocodezip/geoxml3';
+import { style } from '@angular/animations';
+
 
 interface IFeature {
   setMap(map: google.maps.Map|null): void;
@@ -53,7 +58,8 @@ export class MapComponent implements AfterViewInit {
   private _geodesicFeatures: Map<google.maps.Data.Feature, IFeature|Array<IFeature>> = new Map();
   private _overlaysLayer: google.maps.Data;
   private _propertiesLayer: google.maps.Data;
-
+  private _mmbwLayer: google.maps.KmlLayer;
+  private _mmbwGroundOverlay: google.maps.GroundOverlay;
   @Output() overlayChanged: EventEmitter<String> =   new EventEmitter();
   @Output() overlaySelected: EventEmitter<String> =   new EventEmitter();
   @Input() overlayInfo: String;
@@ -71,7 +77,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   @Input()
-  set styles(styles: Array<StyleRule>) {
+  set styles(styles: LayerStyles) {
     this.updateStyles(styles);
   }
 
@@ -96,8 +102,17 @@ export class MapComponent implements AfterViewInit {
         bounds.extend(new google.maps.LatLng(-37.83433865, 144.96147273999998));
         bounds.extend(new google.maps.LatLng(-37.775308171, 145.03859800099997));
         this.map.fitBounds(bounds);
+
         this._overlaysLayer = new google.maps.Data();
         this._propertiesLayer = new google.maps.Data();
+
+        const infowindow = new google.maps.InfoWindow({});
+        const geoXml = new geoXML3.parser({
+          map: this.map,
+          infoWindow: infowindow,
+          singleInfoWindow: true,
+        });
+        geoXml.parse('../../../assets/MMBW/MMBW_1264.kml');
       });
   }
 
@@ -142,19 +157,49 @@ export class MapComponent implements AfterViewInit {
       // Update the Overlays Key Map
       this._overlay_rows = this._rows;
       this.addResultsToLayer(this._overlaysLayer, this._rows, 0);
-      // this.convertFeaturesToGeodesic(this._overlaysLayer) ;
 
+      /*
       this._overlaysLayer.setStyle(function(feature:  google.maps.Data.Feature) {
-          return feature.getProperty('higlighted') === 1 ? HIGHLIGHTED_HERITAGE_OVERLAY_STYLE : HERITAGE_OVERLAY_STYLE;
+          const ostyle = HERITAGE_OVERLAY_STYLE;
+
+          if (feature.getProperty('higlighted') === 1 ) {
+              ostyle.fillOpacity = HIGHLIGHTED_HERITAGE_OVERLAY_STYLE.fillOpacity;
+          } else {
+            ostyle.fillOpacity = HERITAGE_OVERLAY_STYLE.fillOpacity;
+          }
+
+          const trees = feature.getProperty('trees');
+          if (trees === 'Yes') {
+            ostyle.strokeColor = '#00FF00';
+          } else {
+            ostyle.strokeColor = '#0000FF';
+          }
+          console.log(trees);
+
+          return ostyle;
       });
+      */
 
       this._overlaysLayer.addListener('mouseover', (event) => {
         if (event.feature) {
-          this.overlayInfo = event.feature.getProperty('ZONE_CODE');
+          this.overlayInfo = event.feature.getProperty('HeritagePlace');
+          const op = new OverlayProperties();
+          op['Overlay'] = event.feature.getProperty('Overlay');
+          op['HeritagePlace'] = event.feature.getProperty('HeritagePlace');
+          op['PaintControls'] = event.feature.getProperty('PaintControls');
+          op['InternalControls'] = event.feature.getProperty('InternalControls');
+          op['TreeControls'] = event.feature.getProperty('TreeControls');
+          op['FenceControls'] = event.feature.getProperty('FenceControls');
+          op['VHR'] = event.feature.getProperty('VHR');
+          op['AboriginalHeritagePlace'] = event.feature.getProperty('HeritagePlace');
+          op['Status'] = event.feature.getProperty('Status');
+          op['Expiry'] = event.feature.getProperty('Expiry');
+          console.log(op);
+
           if (this.overlayInfo !== null) {
             this.overlayChanged.emit(this.overlayInfo );
-          } 
-          event.feature.setProperty('higlighted', 1);
+          }
+          this._overlaysLayer.overrideStyle(event.feature, {strokeWeight: 3});
         }
       });
 
@@ -162,7 +207,7 @@ export class MapComponent implements AfterViewInit {
         if (event.feature) {
           this.overlayInfo = ''; // event.feature.getProperty('ZONE_CODE');
           this.overlayChanged.emit(this.overlayInfo );
-          event.feature.setProperty('higlighted', 0);
+          this._overlaysLayer.overrideStyle(event.feature, {strokeWeight: 1});
         }
       });
 
@@ -194,13 +239,19 @@ export class MapComponent implements AfterViewInit {
 
       this._propertiesLayer.addListener('mouseover', (event) => {
         if (event.feature) {
-          event.feature.setProperty('higlighted', 1);
+          this._propertiesLayer.overrideStyle(event.feature, {
+            strokeWeight: 3,
+            zIndex: 200
+          });
         }
       });
 
       this._propertiesLayer.addListener('mouseout', (event) => {
         if (event.feature) {
-          event.feature.setProperty('higlighted', 0);
+          this._propertiesLayer.overrideStyle(event.feature, {
+              strokeWeight: 1,
+              zIndex: 1
+            });
         }
       });
 
@@ -214,23 +265,27 @@ export class MapComponent implements AfterViewInit {
   }
 
   /**
-   * Updates styles applied to all GeoJSON features.
+   * Updates styles applied to all GeoJSON features in the layer.
    */
-  updateStyles(styles: Array<StyleRule>) {
+  updateStyles(styles: LayerStyles) {
     if (!this.map) { return; }
-    this.styler.uncache();
-    this._propertiesLayer.forEach((feature) => {
-      const featureStyles = this.getStylesForFeature(feature, styles);
-      this._propertiesLayer.overrideStyle(feature, featureStyles);
-      });
-
-      this._propertiesLayer.setStyle(function(feature:  google.maps.Data.Feature) {
-        return feature.getProperty('higlighted') === 1 ?
-        {'strokeColor': 'red' , 'zIndex' : 200} :
-        {'strokeColor': 'blue', 'zIndex' : 100 };
-      });
-
+    if (!styles.styleRules) {
+      return;
     }
+    if (styles.layer === 'Overlays') {
+      this.styler.uncache();
+      this._overlaysLayer.forEach((feature) => {
+        const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
+        this._overlaysLayer.overrideStyle(feature, featureStyles);
+        });
+    } else if (styles.layer === 'HeritageStatus') {
+      this.styler.uncache();
+      this._propertiesLayer.forEach((feature) => {
+        const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
+        this._propertiesLayer.overrideStyle(feature, featureStyles);
+        });
+    }
+  }
 
   /**
    * Returns applicable style rules for a given row.
@@ -246,8 +301,8 @@ export class MapComponent implements AfterViewInit {
 
     // Parse styles.
     const featureStyles = {};
-    StyleProps.forEach((style) => {
-      featureStyles[style.name] = this.styler.parseStyle(style.name, properties, styles[style.name]);
+    StyleProps.forEach((styleprop) => {
+      featureStyles[styleprop.name] = this.styler.parseStyle(styleprop.name, properties, styles[styleprop.name]);
     });
 
     // Maps API has no 'circleRadius' property, so create a scaled icon on the fly.
@@ -284,13 +339,12 @@ export class MapComponent implements AfterViewInit {
       }
       this.infoWindow.open(this.map);
       this.infoWindow.setPosition(latLng);
-    } 
+    }
   }
 }
 
-
 function recursiveExtendBounds(geometry, callback, thisArg) {
-  if(geometry == null) {
+  if (geometry == null) {
     return;
   }
   if (geometry instanceof google.maps.LatLng) {
