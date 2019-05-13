@@ -44,11 +44,18 @@ export const OVERLAYS_QUERY = `
   SELECT
   ZONE_DESC,
   ZONE_CODE,
+  Overlay,
   HeritagePlace,
-  Status,
   Included,
-  TreeControls,
   VHR,
+  TreeControls,
+  PaintControls,
+  InternalControls,
+  FenceControls,
+  AboriginalHeritagePlace,
+  Prohibited,
+  Status,
+  Expiry,
   SAFE.ST_GeogFromGeoJson(geom) as bndry
   FROM
   \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays

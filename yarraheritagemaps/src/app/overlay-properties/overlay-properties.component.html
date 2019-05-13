@@ -1,0 +1,15 @@
+<div class="overlay-panel" > 
+  <div *ngIf="overlayProperties!=null && overlayProperties.Overlay">
+      <div class='OverlayId'>{{overlayProperties.Overlay}}
+      <span class='VHR' *ngIf="overlayProperties.Included=='true'"> VHR: <a [href]="vhrLink()" target="_blank">{{overlayProperties.VHR}}</a></span>
+    </div>
+      <div class='HeritagePlace'>{{overlayProperties.HeritagePlace}}</div>
+      <div class='Expiry' *ngIf="overlayProperties.Status=='Interim'">Expires: {{overlayProperties.Expiry}}</div>
+      <div class='Controls'>Tree Controls: {{overlayProperties.TreeControls}}</div> 
+      <div class='Controls'> Paint Controls: {{overlayProperties.PaintControls}}</div> 
+      <div class='Controls'> Internal Controls: {{overlayProperties.InternalControls}}</div> 
+      <div class='Controls'> Fence Controls: {{overlayProperties.FenceControls}}</div> 
+      <div class='Controls'> Prohibited uses may be permitted: {{overlayProperties.Prohibited}}</div> 
+      <div class='Aboriginal'> Aboriginal Heritage Place: {{overlayProperties.AboriginalHeritagePlace}}</div> 
+  </div> 
+</div>

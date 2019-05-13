@@ -21,17 +21,20 @@ export const matchingHeritageOverlays: Array<HeritageOverlay> = [
     ];
 
 export class OverlayProperties {
-    Overlay: String;
-    HeritagePlace: String;
-    PaintControls: String;
-    InternalControls: String;
-    TreeControls: String;
-    FenceControls: String;
-    IncludedInVHR: boolean;
-    Included: String;
-    VHR: String;
-    Prohibited: String;
-    AboriginalHeritagePlace: String;
-    Status: String;
-    Expiry: Date;
+    Overlay: String ;
+    HeritagePlace: String = '';
+    PaintControls: String = '';
+    InternalControls: String = '';
+    TreeControls: String = '';
+    FenceControls: String = '';
+    IncludedInVHR = false;
+    Included: String = '';
+    VHR: String = '';
+    Prohibited: String = '';
+    AboriginalHeritagePlace: String = '';
+    Status: String = '';
+    Expiry: Date = new Date('1900/01/01');
+
+    constuctor(
+    ) {}
 }

@@ -1,0 +1,36 @@
+
+.overlay-panel {
+    height:200px;
+    width:300px;
+    background-color: #f8f8f5;
+}
+
+.OverlayId {
+    text-emphasis: bold;
+    font-weight: bold;
+}
+
+.HeritagePlace {
+    font-size: 0.8em;
+}
+
+.VHR {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #ac332f;
+}
+
+.Expiry {
+    font-size: 0.8em;
+    color: red;
+}
+
+.Controls {
+    font-size: 0.8em;
+    color: rgb(119, 119, 236);
+}
+
+.Aboriginal {
+    font-size: 0.8em;
+    color: black
+}

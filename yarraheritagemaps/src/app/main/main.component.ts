@@ -44,9 +44,13 @@ import {
 
 import {
   matchingHeritageOverlays,
-  HeritageOverlay
+  HeritageOverlay,
+  OverlayProperties
 } from '../overlays';
 
+import {
+  OverlayPropertiesComponent
+} from '../overlay-properties/overlay-properties.component';
 
 import { query } from '@angular/animations';
 
@@ -82,7 +86,8 @@ export class MainComponent implements OnInit, OnDestroy {
   rows: Array<Object>;
   data: MatTableDataSource<Object>;
   stats: Map<String, ColumnStat> = new Map();
-  overlayInfo: String = '';
+  overlayProperties: OverlayProperties = new OverlayProperties();
+
 
   // UI state
   stepIndex: Number = 0;
@@ -126,7 +131,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
     // Data form group
     this.dataFormGroup = this._formBuilder.group({
-      overlayId: ['HO1'],
+      overlayId: ['HO0'],
       projectID: [SAMPLE_PROJECT_ID, Validators.required],
       sql: [OVERLAYS_QUERY
       , Validators.required],
@@ -157,6 +162,7 @@ export class MainComponent implements OnInit, OnDestroy {
     StyleProps.forEach((prop) => stylesGroupMap[prop.name] = this.createStyleFormGroup());
     this.stylesFormGroup = this._formBuilder.group(stylesGroupMap);
     this.stylesFormGroup.valueChanges.debounceTime(500).subscribe(() => this.updateStyles(''));
+
   }
 
 
@@ -171,6 +177,7 @@ export class MainComponent implements OnInit, OnDestroy {
   signout() {
     this.dataService.signout();
   }
+
 
   onSigninChange() {
     this._ngZone.run(() => {
@@ -188,12 +195,12 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   handleMapOverlayHighlighted(event) {
-    this.overlayInfo = event;
+    this.overlayProperties = event;
   }
 
   handleMapOverlaySelected(event) {
-    this.overlayInfo = event;
-    this.dataFormGroup.patchValue({overlayId: event });
+    this.overlayProperties = event;
+    this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
   }
 
   onStepperChange(e: StepperSelectionEvent) {
@@ -232,7 +239,7 @@ export class MainComponent implements OnInit, OnDestroy {
             queriedHeritageOverlays.push(ovl);
       }
       this.matchingOverlays = queriedHeritageOverlays;
-      // Cache the results.
+
   }
 
   query() {
@@ -259,12 +266,14 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
 
             this.updateStyles('Overlays');
+            this.showMessage('Double Click an Overlay on the map for more details', 5000);
 
           } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, SAMPLE_FILL_COLOR.domain.length);
             this.stylesFormGroup.controls.fillOpacity.patchValue(SAMPLE_FILL_OPACITY);
             this.stylesFormGroup.controls.fillColor.patchValue(SAMPLE_FILL_COLOR);
             this.updateStyles('HeritageStatus');
+            this.showMessage('Showing Heritage properties in Selected Ovleray', 5000);
           }
       })
       .catch((e) => {

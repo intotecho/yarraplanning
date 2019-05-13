@@ -35,7 +35,6 @@ import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
-
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppComponent } from './app.component';
@@ -48,6 +47,7 @@ import { FileSizePipe } from './file-size.pipe';
 import { environment } from '../environments/environment';
 
 import {ColorPickerModule} from 'ngx-color-picker';
+import { OverlayPropertiesComponent } from './overlay-properties/overlay-properties.component';
 
 if ( environment.production ) {
   enableProdMode();
@@ -61,8 +61,10 @@ if ( environment.production ) {
     TermsComponent,
     RuleInputComponent,
     CodemirrorComponent,
-    FileSizePipe
+    FileSizePipe,
+    OverlayPropertiesComponent
   ],
+  entryComponents: [OverlayPropertiesComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
