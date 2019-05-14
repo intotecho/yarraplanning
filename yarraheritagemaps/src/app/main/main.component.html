@@ -7,24 +7,26 @@
   <span>Yarra Heritage Maps</span>
   <span class="flex-spacer"></span>
   <span *ngIf="overlayProperties"> 
-      <span> {{overlayProperties.Overlay}}</span> 
-    <i>Double Click Overlay for more details</i></span> 
+      <span><i>{{overlayProperties.Overlay}} </i> </span> 
+    </span> 
     <span class="flex-spacer"></span>
     <span class="header-profile">{{ user?.getBasicProfile().getEmail() }}</span>
   <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
-  <a mat-button href="/terms">Warnings</a>
+  <a mat-button href="/terms">Terms &amp; Privacy</a>
 </mat-toolbar>
 <div class="view">
   <app-map [rows]="rows" 
            [geoColumn]="schemaFormGroup.controls.geoColumn.value" 
            [styles]="styles"  
            (overlayChanged)="handleMapOverlayHighlighted($event)"
-           (overlaySelected)="handleMapOverlaySelected($event)">
+           (overlaySelected)="handleMapOverlaySelected($event)"
+           [mmbwOverlay]="selectedMmbwMaps">
           </app-map>
 
   <section class="drawer">
       <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Authorize</button>
       <app-overlay-properties [overlayProperties]='overlayProperties'></app-overlay-properties>
+      <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4"></mat-progress-spinner>
 
       <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
           <mat-form-field class="wide sql-location">
@@ -32,6 +34,20 @@
               matTooltipPosition="after">
               <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.ZONE_CODE">
                 {{ overlay.ZONE_DESC }}
+              </mat-option>
+              
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field class="wide sql-location">
+            <mat-select
+                ([ngModel])="model" 
+                placeholder="Select Historic Map" 
+                formControlName="selectedMMBWIds" 
+                matTooltip="Select MMBW 1904 Map to Overlay."
+                matTooltipPosition="after"
+                multiple>
+              <mat-option *ngFor="let mmbwmap of mmbwMaps" [value]="mmbwmap.MMBWmapId">
+                {{ mmbwmap.MMBWmapId }}
               </mat-option>
             </mat-select>
           </mat-form-field>
@@ -64,7 +80,6 @@
                 <div>
                     <button mat-raised-button color="primary" (click)="query(stepper)" [disabled]="!dataFormGroup.valid || pending">Run</button>
                     <button mat-raised-button color="primary" matStepperNext [disabled]="!rows.length || pending">See results</button>
-                    <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4"></mat-progress-spinner>
                     <span *ngIf="!pending">{{ rows.length }} results.</span>
                     <p class="sql-cost" *ngIf="bytesProcessed >= 0">
                       Estimated query size: {{ bytesProcessed | fileSize:1 }}

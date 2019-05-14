@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<GroundOverlay>
+	<name>MMBW Detail Plan 1239</name>
+	<Icon>
+		<href>https://storage.googleapis.com/historic_map_overlays/MMBW%201239%20Fitzroy%20Orange.png</href>
+		<viewBoundScale>0.75</viewBoundScale>
+	</Icon>
+	<LatLonBox>
+		<north>-37.79523668856367</north>
+		<south>-37.79865593921972</south>
+		<east>144.9868315726982</east>
+		<west>144.9796859365453</west>
+		<rotation>82.89781188964845</rotation>
+	</LatLonBox>
+</GroundOverlay>
+</kml>

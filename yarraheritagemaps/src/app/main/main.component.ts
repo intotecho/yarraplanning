@@ -52,6 +52,11 @@ import {
   OverlayPropertiesComponent
 } from '../overlay-properties/overlay-properties.component';
 
+import {
+  SelectMMBWOverlay, MMBWMapsLibrary
+} from '../select-MMBWOverlay';
+
+
 import { query } from '@angular/animations';
 
 const DEBOUNCE_MS = 1000;
@@ -71,7 +76,9 @@ export class MainComponent implements OnInit, OnDestroy {
   user: Object;
   matchingProjects: Array<Project> = [];
   matchingOverlays = matchingHeritageOverlays;
-
+  overlayProperties: OverlayProperties = new OverlayProperties();
+  mmbwMaps: Array<SelectMMBWOverlay> = MMBWMapsLibrary;
+  selectedMmbwMaps: Array<SelectMMBWOverlay> = [];
   // Form groups
   dataFormGroup: FormGroup;
   schemaFormGroup: FormGroup;
@@ -86,8 +93,7 @@ export class MainComponent implements OnInit, OnDestroy {
   rows: Array<Object>;
   data: MatTableDataSource<Object>;
   stats: Map<String, ColumnStat> = new Map();
-  overlayProperties: OverlayProperties = new OverlayProperties();
-
+  mapsLib = [];
 
   // UI state
   stepIndex: Number = 0;
@@ -128,9 +134,9 @@ export class MainComponent implements OnInit, OnDestroy {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
-
     // Data form group
     this.dataFormGroup = this._formBuilder.group({
+      selectedMMBWIds: [],
       overlayId: ['HO0'],
       projectID: [SAMPLE_PROJECT_ID, Validators.required],
       sql: [OVERLAYS_QUERY
@@ -153,6 +159,12 @@ export class MainComponent implements OnInit, OnDestroy {
       this.query(); // kick off inital query to load the overlays
     });
 
+    this.dataFormGroup.controls.selectedMMBWIds.valueChanges.debounceTime(200).subscribe(() => {
+      this.selectedMmbwMaps = this.mmbwMaps.filter((mmbwMap) => {
+         return  this.dataFormGroup.controls.selectedMMBWIds.value.includes(mmbwMap.MMBWmapId);
+      });
+      console.log(this.selectedMmbwMaps);
+    });
 
     // Schema form group
     this.schemaFormGroup = this._formBuilder.group({ geoColumn: [''] });
@@ -273,7 +285,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.fillOpacity.patchValue(SAMPLE_FILL_OPACITY);
             this.stylesFormGroup.controls.fillColor.patchValue(SAMPLE_FILL_COLOR);
             this.updateStyles('HeritageStatus');
-            this.showMessage('Showing Heritage properties in Selected Ovleray', 5000);
+            this.showMessage('Showing Heritage properties in Selected Overlay', 5000);
           }
       })
       .catch((e) => {

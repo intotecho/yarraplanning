@@ -18,8 +18,7 @@ import {
   Component, ElementRef,
   Input, Output, EventEmitter,
   ViewChild, AfterViewInit,
-  ComponentRef,NgModule, Injector, ApplicationRef, ComponentFactoryResolver, NgZone } from '@angular/core';
-
+  ComponentRef, Injector, ApplicationRef, ComponentFactoryResolver, NgZone } from '@angular/core';
 
 import { StyleProps, StylesService, LayerStyles } from '../services/styles.service';
 import * as parseWKT from 'wellknown';
@@ -30,6 +29,7 @@ import '../../../third_party/geocodezip/geoxml3';
 import { style } from '@angular/animations';
 import { OverlayPropertiesComponent } from '../overlay-properties/overlay-properties.component';
 
+import { SelectMMBWOverlay } from '../select-MMBWOverlay';
 
 interface IFeature {
   setMap(map: google.maps.Map|null): void;
@@ -51,7 +51,7 @@ export class MapComponent implements AfterViewInit {
   map: google.maps.Map;
 
   // Info window for display over Maps API.
-  infoWindow: google.maps.InfoWindow;
+  infoWindow: google.maps.InfoWindow = null;
   compRef: ComponentRef<OverlayPropertiesComponent>;
   // Basemap styles.
   pendingStyles: Promise<Array<google.maps.MapTypeStyle>>;
@@ -64,12 +64,11 @@ export class MapComponent implements AfterViewInit {
   private _geoColumn: string;
   private _overlaysLayer: google.maps.Data;
   private _propertiesLayer: google.maps.Data;
-  private _mmbwLayer: google.maps.KmlLayer;
-  private _mmbwGroundOverlay: google.maps.GroundOverlay;
+  private _mmbwOverlay: Array<Object>;
+  private _geoXml: any = null;
   @Output() overlayChanged: EventEmitter<OverlayProperties> =   new EventEmitter();
   @Output() overlaySelected: EventEmitter<OverlayProperties> =   new EventEmitter();
   @Input() overlayProperties: OverlayProperties;
-
   @Input()
   set rows(rows: Array<Object>) {
     this._rows = rows;
@@ -85,6 +84,18 @@ export class MapComponent implements AfterViewInit {
   @Input()
   set styles(styles: LayerStyles) {
     this.updateStyles(styles);
+  }
+  @Input()
+  set mmbwOverlay(mmbwOverlay: Array<SelectMMBWOverlay>) {
+    this._mmbwOverlay = mmbwOverlay;
+    if (this._geoXml !== null) {
+      this._geoXml.hideDocument();
+    }
+    if (this._mmbwOverlay  != null) {
+      this._mmbwOverlay.forEach( (m: SelectMMBWOverlay) => {
+        this.handleMMBWSelected(m);
+      });
+    }
   }
 
   constructor (
@@ -107,8 +118,6 @@ export class MapComponent implements AfterViewInit {
         this.map = new google.maps.Map(this.mapEl.nativeElement, {center: {lat: -37.83433865, lng: 144.96147273999998}, zoom: 6});
         this.map.setOptions({styles: mapStyles});
 
-        this.infoWindow = new google.maps.InfoWindow({content: ''});
-
         const bounds = new google.maps.LatLngBounds();
         bounds.extend(new google.maps.LatLng(-37.83433865, 144.96147273999998));
         bounds.extend(new google.maps.LatLng(-37.775308171, 145.03859800099997));
@@ -117,19 +126,22 @@ export class MapComponent implements AfterViewInit {
         this._overlaysLayer = new google.maps.Data();
         this._propertiesLayer = new google.maps.Data();
 
-        const infowindow = new google.maps.InfoWindow({});
-        const geoXml = new geoXML3.parser({
-          map: this.map,
-          infoWindow: infowindow,
-          singleInfoWindow: true,
-        });
-        geoXml.parse('../../../assets/MMBW/MMBW_1264.kml');
-
-        this.infoWindow = new google.maps.InfoWindow();
-        this.infoWindow.addListener('closeclick', _ => {
-           this.compRef.destroy();
-        });
       });
+  }
+
+  handleMMBWSelected(mmbwOvl: SelectMMBWOverlay) {
+    if (mmbwOvl !== null) {
+      this.infoWindow = new google.maps.InfoWindow({
+        content: 'MMBW Map'});
+
+      this._geoXml = new geoXML3.parser({
+        map: this.map,
+        infoWindow: this.infoWindow,
+        singleInfoWindow: true,
+      });
+      const kml = mmbwOvl.KMLurl;
+      this._geoXml.parse(kml);
+    }
   }
 
   removeFeaturesFromLayer(layer) {
@@ -196,6 +208,7 @@ export class MapComponent implements AfterViewInit {
           this.overlayProperties = this.getOverlayProperties(event);
           this.overlaySelected.emit(this.overlayProperties );
           this.overlayChanged.emit(this.overlayProperties );
+          this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
         }
       });
 
@@ -340,7 +353,10 @@ export class MapComponent implements AfterViewInit {
 
     const div = document.createElement('div');
     div.appendChild(this.compRef.location.nativeElement);
-
+    if (this.infoWindow === null) {
+      this.infoWindow = new google.maps.InfoWindow({
+        content: 'Default'});
+    }
     this.infoWindow.setContent(div);
     this.infoWindow.open(this.map, marker);
     this.infoWindow.setPosition(e.latLng);
@@ -353,6 +369,11 @@ export class MapComponent implements AfterViewInit {
    */
   showInfoWindow (feature: google.maps.Data.Feature, latLng: google.maps.LatLng) {
     const properties = {};
+    if (this.infoWindow === null) {
+      this.infoWindow = new google.maps.InfoWindow({
+        content: 'Default'});
+    }
+
     if (feature) {
       feature.forEachProperty((value, key) => {
         properties[key] = key === this._geoColumn ? truncateWKT(value) : value;

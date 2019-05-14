@@ -1,7 +1,7 @@
 {
-  "name": "bigquerygeoviz",
-  "version": "0.0.0",
-  "license": "MIT",
+  "name": "yarraheritagemaps",
+  "version": "0.0.1",
+  "license": "TBD",
   "scripts": {
     "start": "node server.js",
     "ng": "ng",
