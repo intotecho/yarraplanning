@@ -1466,58 +1466,30 @@ HO242,350-362 CHURCH STREET,-,-,-,-,Yes Ref No H586,Yes,No,,,,,,,,,,
 ,The heritage place includes,,,,,,,,,,,,,,,,,
 ,Vicarage,,,,,,,,,,,,,,,,,
 HO243,13 COPPIN STREET RICHMOND,Yes,No,No,No,No,No,No,,,,,,,,,,
-"PS
-map
-ref",PS,Heritage Place,Heritage Place,"External
-Paint
-Controls
-Apply?",External,"Internal
-Alteration
-Controls
-Apply?",Internal,"Tree
-Controls
-Apply?",Tree,,Outbuildings,,"Included on the
-Victorian Heritage
-Register under the
-Heritage Act 2017 ?",Included on the,"Prohibited
-uses may be
-permitted?",Prohibited,"Aboriginal
-heritage
-place?",Aboriginal
-map,Paint,Alteration,Controls,or fences,Victorian Heritage,uses may be,heritage,,,,,,,,,,,
-ref,Controls,Controls,Apply?,which are not,Register under the,permitted?,place?,,,,,,,,,,,
-,,,,,Apply?,Apply?,exempt under,Heritage Act 2017 ?,,,,,,,,,,
-,,,,,,,,,,,Clause 43.01-4,,,,,,,
-,,"House
+,"House
 Incorporated plan:
 Incorporated Plan under the provisions
 of clause 43.01 Heritage Overlay,
-Planning permit exemptions, July 2014",,,,,,,,,,,,,,,,
-,,"79 COPPIN STREET RICHMOND
+Planning permit exemptions, July 2014",,,,,,,,,,,,,,,
+HO244,"79 COPPIN STREET RICHMOND
 Former Griffiths Boot Factory
 Incorporated plan:
 Incorporated Plan under the provisions
 of clause 43.01 Heritage Overlay,
-Planning permit exemptions, July 2014",Yes,No,No,No,No,No,No,,,,,,,,,
-,,"234 COPPIN STREET RICHMOND
+Planning permit exemptions, July 2014",Yes,No,No,No,No,No,No,,,,,,,,
+HO245,"234 COPPIN STREET RICHMOND
 House
 Incorporated plan:
 Incorporated Plan under the provisions
 of clause 43.01 Heritage Overlay,
 Planning permit exemptions, July 2014",Yes,No,No,No,No,No,No,,,,,,,,,
-HO246,HO246,,55-67 CREMORNE STREET,,-,-,-,-,-,,-,,Yes Ref No H1634,es Ref No H1634,No,o,No,o
-CREMORNE,,,,,,,,,,,,,,,,,,
-Former Cremorne Street Primary,,,,,,,,,,,,,,,,,,
-School No. 2084 [Barton TAFE],,,,,,,,,,,,,,,,,,
-"119 CREMORNE STREET
+HO246,55-67 CREMORNE STREET,-,-,-,-,-,,-,,Yes Ref No H1634,Yes,No,o,No,o
+,CREMORNE,,,,,,,,,,,,,,,,,
+,Former Cremorne Street Primary,,,,,,,,,,,,,,,,,
+,School No. 2084 [Barton TAFE],,,,,,,,,,,,,,,,,
+HO247,"119 CREMORNE STREET
 RICHMOND
-Former Yarra Hotel",Yes,No,No,No,No,No,No,,,,,,,,,,,
--,-,,,,,,,,,,,,,,,,,
--,-,,,,,,,,,,,,,,,,,
--,,,,,,,,,,,,,,,,,,
--,,,,,,,,,,,,,,,,,,
-Yes Ref No H1634,es Ref No H1634,,,,,,,,,,,,,,,,,
-No,o,,,,,,,,,,,,,,,,,
+Former Yarra Hotel",Yes,No,No,No,No,No,No,,,,,,,,,,
 PS,Heritage Place,External,Internal,Tree,Outbuildings,Included on the,Prohibited,Aboriginal,,,,,,,,,,
 map,,Paint,Alteration,Controls,or fences,Victorian Heritage,uses may be,heritage,,,,,,,,,,
 ref,,Controls,Controls,Apply?,which are not,Register under the,permitted?,place?,,,,,,,,,,
@@ -2457,7 +2429,7 @@ HO462,"6-8 Brougham Place, Richmond",No,No,No,No,No,No,No,,,,,,,,,,
 HO463,"9-11 CREMORNE STREET,",Yes,No,No,No,No,No,No,,,,,,,,,,
 ,CREMORNE,,,,,,,,,,,,,,,,,
 HO464,"Smith Street South Precinct, Fitzroy",Yes,"Yes (51-53,",No,No,No,No,No,,,,,,,,,,
-,and Collingwood,,59-61 and 67-,,,,,,,,,,,,,,,
+,and Collingwood,,,"59-61 and 67-",,,,,,,,,,,,,,
 PS,Heritage Place,,External,Internal,,Tree,,Outbuildings,Included on the,Prohibited,Aboriginal,,,,,,,
 map,,,Paint,Alteration,,Controls,,or fences,Victorian Heritage,uses may be,heritage,,,,,,,
 ref,,,Controls,Controls,,Apply?,,which are not,Register under the,permitted?,place?,,,,,,,
@@ -2551,15 +2523,15 @@ map,,Paint,Alteration,Controls,or fences,Victorian Heritage,uses may be,heritage
 ref,,Controls,Controls,Apply?,which are not,Register under the,permitted?,place?,,,,,,,,,,
 ,,Apply?,Apply?,,exempt under,Heritage Act 2017 ?,,,,,,,,,,,,
 ,,,,,Clause 43.01-4,,,,,,,,,,,,,
-HO498, "472-484 NAPIER STREET, FITZROY",No,No,No,No,No,No,No,,,,,,,,,
-Interim, NORTH,,,,,,,,,,,,,,,,,
+HO498,"472-484 NAPIER STREET, FITZROY",No,No,No,No,No,No,No,,,,,,,,,
+Interim,NORTH,,,,,,,,,,,,,,,,,
 control,,,,,,,,,,,,,,,,,,
-Expiry, Incorporated plan:,,,,,,,,,,,,,,,,,
+Expiry,Incorporated plan:,,,,,,,,,,,,,,,,,
 date,,,,,,,,,,,,,,,,,,
 30/12/2020,Incorporated Plan under the provisions,,,,,,,,,,,,,,,,
 ,"of clause 43.01 Heritage Overlay,20",,,,,,,,,,,,,,,,,
 ,"Planning permit exemptions, July 2014",,,,,,,,,,,,,,,,,
-HO501, "223-239 SWAN STREET, RICHMOND",No,No,No,No,No,No,No,,,,,,,,,
+HO501,"223-239 SWAN STREET, RICHMOND",No,No,No,No,No,No,No,,,,,,,,,
 Expiry, Shops and Residences,,,,,,,,,,,,,,,,,
 date:,,,,,,,,,,,,,,,,,,
 30/12/2019, Incorporated plan:,,,,,,,,,,,,,,,,,
@@ -2567,7 +2539,7 @@ date:,,,,,,,,,,,,,,,,,,
 ,Incorporated Plan under the provisions,,,,,,,,,,,,,,,,,
 ,"of clause 43.01 Heritage Overlay,",,,,,,,,,,,,,,,,,
 ,"Planning permit exemptions, July 2014",,,,,,,,,,,,,,,,,
-HO503, "2 JAMES STREET, ABBOTSFORD",No,No,No,No,No,No,No,,,,,,,,,
+HO503,"2 JAMES STREET, ABBOTSFORD",No,No,No,No,No,No,No,,,,,,,,,
 ,Former Commerical Stables and,,,,,,,,,,,,,,,,,
 ,Hitching Posts,,,,,,,,,,,,,,,,,
 HO505, JOHNSTON STREET EAST The,Yes – 219-23,No,No,No,No,No,No,,,,,,,,,,
@@ -2608,7 +2580,7 @@ control,,,,,,,,,,,,,,,,,,
 Expiry,,,,,,,,,,,,,,,,,,
 Date,Incorporated Plan under the provisions,,,,,,,,,,,,,,,,,
 ,"of clause 43.01 Heritage Overlay,",,,,,,,,,,,,,,,,,
-17/10/20,"Planning permit exemptions, July 2014",,,,,,,,,,,,,,,,,
+17/10/2020,"Planning permit exemptions, July 2014",,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,
 PS,Heritage Place,External,Internal,Tree,Outbuildings,Included on the,Prohibited,Aboriginal,,,,,,,,,,
 map,,Paint,Alteration,Controls,or fences,Victorian Heritage,uses may be,heritage,,,,,,,,,,

@@ -213,9 +213,7 @@ export class MapComponent implements AfterViewInit {
       });
 
       this._overlaysLayer.addListener('click', (e) => {
-          //google.maps.event.trigger(this._propertiesLayer, 'click', e);
-           // We need to run dynamic component  in angular2 zone
-          this.zone.run(() => this.onMarkerClick(this._overlaysLayer, e));
+          google.maps.event.trigger(this._propertiesLayer, 'click', e);
       });
 
     } else {  // properties layer
@@ -254,7 +252,7 @@ export class MapComponent implements AfterViewInit {
       this._propertiesLayer.addListener('click', (e) => {
         const feature = e ? e.feature : null;
         if (feature) {
-          this.showInfoWindow(feature, e.latLng);
+          this.showInfoWindow(e, e.latLng);
         }
       });
     }
@@ -367,7 +365,8 @@ export class MapComponent implements AfterViewInit {
    * @param feature
    * @param latLng
    */
-  showInfoWindow (feature: google.maps.Data.Feature, latLng: google.maps.LatLng) {
+  showInfoWindow (event: any, latLng: google.maps.LatLng) {
+    const feature: google.maps.Data.Feature = event ? event.feature : null;
     const properties = {};
     if (this.infoWindow === null) {
       this.infoWindow = new google.maps.InfoWindow({
@@ -380,15 +379,33 @@ export class MapComponent implements AfterViewInit {
       });
       if (properties.hasOwnProperty('HeritageStatus')) {
         const status = properties['HeritageStatus'];
-        this.infoWindow.setContent(`<b>${properties['NormalAddress']}</b><br/>
+        let htmlContentString = 
+        `
+        <b>${properties['NormalAddress']}</b><br/>
         <p data-status=${status} class="heritageStatusColor">${status}</p>
         In Heritage Overlay ${properties['Overlay']}
+        <p>VHR ${properties['VHR']}</p>
+        `;
+
+        if (properties['Image'] =="null") {
+          htmlContentString += `<img src="${properties['Image']}" alt="VHD Photo" height="140" width="140">`
+        }
+
+        this.infoWindow.setContent(`
+        <b>${properties['NormalAddress']}</b><br/>
+        <p data-status=${status} class="heritageStatusColor">${status}</p>
+        In Heritage Overlay ${properties['Overlay']}
+        <p>VHR ${properties['VHR']}</p>
+        <img src="${properties['Image']}" alt="VHD Photo" height="140" width="140">
         `
         );
 
       } else {
         //this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);
         this.infoWindow.setContent(`<app-overlay-properties [overlayProperties]='overlayProperties'></app-overlay-properties>`);
+        // We need to run dynamic component  in angular2 zone
+        this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
+
       }
       this.infoWindow.open(this.map);
       this.infoWindow.setPosition(latLng);

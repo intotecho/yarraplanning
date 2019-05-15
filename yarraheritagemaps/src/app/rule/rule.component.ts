@@ -156,4 +156,8 @@ export class RuleInputComponent implements OnInit {
   onColorChange() {
     this.writeValue(this.formGroup.getRawValue());
   }
+
+  isComputed() {
+    return this._rule.isComputed;
+  }
 }

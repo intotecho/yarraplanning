@@ -3,14 +3,14 @@
   <mat-slide-toggle formControlName="isComputed">
     Data-driven
   </mat-slide-toggle>
-  <mat-form-field *ngIf="!_rule.isComputed">
+  <mat-form-field *ngIf="!isComputed()">
     <input matInput
           placeholder="Value"
           formControlName="value"
           matTooltip="Value of this style for all features"
           matTooltipPosition="after">
   </mat-form-field>
-  <mat-form-field *ngIf="_rule.isComputed">
+  <mat-form-field *ngIf="isComputed()">
     <mat-select placeholder="Function"
                 formControlName="function"
                 matTooltip="Function used to compute a style value from a field's values"
@@ -25,7 +25,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <mat-form-field *ngIf="_rule.isComputed">
+  <mat-form-field *ngIf="isComputed()">
     <mat-select placeholder="Field"
                 formControlName="property"
                 matTooltip="Field in data used as input to the styling function"
@@ -36,7 +36,7 @@
       </mat-option>
     </mat-select>
   </mat-form-field>
-  <div class="array-field" *ngIf="_rule.isComputed && getPropNeedsMapping()">
+  <div class="array-field" *ngIf="isComputed() && getPropNeedsMapping()">
     <label>Domain</label>
     <button mat-icon-button
             color="primary"
@@ -62,7 +62,7 @@
       </span>
     </div>
   </div>
-  <div class="array-field" *ngIf="_rule.isComputed && getPropNeedsMapping()">
+  <div class="array-field" *ngIf="isComputed() && getPropNeedsMapping()">
     <label>Range</label>
     <button *ngIf="prop.type === 'color'"
             mat-icon-button

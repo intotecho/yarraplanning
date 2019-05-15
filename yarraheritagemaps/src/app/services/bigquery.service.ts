@@ -85,6 +85,10 @@ export class BigQueryService {
     return gapi['auth2'].getAuthInstance().currentUser.get();
   }
 
+  getUserEmail(): Object {
+    return gapi['auth2'].getAuthInstance().currentUser.get().getBasicProfile().getEmail();
+  }
+
   /**
    * Attempts session login.
    */

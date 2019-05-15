@@ -195,7 +195,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this._ngZone.run(() => {
       this.isSignedIn = this.dataService.isSignedIn;
       if (!this.dataService.isSignedIn) { return; }
-      this.user = this.dataService.getUser();
+      this.user = this.dataService.getUserEmail();
       this.dataService.getProjects()
         .then((projects) => {
           this.matchingProjects = projects;

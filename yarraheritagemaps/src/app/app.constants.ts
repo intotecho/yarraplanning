@@ -31,13 +31,20 @@ export const SAMPLE_QUERY = `
     HeritageStatus,
     Overlay,
     NormalAddress,
+    EstimatedDate,
+    Image,
+    VHR,
+    href,
+    vhdplaceid,
+    SosHash,
     SAFE.ST_GeogFromGeoJson(boundary) as bndry,
     ST_GeogFromGeoJson(location) as locn
     FROM
-    \`yarrascrape.YarraPlanning.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY\` as register
+    \`yarrascrape.YarraPlanning.YARRAHERITAGEMAPS_PROPERTIES\` as register
     WHERE
     register.Overlay = @overlay
   `;
+
 
 export const OVERLAYS_QUERY = `
   #standardsql
