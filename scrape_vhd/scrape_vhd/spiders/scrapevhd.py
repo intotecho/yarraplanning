@@ -7,11 +7,11 @@ USAGE:
 Refer to README.md in parent folder.
 
 cd yarraplanning/scrape_vhd
-TO BUILD INDEX
+TO SCRAPE INDEX
 >scrpay crawl scraevhd buildindex='True'
 >rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a index="True" -o yarra_vhd_index-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
 
-TO READ INDEX
+TO READ INDEX AND SCRAPE PLACE DETAILS
 rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl  -a index="yarra_vhd_index-$DATE.csv" -o yarra_vhd-$DATE.csv scrapevhd > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
 '''
 
@@ -20,6 +20,8 @@ from scrapy.linkextractors import LinkExtractor
 import scrapy
 import re
 import pandas as pd
+import numpy as np
+import os.path
 # https://vhd.heritagecouncil.vic.gov.au/search?kw=YARRA&aut_off=1&collapse=true&spage=1&tab=places&view=detailed&rpp=25&ppage=946
 
 def placeToURL(place_id):
@@ -31,41 +33,12 @@ class ScrapevhdSpider(CrawlSpider):
     start_urls = []
     details_filename = 'yarra_vhd-20190423.csv'
     buildindex = 'True'  # Replaced by index attribute on command line -a index="True"
-    # specifies exported fields and order
-    ITEM_PIPELINES = {
-       'myproject.pipelines.ScrapeVhdPipeline': 300
-    }
     custom_settings = {
         'CONCURRENT_REQUESTS': 3,
         'DOWNLOAD_TIMEOUT': 360
     }
-    #
 
-    '''
-                restrict_xpaths=([
-                    '//ul[@class="search-results-listings"]',
-                    '//ul[@class="display-control-places"]',
-                    '//div[@class="listings-container detailed-view"]',
-                    '//div[@class="individual-listing-content"]',
-                    '//div[@id="record-details"]',
-                    '//div[@id="additional-info"]',
-                    '//div[@class="listing-sidebar-map"]']
-                ),
-    rules = (
-        # Extract links matching search or place and parse them.
 
-        Rule(
-            LinkExtractor(
-                allow=('places.*',),
-                deny=('shipwreck.*',
-                      'search.*',
-                      'img.*',)
-            ),
-            callback='parse_placedetails',
-            follow=False
-        ),
-    )
-   '''
     def __init__(self, index='',  **kwargs):
         pages = range(0, 824)
         #pages = range(0, 824)
@@ -74,10 +47,9 @@ class ScrapevhdSpider(CrawlSpider):
             self.buildindex = u'True'
             self.logger.info( "\n\n BUILDING INDEX")
             for p in pages:
-                #url = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=&kwt=exact&kwe=&aut_off=1&aut%%5B0%%5D=&cp=0&mun%%5B0%%5D=77&str=&sub=&pre=&arcs=0&arc=&tp=0&nme=&nmf=&his=&yt=0&yc=&idnt=hermes&idn=&do=s&collapse=true&type=place&spage=1&tab=places&view=detailed&rpp=25&ppage={}'.format(p)
-                #url = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=&kwt=exact&kwe=&aut_off=1&aut[]=&cp=0&mun[]=77&str=&sub=&pre=&arcs=0&arc=&tp=0&nme=&nmf=&his=&yt=0&yc=&idnt=hermes&idn=&do=s&collapse=true&type=place'
                 url = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=&kwt=exact&kwe=&aut_off=1&aut[0]=&cp=0&mun[0]=77&str=&sub=&pre=&arcs=0&arc=&tp=0&nme=&nmf=&his=&yt=0&yc=&idnt=hermes&idn=&do=s&collapse=true&type=place&spage=1&tab=places&view=detailed&rpp=25&ppage={}'.format(p)
                 self.start_urls.append(url)
+            # specifies exported fields and order
             self.custom_settings['FEED_EXPORT_FIELDS'] = [
                 'page',
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
@@ -85,8 +57,10 @@ class ScrapevhdSpider(CrawlSpider):
                 20, 21, 22, 23, 24
                 ]
         else:
-            self.logger.info( "\n\n SCRAPING PLACE DETAILS")
+            self.logger.info("\n\n SCRAPING PLACE DETAILS")
+            # specifies exported fields and order
             self.custom_settings['FEED_EXPORT_FIELDS'] = [
+                # NOT USED - ITEMS NOW DEFINED IN pipeline.py
                 'Summary',
                 'vhdplaceid',
                 'VHR',
@@ -94,18 +68,27 @@ class ScrapevhdSpider(CrawlSpider):
                 'Name',
                 'Location',
                 'Description',
-                'Statement',
                 'Authority',
                 'href',
                 'Image',
                 'Thumbnail',
                 'VHRlat',
                 'VHRlng'
+                'SoSHash'
             ]
             self.buildindex = index
             df_index = self.readIndex()
+            total_pages = df_index.size
             df_index = df_index.applymap(lambda p : 'https://vhd.heritagecouncil.vic.gov.au/places/{}'.format(p))
-            self.start_urls = df_index.values.tolist()[0]
+            self.logger.debug("\n\n INDEX CONTAINS {} DETAIL PAGES TO SCRAPE \n\n".format(df_index.size))
+
+            pages = df_index.to_numpy().copy()
+            pages = np.resize(pages, total_pages)
+            # self.logger.debug("\n\n PAGES {} \n\n".format(pages))
+
+            self.start_urls = pages[10000:].tolist()
+            self.logger.debug("\n\n START URLS {} \n\n".format(self.start_urls))
+
         super(ScrapevhdSpider, self).__init__(**kwargs)
         self.logger.info(u'=== INIT ====')
         # self.logger.info(self.start_urls)
@@ -113,13 +96,17 @@ class ScrapevhdSpider(CrawlSpider):
     def readIndex(self):
         # Read the index data to a Pandas Dataframe
         index_filename = self.buildindex
-        try:
-            index_df = pd.read_csv(index_filename, encoding='utf8')
-        except Exception as e:
-            self.logger.error("Error Reading Index File. Exception {} ".format(e))
-            exit()
-        return index_df
-
+        pathname = os.path.abspath(index_filename)
+        if os.path.isfile(pathname):
+            try:
+                index_df = pd.read_csv(index_filename, encoding='utf8')
+            except Exception as e:
+                self.logger.error("Error Reading Index File. Exception {} ".format(e))
+                exit()
+            return index_df
+        else:
+            return pd.DataFrame() # Empty
+    '''
     def readDetails(self):
         # Read the details data and only scrape pages we don't have already.
         try:
@@ -128,6 +115,7 @@ class ScrapevhdSpider(CrawlSpider):
             self.logger.error("Error Reading Details File. Exception {} ".format(e))
             exit()
         return details_df
+    '''
 
     def parse_start_url(self, response):
         if self.buildindex == u'True':
@@ -168,8 +156,12 @@ class ScrapevhdSpider(CrawlSpider):
         item['VHR'] = self.stripif(response.xpath("//*[contains(text(), 'Victorian Heritage Register (VHR) Number')]/following-sibling::text()").get())
         item['Image'] = self.stripif(response.css('img.gallery-image::attr(src)').get())
         item['Summary'] = False
-        item['Statement'] = self.stripif(response.xpath('//h2[contains(@id,"statement-significance")]/following-sibling::p/text()').get())
         item['Authority'] = self.stripif(response.xpath('//h5[contains(text(),"Heritage Listing")]/following-sibling::text()').get())
+        sosElement = response.xpath('//*[preceding-sibling::h2[1][.="Statement of Significance"]]')
+        sos = sosElement.getall() # a list
+        separator = ' '
+        item['StatementContent'] = separator.join(sos).encode('utf-8')
+        item['SoSHash'] = hash(item['StatementContent'])
         try:
             item['VHRlat'] = re.search(r'q=([+-]?(\d*\.)?\d+),([+-]?(\d*\.))',
                                        mapLocation).group(1)
@@ -178,10 +170,8 @@ class ScrapevhdSpider(CrawlSpider):
         except:
             item['VHRlat'] = u'0'
             item['VHRlng'] = u'0'
-        self.logger.info("\n\n\n === YIELDING PLACE DETAILS {} {} ===\n\n\n".format(item['vhdplaceid'], item['VHRlng']  ))
+        self.logger.info("\n\n\n === YIELDING PLACE DETAILS id:{} hash:{} ===\n\n\n".format(item['vhdplaceid'], item['SoSHash']  ))
         yield item
-
-
 
     '''
     parse search results page
