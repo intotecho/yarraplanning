@@ -7,7 +7,7 @@
   <span>Yarra Heritage Maps</span>
   <span class="flex-spacer"></span>
   <span> {{overlayInfo}}</span> 
-  <span *ngIf="overlayInfo"> <i>Double Click to Select</i></span> 
+  <span *ngIf="overlayInfo"> <i>Double Click Overlay for more details</i></span> 
     <span class="flex-spacer"></span>
     <span class="header-profile">{{ user?.getBasicProfile().getEmail() }}</span>
   <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
@@ -26,7 +26,11 @@
       <mat-step [stepControl]="dataFormGroup" label="Select data">
 
         <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Authorize</button>
-
+        <div id="overlay-panel" > 
+            <span> {{overlayInfo}}</span> 
+            <span *ngIf="overlayInfo"><i>Double Click Overlay for more details</i></span>
+        </div>
+    
         <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
           <mat-form-field class="wide sql-location">
             <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="model" matTooltip="Select Overlay to Map."
@@ -36,7 +40,7 @@
               </mat-option>
             </mat-select>
           </mat-form-field>
-
+        
           <mat-form-field class="sql-form-field">
             <input type="text" placeholder="Project ID" matInput formControlName="projectID" ([ngModel])="model" [matAutocomplete]="auto">
             <mat-autocomplete #auto="matAutocomplete">

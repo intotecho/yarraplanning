@@ -26,6 +26,12 @@ export interface StyleRule {
   range: string[];
 }
 
+
+export class LayerStyles {
+  styleRules: Array<StyleRule>;
+  layer: String;
+}
+
 const DEFAULT_STYLES = {
   fillColor: '#ff0000',
   fillOpacity: 1.0,

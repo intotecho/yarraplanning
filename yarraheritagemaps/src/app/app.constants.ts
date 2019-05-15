@@ -44,9 +44,14 @@ export const OVERLAYS_QUERY = `
   SELECT
   ZONE_DESC,
   ZONE_CODE,
+  HeritagePlace,
+  Status,
+  Included,
+  TreeControls,
+  VHR,
   SAFE.ST_GeogFromGeoJson(geom) as bndry
   FROM
-  \`yarrascrape.YarraPlanning.YARRA_OVERLAYS\` as overlays
+  \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays
   where LGA = "YARRA"
   AND SCHEMECODE = "HO"`;
 
@@ -56,29 +61,29 @@ export const HERITAGE_OVERLAY_STYLE = {
   strokeWeight: 2,
   strokeOpacity: 0.6,
   fillColor: '#F0B0B0',
-  opacity: 0.2
+  fillOpacity: 0.2
 };
-
 
 
 export const HIGHLIGHTED_HERITAGE_OVERLAY_STYLE = {
   strokeColor: '#F0B0B0',
-  zIndex: 0,
+  zIndex: 100,
   strokeWeight: 3,
   strokeOpacity: 0.8,
   fillColor: '#F09090',
-  opacity: 0.6
+  fillOpacity: 0.6
 };
 
-export const SAMPLE_FILL_OPACITY = {isComputed: false, value: 0.7};
+export const SAMPLE_FILL_OPACITY = {isComputed: false, value: 0.3};
+
 export const SAMPLE_FILL_COLOR = {
   isComputed: true,
-  zIndex: 1,
   property: 'HeritageStatus',
   function: 'categorical',
   domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown', ''],
   range: ['#75954c', '#afc3c6', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA']
 };
+
 export const SAMPLE_CIRCLE_RADIUS = {
   isComputed: true,
   property: 'num_bikes_available',
@@ -86,6 +91,29 @@ export const SAMPLE_CIRCLE_RADIUS = {
   domain: [0, 60],
   range: [2, 24]
 };
+
+export const OVERLAY_FILL_COLOR = {
+  isComputed: true,
+  property: 'TreeControls',
+  function: 'categorical',
+  domain: ['Yes', 'No', '-'],
+  range: ['#00FF00', '#FFFFAA', '#AAAAAA', '#0000FF']
+};
+export const OVERLAY_FILL_OPACITY = {isComputed: false, value: 0.1};
+
+export const OVERLAY_STROKE_COLOR = {
+  isComputed: true,
+  property: 'Included',
+  function: 'categorical',
+  domain: ['true', 'false'],
+  range: ['#FF000000', '#000000']
+};
+
+export const OVERLAY_STROKE_OPACITY = {
+  isComputed: false,
+  value: 0.9
+};
+
 
 // Maximum number of results to be returned by BigQuery API.
 export const MAX_RESULTS = 3600; // The biggest heritage overlay HO327 has 3535 sites
@@ -98,18 +126,4 @@ export const TIMEOUT_MS = 120000;
 
 export const PALETTES = Object.keys(colorbrewer).map((key) => colorbrewer[key]);
 
-export interface HeritageOverlay {
-  ZONE_CODE: String;
-  ZONE_DESC: String;
-}
 
-export const matchingHeritageOverlays: Array<HeritageOverlay> = [
-  {
-      ZONE_CODE: 'HO317',
-      ZONE_DESC: 'Clifton Hill West'
-  },
-  {
-      ZONE_CODE: 'HO330',
-      ZONE_DESC: 'Queens Parade'
-  }
-  ];

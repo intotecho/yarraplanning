@@ -94,3 +94,9 @@ mat-progress-spinner {
 .mat-raised-button[disabled] {
     background: #e5e3df;
 }
+
+#overlay-panel {
+    height:200px;
+    width:100%;
+    background-color: #f8e9f2;
+}

@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-import {environment} from '../../environments/environment';
-import {MAX_RESULTS, TIMEOUT_MS,  HeritageOverlay, matchingHeritageOverlays} from '../app.constants';
+import { environment } from '../../environments/environment';
+import { MAX_RESULTS, TIMEOUT_MS } from '../app.constants';
+import { HeritageOverlay } from '../overlays';
 
 export const ColumnType = {
   STRING: 'string',

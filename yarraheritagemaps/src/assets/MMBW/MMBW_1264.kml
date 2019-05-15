@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom">
+<GroundOverlay>
+	<name>MMBW 1264 from GS</name>
+	<color>ccffff80</color>
+	<Icon>
+		<href>https://storage.googleapis.com/historic_map_overlays/DetailPlan_1264_alpha.jpg</href>
+		<viewBoundScale>0.75</viewBoundScale>
+	</Icon>
+	<LatLonBox>
+		<north>-37.784899</north>
+		<south>-37.788269</south>
+		<east>144.996226</east>
+		<west>144.989129</west>
+		<rotation>27.57004115033846</rotation>
+	</LatLonBox>
+</GroundOverlay>
+</kml>
