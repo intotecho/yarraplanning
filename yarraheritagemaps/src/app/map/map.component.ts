@@ -22,14 +22,17 @@ import {
 
 import { StyleProps, StylesService, LayerStyles } from '../services/styles.service';
 import * as parseWKT from 'wellknown';
-import { OverlayProperties } from '../overlays';
+import { OverlayProperties } from '../main/panels/overlays-properties';
 
 declare var geoXML3: any;
 import '../../../third_party/geocodezip/geoxml3';
 import { style } from '@angular/animations';
-import { OverlayPropertiesComponent } from '../overlay-properties/overlay-properties.component';
+import { OverlayInfoComponent as OverlayInfoComponent } from '../main/panels/overlay-info/overlay-info.component';
 
 import { SelectMMBWOverlay } from '../select-MMBWOverlay';
+import { GCS_BUCKET_SOS, HERITAGE_SITE_ZINDEX, HERITAGE_OVERLAY_STYLE } from '../app.constants';
+import { HeritageSiteInfo } from '../main/panels/heritage-site-info';
+import { HeritageSiteInfoComponent } from '../main/panels/heritage-site-info/heritage-site-info.component';
 
 interface IFeature {
   setMap(map: google.maps.Map|null): void;
@@ -52,7 +55,8 @@ export class MapComponent implements AfterViewInit {
 
   // Info window for display over Maps API.
   infoWindow: google.maps.InfoWindow = null;
-  compRef: ComponentRef<OverlayPropertiesComponent>;
+  overlayInfoComponentRef: ComponentRef<OverlayInfoComponent>;
+  heritageSiteInfoComponentRef: ComponentRef<HeritageSiteInfoComponent>;
   // Basemap styles.
   pendingStyles: Promise<Array<google.maps.MapTypeStyle>>;
 
@@ -68,7 +72,14 @@ export class MapComponent implements AfterViewInit {
   private _geoXml: any = null;
   @Output() overlayChanged: EventEmitter<OverlayProperties> =   new EventEmitter();
   @Output() overlaySelected: EventEmitter<OverlayProperties> =   new EventEmitter();
-  @Input() overlayProperties: OverlayProperties;
+  private highlightedOverlay: OverlayProperties = new OverlayProperties(null);
+  private seletedOverlay: OverlayProperties = new OverlayProperties(null);
+
+  @Output() heritageSiteChanged: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
+  @Output() heritgeSiteSelected: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
+  private highlightedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
+  private selectedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
+
   @Input()
   set rows(rows: Array<Object>) {
     this._rows = rows;
@@ -156,13 +167,68 @@ export class MapComponent implements AfterViewInit {
     });
   }
 
-  addResultsToLayer(layer, rows, zIndex) {
+  removeMatchingFeaturesFromLayer(layer, key, value) {
+    layer.forEach((feature) => {
+      if (Array.isArray(feature)) {
+        feature.forEach((f) => {
+          if (f.getProperty(key) === value) {
+            layer.remove(f);
+          }
+        });
+      } else {
+        if (feature.getProperty(key) === value) {
+          layer.remove(feature);
+        }
+      }
+    });
+  }
 
+  removeMismatchingFeaturesFromLayer(layer, key, value) {
+    layer.forEach((feature) => {
+      if (Array.isArray(feature)) {
+        feature.forEach((f) => {
+          if (f.getProperty(key) !== value) {
+            layer.remove(f);
+          }
+        });
+      } else {
+        if (feature.getProperty(key) !== value) {
+          layer.remove(feature);
+        }
+      }
+    });
+  }
+  backgroundMatchingFeaturesFromLayer(layer, key, value) {
+    layer.forEach((feature) => {
+      if (Array.isArray(feature)) {
+        feature.forEach((f) => {
+          if (f.getProperty(key) === value) {
+            layer.remove(f);
+            // layer.overrideStyle(f, {zIndex: 0});
+          }
+        });
+      } else {
+        if (feature.getProperty(key) === value) {
+          layer.remove(feature);
+          // layer.overrideStyle(feature, {zIndex: 0});
+        }
+      }
+    });
+  }
+
+  addResultsToLayer(layer, rows, zIndex) {
+    console.error(`Adding ${rows.length} Features`);
     rows.forEach((row) => {
       try {
         const geometry = parseWKT(row[this._geoColumn]);
+        delete row.locn; // make feature a bit smaller
+        delete row.bndry;
         const feature = {type: 'Feature', geometry, properties: row, zIndex: zIndex};
+
         layer.addGeoJson(feature);
+        layer.overrideStyle(feature, {
+          zIndex: zIndex
+        });
 
       } catch (e) {
         // Parsing can fail (e.g. invalid WKT); just log the error.
@@ -183,37 +249,37 @@ export class MapComponent implements AfterViewInit {
     if (isZonelayer) {
       // Update the Overlays Key Map
       this._overlay_rows = this._rows;
-      this.addResultsToLayer(this._overlaysLayer, this._rows, 0);
+      this.addResultsToLayer(this._overlaysLayer, this._rows, HERITAGE_OVERLAY_STYLE.zIndex);
 
       this._overlaysLayer.addListener('mouseover', (event) => {
 
-          this.overlayProperties = this.getOverlayProperties(event);
-          if (this.overlayProperties !== null) {
-            this.overlayChanged.emit(this.overlayProperties);
+          this.highlightedOverlay = new OverlayProperties(event);
+          if (this.highlightedOverlay !== null) {
+            this.overlayChanged.emit(this.highlightedOverlay);
           }
           this._overlaysLayer.overrideStyle(event.feature, {strokeWeight: 3});
+      });
 
-    });
-
-      this._overlaysLayer.addListener('mouseout', (event) => {
+      this._overlaysLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
         if (event.feature) {
-          this.overlayProperties = null; // event.feature.getProperty('ZONE_CODE');
-          this.overlayChanged.emit(this.overlayProperties);
+          this.highlightedOverlay = null; // event.feature.getProperty('ZONE_CODE');
+          this.overlayChanged.emit(this.highlightedOverlay);
           this._overlaysLayer.overrideStyle(event.feature, {strokeWeight: 1});
         }
       });
 
-      this._overlaysLayer.addListener('dblclick', (event) => {
+      this._overlaysLayer.addListener('dblclick', (event: google.maps.Data.MouseEvent) => {
         if (event.feature) {
-          this.overlayProperties = this.getOverlayProperties(event);
-          this.overlaySelected.emit(this.overlayProperties );
-          this.overlayChanged.emit(this.overlayProperties );
-          this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
+          this.highlightedOverlay = new OverlayProperties(event);
+          this.overlayChanged.emit(this.highlightedOverlay );
+          this.seletedOverlay = this.highlightedOverlay;
+          this.overlaySelected.emit(this.seletedOverlay);
+          //this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
         }
       });
 
-      this._overlaysLayer.addListener('click', (e) => {
-          google.maps.event.trigger(this._propertiesLayer, 'click', e);
+      this._overlaysLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
+          google.maps.event.trigger(this._propertiesLayer, 'click', event);
       });
 
     } else {  // properties layer
@@ -222,63 +288,53 @@ export class MapComponent implements AfterViewInit {
       const bounds = new google.maps.LatLngBounds();
 
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
+      this.removeMatchingFeaturesFromLayer(this._overlaysLayer, 'ZONE_CODE', this.seletedOverlay.Overlay);
       const map = this.map;
+
       this._propertiesLayer.addListener('addfeature', function(e) {
         recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
         if (!bounds.isEmpty()) {
           map.fitBounds(bounds);
         }
       });
-      this.addResultsToLayer(this._propertiesLayer, this._rows, 100);
+      this.addResultsToLayer(this._propertiesLayer, this._rows, HERITAGE_SITE_ZINDEX);
 
-      this._propertiesLayer.addListener('mouseover', (event) => {
+
+      this._propertiesLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
+
+        this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
+        this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
+
         if (event.feature) {
           this._propertiesLayer.overrideStyle(event.feature, {
             strokeWeight: 3,
-            zIndex: 200
+            zIndex: HERITAGE_SITE_ZINDEX
           });
         }
       });
 
-      this._propertiesLayer.addListener('mouseout', (event) => {
+      this._propertiesLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
         if (event.feature) {
           this._propertiesLayer.overrideStyle(event.feature, {
               strokeWeight: 1,
-              zIndex: 100
+              zIndex: HERITAGE_SITE_ZINDEX + 100
             });
         }
       });
 
-      this._propertiesLayer.addListener('click', (e) => {
-        const feature = e ? e.feature : null;
+      this._propertiesLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
+        this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
+        this.heritgeSiteSelected.emit(this.selectedHeritageSiteInfo);
+        const feature = event ? event.feature : null;
         if (feature) {
-          this.showInfoWindow(e, e.latLng);
+          // this.showInfoWindow(e, e.latLng);
+          this.zone.run(() => this.onMarkerClick(this._propertiesLayer, event));
         }
       });
     }
   }
 
-  getOverlayProperties(event) {
-    if (event && event.feature) {
-      const op = new OverlayProperties();
-      op['Overlay'] = event.feature.getProperty('Overlay');
-      op['HeritagePlace'] = event.feature.getProperty('HeritagePlace');
-      op['Included'] = event.feature.getProperty('Included');
-      op['VHR'] = event.feature.getProperty('VHR');
-      op['PaintControls'] = event.feature.getProperty('PaintControls');
-      op['InternalControls'] = event.feature.getProperty('InternalControls');
-      op['TreeControls'] = event.feature.getProperty('TreeControls');
-      op['FenceControls'] = event.feature.getProperty('FenceControls');
-      op['Prohibited'] = event.feature.getProperty('Prohibited');
-      op['AboriginalHeritagePlace'] = event.feature.getProperty('AboriginalHeritagePlace');
-      op['Status'] = event.feature.getProperty('Status');
-      op['Expiry'] = event.feature.getProperty('Expiry');
-      this.overlayProperties = op;
-      return this.overlayProperties;
-    } else {
-      return null;
-    }
-  }
+
 
   /**
    * Updates styles applied to all GeoJSON features in the layer.
@@ -292,14 +348,14 @@ export class MapComponent implements AfterViewInit {
       this.styler.uncache();
       this._overlaysLayer.forEach((feature) => {
         const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
-        feature['zIndex'] = 10;
+        feature['zIndex'] = HERITAGE_OVERLAY_STYLE.zIndex;
         this._overlaysLayer.overrideStyle(feature, featureStyles);
         });
     } else if (styles.layer === 'HeritageStatus') {
       this.styler.uncache();
       this._propertiesLayer.forEach((feature) => {
         const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
-        feature['zIndex'] = 100;
+        feature['zIndex'] = HERITAGE_SITE_ZINDEX;
         this._propertiesLayer.overrideStyle(feature, featureStyles);
         });
     }
@@ -335,29 +391,58 @@ export class MapComponent implements AfterViewInit {
   /**
    * Displays info window for overlay. This is a dynamically created component.
    */
-  onMarkerClick(marker, e) {
-    if (this.compRef) {
-      this.compRef.destroy();
-    }
+  onMarkerClick(marker, event: google.maps.Data.MouseEvent) {
 
-    const compFactory = this.resolver.resolveComponentFactory(OverlayPropertiesComponent);
-    this.compRef = compFactory.create(this.injector);
+    const feature: google.maps.Data.Feature = event ? event.feature : null;
 
-    this.overlayProperties = this.getOverlayProperties(e);
-    this.compRef.instance.overlayProperties = this.overlayProperties;
+    if (feature) {
+      const properties = {};
+      const div = document.createElement('div'); // To place component into.
+
+      feature.forEachProperty((value, key) => {
+        properties[key] = key === this._geoColumn ? truncateWKT(value) : value;
+      });
+
+      if (properties.hasOwnProperty('HeritagePlace')) { // Create OverlayInfoComponent
+        if (this.overlayInfoComponentRef) {
+          this.overlayInfoComponentRef.destroy();
+        }
+        const compFactory = this.resolver.resolveComponentFactory(OverlayInfoComponent);
+        this.overlayInfoComponentRef = compFactory.create(this.injector);
+
+        this.highlightedOverlay = new OverlayProperties(event);
+        this.overlayInfoComponentRef.instance.overlayProperties = this.highlightedOverlay;
+        this.overlayInfoComponentRef.instance.title = 'Clicked Overlay';
+        this.appRef.attachView(this.overlayInfoComponentRef.hostView);
+        div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
+      } else { // Create HeritageSiteInfoComponent
+
+
+
+        if (this.heritageSiteInfoComponentRef) {
+          this.heritageSiteInfoComponentRef.destroy();
+        }
+        const compFactory = this.resolver.resolveComponentFactory(HeritageSiteInfoComponent);
+        this.heritageSiteInfoComponentRef = compFactory.create(this.injector);
+
+        this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
+        this.heritageSiteInfoComponentRef.instance.heritageSiteInfo = this.highlightedHeritageSiteInfo;
+        this.selectedHeritageSiteInfo = this.highlightedHeritageSiteInfo;
+
+        
+        this.heritageSiteInfoComponentRef.instance.title = 'Clicked ';
+        this.appRef.attachView(this.heritageSiteInfoComponentRef.hostView);
+        div.appendChild(this.heritageSiteInfoComponentRef.location.nativeElement);
+      }
+      if (this.infoWindow === null) {
+        this.infoWindow = new google.maps.InfoWindow({
+          content: 'Default'});
+      }
+      this.infoWindow.setContent(div);
+      this.infoWindow.open(this.map, marker);
+      this.infoWindow.setPosition(event.latLng);
+      }
     // componentRef.instance.someObservableOrEventEmitter.subscribe(data => this.prop = data);
-
-    this.appRef.attachView(this.compRef.hostView);
-
-    const div = document.createElement('div');
-    div.appendChild(this.compRef.location.nativeElement);
-    if (this.infoWindow === null) {
-      this.infoWindow = new google.maps.InfoWindow({
-        content: 'Default'});
-    }
-    this.infoWindow.setContent(div);
-    this.infoWindow.open(this.map, marker);
-    this.infoWindow.setPosition(e.latLng);
   }
 
   /**
@@ -365,7 +450,7 @@ export class MapComponent implements AfterViewInit {
    * @param feature
    * @param latLng
    */
-  showInfoWindow (event: any, latLng: google.maps.LatLng) {
+  showInfoWindow(event: any, latLng: google.maps.LatLng) {
     const feature: google.maps.Data.Feature = event ? event.feature : null;
     const properties = {};
     if (this.infoWindow === null) {
@@ -379,26 +464,24 @@ export class MapComponent implements AfterViewInit {
       });
       if (properties.hasOwnProperty('HeritageStatus')) {
         const status = properties['HeritageStatus'];
-        let htmlContentString = 
-        `
+        let htmlContentString = `
         <b>${properties['NormalAddress']}</b><br/>
         <p data-status=${status} class="heritageStatusColor">${status}</p>
         In Heritage Overlay ${properties['Overlay']}
         <p>VHR ${properties['VHR']}</p>
         `;
 
-        if (properties['Image'] =="null") {
-          htmlContentString += `<img src="${properties['Image']}" alt="VHD Photo" height="140" width="140">`
+        if (properties['SosHash'] !== 'null') {
+          console.log(properties['SosHash']);
+          htmlContentString += `
+          <div><a target="_blank" href="${GCS_BUCKET_SOS}${properties['SosHash']}.html">Statement of Significance</a></div>`;
         }
 
-        this.infoWindow.setContent(`
-        <b>${properties['NormalAddress']}</b><br/>
-        <p data-status=${status} class="heritageStatusColor">${status}</p>
-        In Heritage Overlay ${properties['Overlay']}
-        <p>VHR ${properties['VHR']}</p>
-        <img src="${properties['Image']}" alt="VHD Photo" height="140" width="140">
-        `
-        );
+        if (properties['Image'] !== 'null') {
+          htmlContentString += `<img src="${properties['Image']}" alt="VHD Photo" height="60%" width="60%">`;
+        }
+
+        this.infoWindow.setContent(htmlContentString);
 
       } else {
         //this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);

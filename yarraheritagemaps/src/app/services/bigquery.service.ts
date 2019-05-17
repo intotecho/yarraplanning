@@ -16,7 +16,7 @@
 
 import { environment } from '../../environments/environment';
 import { MAX_RESULTS, TIMEOUT_MS } from '../app.constants';
-import { HeritageOverlay } from '../overlays';
+import { HeritageOverlay } from '../main/panels/overlays-properties';
 
 export const ColumnType = {
   STRING: 'string',

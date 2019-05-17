@@ -17,12 +17,13 @@
 }
 
 .drawer {
-    max-width: 40vw;
+    max-width: 300px;
+    width: 25vw;
     max-height: calc(100vh - 64px);
+    min-width: 200px;
     overflow: auto;
     flex-shrink: 0;
 }
-
 mat-progress-spinner {
     display: inline-block;
     vertical-align: middle;

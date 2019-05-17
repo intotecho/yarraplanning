@@ -1,0 +1,19 @@
+<div *ngIf="heritageSiteInfo[NormalAddress]!==null">
+  <b>{{heritageSiteInfo['NormalAddress']}}</b><br />
+  <p class="heritageStatusColor">{{heritageSiteInfo['Name']}}</p>
+  <p>In Heritage Overlay: {{heritageSiteInfo['Overlay']}}</p>
+  <p>Heritage Status: {{heritageSiteInfo['HeritageStatus']}}</p>
+  <div>
+    <a target="_blank" [href]="sosLink()">Statement of Significance</a>
+  </div>
+  <div *ngIf="heritageSiteInfo.VHR!=='none'" class='vhr'>
+    VHR: <a target="_blank" [href]="vhrLink()">{{heritageSiteInfo['VHR']}}</a>
+  </div>
+  <div class='vhd'>
+    VHD: <a target="_blank" [href]="vhdLink()">{{heritageSiteInfo['vhdplaceid']}}</a>
+  </div>
+  <div *ngIf="heritageSiteInfo.Image">
+    <img src="{{heritageSiteInfo.Image}}" alt="VHD Photo" height="60%" width="60%">
+  </div>
+  <p>Estimated Date: {{heritageSiteInfo['EstimatedDate']}}</p>
+</div>

@@ -47,7 +47,8 @@ import { FileSizePipe } from './file-size.pipe';
 import { environment } from '../environments/environment';
 
 import {ColorPickerModule} from 'ngx-color-picker';
-import { OverlayPropertiesComponent } from './overlay-properties/overlay-properties.component';
+import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
+import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
 
 if ( environment.production ) {
   enableProdMode();
@@ -62,9 +63,10 @@ if ( environment.production ) {
     RuleInputComponent,
     CodemirrorComponent,
     FileSizePipe,
-    OverlayPropertiesComponent
+    OverlayInfoComponent,
+    HeritageSiteInfoComponent
   ],
-  entryComponents: [OverlayPropertiesComponent],
+  entryComponents: [OverlayInfoComponent, HeritageSiteInfoComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,

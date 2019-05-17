@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { OverlayPropertiesComponent } from './overlay-properties.component';
+import { OverlayInfoComponent } from './overlay-info.component';
 
 describe('OverlayPropertiesComponent', () => {
-  let component: OverlayPropertiesComponent;
-  let fixture: ComponentFixture<OverlayPropertiesComponent>;
+  let component: OverlayInfoComponent;
+  let fixture: ComponentFixture<OverlayInfoComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ OverlayPropertiesComponent ]
+      declarations: [ OverlayInfoComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(OverlayPropertiesComponent);
+    fixture = TestBed.createComponent(OverlayInfoComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

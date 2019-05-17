@@ -8,7 +8,7 @@ export class SelectMMBWOverlay {
 }
 
 
-export const MMBWMapsLibrary: Array<SelectMMBWOverlay> =[
+export const MMBWMapsLibrary: Array<SelectMMBWOverlay> = [
     {
         MMBWmapId: 'MMBW1264 Fitzroy & Collingwood (1904)',
         KMLurl: '../../../assets/MMBW/MMBW_1264.kml',

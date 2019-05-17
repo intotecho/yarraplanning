@@ -22,10 +22,10 @@ export const Step = {
     STYLE: 2
 };
 
-export const SAMPLE_DATACENTER = 'australia-southeast1';
+export const HERITAGE_SITE_DATACENTER = 'australia-southeast1';
 
-export const SAMPLE_PROJECT_ID = 'yarrascrape';
-export const SAMPLE_QUERY = `
+export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
+export const HERITAGE_SITE_QUERY = `
     #standardsql
     SELECT
     HeritageStatus,
@@ -69,9 +69,10 @@ export const OVERLAYS_QUERY = `
   where LGA = "YARRA"
   AND SCHEMECODE = "HO"`;
 
+
 export const HERITAGE_OVERLAY_STYLE = {
   strokeColor: '#F0A0A0',
-  zIndex: 0,
+  zIndex: 10,
   strokeWeight: 2,
   strokeOpacity: 0.6,
   fillColor: '#F0B0B0',
@@ -81,29 +82,11 @@ export const HERITAGE_OVERLAY_STYLE = {
 
 export const HIGHLIGHTED_HERITAGE_OVERLAY_STYLE = {
   strokeColor: '#F0B0B0',
-  zIndex: 100,
+  zIndex: 50,
   strokeWeight: 3,
   strokeOpacity: 0.8,
   fillColor: '#F09090',
   fillOpacity: 0.6
-};
-
-export const SAMPLE_FILL_OPACITY = {isComputed: false, value: 0.3};
-
-export const SAMPLE_FILL_COLOR = {
-  isComputed: true,
-  property: 'HeritageStatus',
-  function: 'categorical',
-  domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown', ''],
-  range: ['#75954c', '#afc3c6', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA']
-};
-
-export const SAMPLE_CIRCLE_RADIUS = {
-  isComputed: true,
-  property: 'num_bikes_available',
-  function: 'linear',
-  domain: [0, 60],
-  range: [2, 24]
 };
 
 export const OVERLAY_FILL_COLOR = {
@@ -129,6 +112,30 @@ export const OVERLAY_STROKE_OPACITY = {
 };
 
 
+export const HERITAGE_SITE_FILL_OPACITY = {isComputed: false, value: 0.3};
+export const HERITAGE_SITE_ZINDEX = 200; // higher than overlay
+
+export const HERITAGE_SITE_FILL_COLOR = {
+  isComputed: true,
+  property: 'HeritageStatus',
+  function: 'categorical',
+  domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown', ''],
+  range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA']
+};
+
+export const HERITAGE_SITE_CIRCLE_RADIUS = {
+  isComputed: true,
+  property: 'num_bikes_available',
+  function: 'linear',
+  domain: [0, 60],
+  range: [2, 24]
+};
+
+export const HERITAGE_SITE_STROKE_COLOR = {
+  isComputed: false,
+  value: '#408040'
+};
+
 // Maximum number of results to be returned by BigQuery API.
 export const MAX_RESULTS = 3600; // The biggest heritage overlay HO327 has 3535 sites
 
@@ -140,4 +147,7 @@ export const TIMEOUT_MS = 120000;
 
 export const PALETTES = Object.keys(colorbrewer).map((key) => colorbrewer[key]);
 
+export const GCS_BUCKET_SOS: String = 'https://storage.googleapis.com/historic_map_overlays/SOS/';
+
+export const VHD_KEYWORD_SEARCH: String = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=';
 

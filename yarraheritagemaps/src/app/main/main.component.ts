@@ -28,29 +28,26 @@ import { BigQueryService, ColumnStat, Project } from '../services/bigquery.servi
 
 import {
   Step,
-  SAMPLE_QUERY,
+  HERITAGE_SITE_QUERY,
   OVERLAYS_QUERY,
-  SAMPLE_FILL_COLOR,
+  HERITAGE_SITE_FILL_COLOR,
   OVERLAY_FILL_COLOR,
   OVERLAY_FILL_OPACITY,
   OVERLAY_STROKE_COLOR,
   OVERLAY_STROKE_OPACITY,
-  SAMPLE_FILL_OPACITY,
+  HERITAGE_SITE_FILL_OPACITY,
   MAX_RESULTS_PREVIEW,
-  SAMPLE_CIRCLE_RADIUS,
-  SAMPLE_PROJECT_ID,
-  SAMPLE_DATACENTER,
+  HERITAGE_SITE_CIRCLE_RADIUS,
+  HERITAGE_SITE_PROJECT_ID,
+  HERITAGE_SITE_DATACENTER,
+  HERITAGE_SITE_STROKE_COLOR,
 } from '../app.constants';
 
 import {
   matchingHeritageOverlays,
   HeritageOverlay,
   OverlayProperties
-} from '../overlays';
-
-import {
-  OverlayPropertiesComponent
-} from '../overlay-properties/overlay-properties.component';
+} from './panels/overlays-properties';
 
 import {
   SelectMMBWOverlay, MMBWMapsLibrary
@@ -58,7 +55,7 @@ import {
 
 
 import { query } from '@angular/animations';
-
+import { HeritageSiteInfo } from './panels/heritage-site-info';
 const DEBOUNCE_MS = 1000;
 
 @Component({
@@ -76,7 +73,12 @@ export class MainComponent implements OnInit, OnDestroy {
   user: Object;
   matchingProjects: Array<Project> = [];
   matchingOverlays = matchingHeritageOverlays;
-  overlayProperties: OverlayProperties = new OverlayProperties();
+  overlayProperties: OverlayProperties = new OverlayProperties(null);
+  selectedOverlayProperties: OverlayProperties = new OverlayProperties(null);
+
+  selectedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
+  highlightedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
+
   mmbwMaps: Array<SelectMMBWOverlay> = MMBWMapsLibrary;
   selectedMmbwMaps: Array<SelectMMBWOverlay> = [];
   // Form groups
@@ -138,10 +140,10 @@ export class MainComponent implements OnInit, OnDestroy {
     this.dataFormGroup = this._formBuilder.group({
       selectedMMBWIds: [],
       overlayId: ['HO0'],
-      projectID: [SAMPLE_PROJECT_ID, Validators.required],
+      projectID: [HERITAGE_SITE_PROJECT_ID, Validators.required],
       sql: [OVERLAYS_QUERY
       , Validators.required],
-      location: [SAMPLE_DATACENTER],
+      location: [HERITAGE_SITE_DATACENTER],
     });
 
     this.dataFormGroup.controls.projectID.valueChanges.debounceTime(200).subscribe(() => {
@@ -155,7 +157,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
 
     this.dataFormGroup.controls.overlayId.valueChanges.debounceTime(200).subscribe(() => {
-      this.dataFormGroup.patchValue({ sql: SAMPLE_QUERY });
+      this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
       this.query(); // kick off inital query to load the overlays
     });
 
@@ -212,8 +214,24 @@ export class MainComponent implements OnInit, OnDestroy {
 
   handleMapOverlaySelected(event) {
     this.overlayProperties = event;
+    this.selectedOverlayProperties = event;
+    localStorage.setItem('selectedOverlay',  JSON.stringify(this.overlayProperties));
     this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
   }
+
+
+  handleMapHeritageSiteHighlighted(event) {
+    this.highlightedHeritageSiteInfo = event;
+  }
+
+  handleMapHeritageSiteSelected(event) {
+    this.highlightedHeritageSiteInfo = event;
+    this.selectedHeritageSiteInfo = event;
+    localStorage.setItem('selectedProperty',  JSON.stringify(this.selectedHeritageSiteInfo));
+    // this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
+  }
+
+
 
   onStepperChange(e: StepperSelectionEvent) {
     this.stepIndex = e.selectedIndex;
@@ -243,15 +261,21 @@ export class MainComponent implements OnInit, OnDestroy {
       const queriedHeritageOverlays: Array<HeritageOverlay> = [];
       const rows = this.rows;
 
+      // Get selection from previous session to initialise.
+      const lastSelectedOverlay: OverlayProperties = JSON.parse(localStorage.getItem('selectedOverlay')); 
+
       for (let i = 0; i < rows.length; i++) {
             const ovl: HeritageOverlay = {
               'ZONE_CODE': rows[i]['ZONE_CODE'],
               'ZONE_DESC': rows[i]['ZONE_DESC']
             };
             queriedHeritageOverlays.push(ovl);
+            if (lastSelectedOverlay.Overlay === ovl.ZONE_CODE) {
+              this.overlayProperties = lastSelectedOverlay;
+              this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
+            }
       }
       this.matchingOverlays = queriedHeritageOverlays;
-
   }
 
   query() {
@@ -281,9 +305,10 @@ export class MainComponent implements OnInit, OnDestroy {
             this.showMessage('Double Click an Overlay on the map for more details', 5000);
 
           } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, SAMPLE_FILL_COLOR.domain.length);
-            this.stylesFormGroup.controls.fillOpacity.patchValue(SAMPLE_FILL_OPACITY);
-            this.stylesFormGroup.controls.fillColor.patchValue(SAMPLE_FILL_COLOR);
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
+            this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
+            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
             this.updateStyles('HeritageStatus');
             this.showMessage('Showing Heritage properties in Selected Overlay', 5000);
           }
@@ -315,17 +340,17 @@ export class MainComponent implements OnInit, OnDestroy {
   onFillPreset() {
     switch (this.stepIndex) {
       case Step.DATA:
-        this.dataFormGroup.patchValue({ sql: SAMPLE_QUERY });
+        this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
         break;
       case Step.SCHEMA:
         this.schemaFormGroup.patchValue({ geoColumn: 'WKT', latColumn: 'lat_avg', lngColumn: 'lng_avg' });
         break;
       case Step.STYLE:
-        this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, SAMPLE_FILL_COLOR.domain.length);
-        this.setNumStops(<FormGroup>this.stylesFormGroup.controls.circleRadius, SAMPLE_CIRCLE_RADIUS.domain.length);
-        this.stylesFormGroup.controls.fillOpacity.patchValue(SAMPLE_FILL_OPACITY);
-        this.stylesFormGroup.controls.fillColor.patchValue(SAMPLE_FILL_COLOR);
-        this.stylesFormGroup.controls.circleRadius.patchValue(SAMPLE_CIRCLE_RADIUS);
+        this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
+        this.setNumStops(<FormGroup>this.stylesFormGroup.controls.circleRadius, HERITAGE_SITE_CIRCLE_RADIUS.domain.length);
+        this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
+        this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
+        this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
         break;
       default:
         console.warn(`Unexpected step index, ${this.stepIndex}.`);
