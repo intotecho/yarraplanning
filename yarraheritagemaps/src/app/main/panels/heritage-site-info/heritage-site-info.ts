@@ -1,4 +1,4 @@
-import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../app.constants';
+import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../../app.constants';
 
 /*
  *  Fields based on  table YARRAHERITAGEMAPS_PROPERTIES
