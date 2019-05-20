@@ -21,7 +21,7 @@ export const matchingHeritageOverlays: Array<HeritageOverlay> = [
     ];
 
 export class OverlayProperties {
-    Overlay: String ;
+    Overlay: String = '';
     HeritagePlace: String = '';
     PaintControls: String = '';
     InternalControls: String = '';

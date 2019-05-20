@@ -1,5 +1,8 @@
+
 import { Component, Input, OnInit } from '@angular/core';
-import { HeritageSiteInfo } from '../heritage-site-info';
+import { SoSService } from '../../../../../src/app/services/sos.service';
+import { HeritageSiteInfo } from './heritage-site-info';
+import { Observable } from 'rxjs/Observable';
 
 @Component({
   selector: 'app-heritage-site-info',
@@ -10,8 +13,12 @@ export class HeritageSiteInfoComponent implements OnInit {
   @Input() heritageSiteInfo: HeritageSiteInfo;
   @Input() title: String;
   @Input() context: String;
+  _sosDetails: String = 'SOS Placeholder';
+  sosDetails$: Observable<String>;
 
-  constructor() { }
+  constructor(
+    private sosService: SoSService
+  ) { }
 
   ngOnInit() {
   }
@@ -20,11 +27,33 @@ export class HeritageSiteInfoComponent implements OnInit {
     return this.heritageSiteInfo.sosLink();
   }
 
+  getDetails() {
+    const sosLink: string = this.sosLink();
+    if (sosLink.length > 0) {
+      this.sosDetails$ = this.sosService.getSoSContents(this.sosLink());
+    }
+  }
+
   vhrLink() {
     return this.heritageSiteInfo.vhrLink();
   }
 
   vhdLink() {
     return this.heritageSiteInfo.href;
+  }
+
+  heritageStatusClass() {
+    switch (this.heritageSiteInfo.HeritageStatus) {
+          case 'Contributory':
+          return 'heritage-status-contrib';
+          case 'Not contributory':
+          return 'heritage-status-noncontrib' ;
+          case 'Individually Significant':
+          return 'heritage-status-individually';
+          case 'Victorian Heritage Register':
+          return 'heritage-status-vhr';
+          default:
+          return 'heritage-status-unknown';
+    }
   }
 }

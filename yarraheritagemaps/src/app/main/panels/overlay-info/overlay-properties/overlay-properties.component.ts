@@ -1,5 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { OverlayProperties } from '../overlays-properties';
+import { OverlayProperties } from '../../overlays-properties';
 
 @Component({
   selector: 'app-overlay-properties',

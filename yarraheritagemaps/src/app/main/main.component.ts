@@ -55,7 +55,7 @@ import {
 
 
 import { query } from '@angular/animations';
-import { HeritageSiteInfo } from './panels/heritage-site-info';
+import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
 const DEBOUNCE_MS = 1000;
 
 @Component({
@@ -262,7 +262,7 @@ export class MainComponent implements OnInit, OnDestroy {
       const rows = this.rows;
 
       // Get selection from previous session to initialise.
-      const lastSelectedOverlay: OverlayProperties = JSON.parse(localStorage.getItem('selectedOverlay')); 
+      const lastSelectedOverlay: OverlayProperties = JSON.parse(localStorage.getItem('selectedOverlay'));
 
       for (let i = 0; i < rows.length; i++) {
             const ovl: HeritageOverlay = {
@@ -310,7 +310,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
             this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
             this.updateStyles('HeritageStatus');
-            this.showMessage('Showing Heritage properties in Selected Overlay', 5000);
+            this.showMessage('Showing Heritage properties within Selected Overlay', 5000);
           }
       })
       .catch((e) => {

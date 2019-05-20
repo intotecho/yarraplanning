@@ -31,7 +31,7 @@ import { OverlayInfoComponent as OverlayInfoComponent } from '../main/panels/ove
 
 import { SelectMMBWOverlay } from '../select-MMBWOverlay';
 import { GCS_BUCKET_SOS, HERITAGE_SITE_ZINDEX, HERITAGE_OVERLAY_STYLE } from '../app.constants';
-import { HeritageSiteInfo } from '../main/panels/heritage-site-info';
+import { HeritageSiteInfo } from '../main/panels/heritage-site-info/heritage-site-info';
 import { HeritageSiteInfoComponent } from '../main/panels/heritage-site-info/heritage-site-info.component';
 
 interface IFeature {
@@ -138,6 +138,7 @@ export class MapComponent implements AfterViewInit {
         this._propertiesLayer = new google.maps.Data();
 
       });
+    
   }
 
   handleMMBWSelected(mmbwOvl: SelectMMBWOverlay) {
@@ -221,8 +222,8 @@ export class MapComponent implements AfterViewInit {
     rows.forEach((row) => {
       try {
         const geometry = parseWKT(row[this._geoColumn]);
-        delete row.locn; // make feature a bit smaller
-        delete row.bndry;
+        //delete row.locn; // make feature a bit smaller
+        //delete row.bndry;
         const feature = {type: 'Feature', geometry, properties: row, zIndex: zIndex};
 
         layer.addGeoJson(feature);
@@ -250,7 +251,6 @@ export class MapComponent implements AfterViewInit {
       // Update the Overlays Key Map
       this._overlay_rows = this._rows;
       this.addResultsToLayer(this._overlaysLayer, this._rows, HERITAGE_OVERLAY_STYLE.zIndex);
-
       this._overlaysLayer.addListener('mouseover', (event) => {
 
           this.highlightedOverlay = new OverlayProperties(event);
@@ -284,10 +284,13 @@ export class MapComponent implements AfterViewInit {
 
     } else {  // properties layer
 
+      this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
       const bounds = new google.maps.LatLngBounds();
+      if (this.seletedOverlay.Overlay === '') {
+        this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
+      }
 
-      this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this.removeMatchingFeaturesFromLayer(this._overlaysLayer, 'ZONE_CODE', this.seletedOverlay.Overlay);
       const map = this.map;
 

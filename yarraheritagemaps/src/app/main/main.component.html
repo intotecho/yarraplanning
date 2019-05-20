@@ -24,13 +24,14 @@
 
   <section class="drawer">
     <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Authorize</button>
+    <div class="floating"><mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4"></mat-progress-spinner></div>
+    
     <app-overlay-info [overlayProperties]='overlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
     <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'>
     </app-overlay-info>
     <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'>
     </app-heritage-site-info>
 
-    <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4"></mat-progress-spinner>
 
     <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
       <mat-form-field class="wide sql-location">
@@ -154,14 +155,15 @@
           </form>
         </mat-step>
       </mat-vertical-stepper>
+      <button mat-icon-button (click)="onFillPreset()" class="preset-button" color="primary">
+          <mat-icon aria-label="Fill magic presets">
+            <img src="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png" srcset="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png 1x,
+                          https://www.gstatic.com/images/icons/material/system/2x/auto_fix_white_24dp.png 2x"
+              alt="magic wand">
+          </mat-icon>
+        </button>
+    
     </mat-expansion-panel>
 
-    <button mat-icon-button (click)="onFillPreset()" class="preset-button" color="primary">
-      <mat-icon aria-label="Fill magic presets">
-        <img src="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png" srcset="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png 1x,
-                      https://www.gstatic.com/images/icons/material/system/2x/auto_fix_white_24dp.png 2x"
-          alt="magic wand">
-      </mat-icon>
-    </button>
   </section>
 </div>

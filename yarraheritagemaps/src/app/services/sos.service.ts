@@ -1,3 +1,6 @@
+import { HttpClientModule, HttpClient, HttpHeaders } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
 import { environment } from '../../environments/environment';
 
 export interface SosResponse {
@@ -5,11 +8,6 @@ export interface SosResponse {
   content: string | undefined;
 }
 
-
-// student.service.ts
-
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs/Observable';
 import {
   map,
   catchError,
@@ -20,14 +18,23 @@ import {
 /**
  * Utility class for fetching the SOS contents.
  */
-
+@Injectable()
  export class SoSService {
   private _sosContent: String;
+  private httpOptions;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+     this.httpOptions = {
+      headers: new HttpHeaders({
+        'Accept': 'text/html, application/xhtml+xml, */*',
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }),
+      responseType: 'text'
+    };
+   }
 
   getSoSContents(sosLink: string): Observable<String> {
-    return this.http.get(sosLink).map(res => {
+    return this.http.get(sosLink, this.httpOptions).map(res => {
           return String(res);
         });
   }

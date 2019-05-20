@@ -49,6 +49,8 @@ import { environment } from '../environments/environment';
 import {ColorPickerModule} from 'ngx-color-picker';
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
+import { HttpClientModule } from '@angular/common/http';
+import { SoSService } from './services/sos.service';
 
 if ( environment.production ) {
   enableProdMode();
@@ -64,7 +66,7 @@ if ( environment.production ) {
     CodemirrorComponent,
     FileSizePipe,
     OverlayInfoComponent,
-    HeritageSiteInfoComponent
+    HeritageSiteInfoComponent,
   ],
   entryComponents: [OverlayInfoComponent, HeritageSiteInfoComponent],
   imports: [
@@ -90,10 +92,12 @@ if ( environment.production ) {
 
     FormsModule,
     ReactiveFormsModule,
-
-    ColorPickerModule
+    ColorPickerModule,
+    HttpClientModule
   ],
-  providers: [],
+  providers: [
+    SoSService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

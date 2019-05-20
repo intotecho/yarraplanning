@@ -95,3 +95,12 @@ mat-progress-spinner {
 .mat-raised-button[disabled] {
     background: #e5e3df;
 }
+
+.floating {
+    position: fixed;
+    z-index: 999;
+    float: right;
+    position: absolute;
+    left: 330px;
+    top: 130px;
+}

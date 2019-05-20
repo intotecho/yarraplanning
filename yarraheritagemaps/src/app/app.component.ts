@@ -17,6 +17,7 @@
 import { Component, ViewContainerRef } from '@angular/core';
 import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/map';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-root',
@@ -25,5 +26,7 @@ import 'rxjs/add/operator/map';
 })
 export class AppComponent {
   readonly title = 'Yarra Heritage Maps';
-  constructor(public viewContainerRef: ViewContainerRef) {}
+  constructor(
+    public viewContainerRef: ViewContainerRef,
+    private http: HttpClient) {}
 }

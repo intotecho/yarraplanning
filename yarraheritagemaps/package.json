@@ -4,6 +4,7 @@
   "license": "TBD",
   "scripts": {
     "start": "node server.js",
+    "installcors": "gsutil cors set gcsbucket-cors-config.json  gs://historic_map_overlays",
     "ng": "ng",
     "dev": "ng serve",
     "build": "ng build --configuration=production",

@@ -1,11 +1,8 @@
-<div *ngIf="heritageSiteInfo[NormalAddress]!==null">
+<div *ngIf="heritageSiteInfo.NormalAddress" [ngClass]="heritageStatusClass()">
   <b>{{heritageSiteInfo['NormalAddress']}}</b><br />
   <p class="heritageStatusColor">{{heritageSiteInfo['Name']}}</p>
   <p>In Heritage Overlay: {{heritageSiteInfo['Overlay']}}</p>
   <p>Heritage Status: {{heritageSiteInfo['HeritageStatus']}}</p>
-  <div>
-    <a target="_blank" [href]="sosLink()">Statement of Significance</a>
-  </div>
   <div *ngIf="heritageSiteInfo.VHR!=='none'" class='vhr'>
     VHR: <a target="_blank" [href]="vhrLink()">{{heritageSiteInfo['VHR']}}</a>
   </div>
@@ -16,4 +13,17 @@
     <img src="{{heritageSiteInfo.Image}}" alt="VHD Photo" height="60%" width="60%">
   </div>
   <p>Estimated Date: {{heritageSiteInfo['EstimatedDate']}}</p>
+  <div>
+  </div>
+  <mat-expansion-panel (opened)="getDetails($event)">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+            <a target="_blank" [href]="sosLink()">Statement of Significance</a>
+        </mat-panel-title>
+        <mat-panel-description>
+          Details ...
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <p [innerHTML]="sosDetails$ | async"></p>
+    </mat-expansion-panel>
 </div>
