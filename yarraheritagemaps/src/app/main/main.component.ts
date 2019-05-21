@@ -25,6 +25,8 @@ import 'rxjs/add/operator/map';
 
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
+import { LayerDescription } from '../services/layers-info-service';
+import { LayerSelectComponent} from '../map/layer-control.component/layer-control.component.component';
 
 import {
   Step,
@@ -51,7 +53,7 @@ import {
 
 import {
   SelectMMBWOverlay, MMBWMapsLibrary
-} from '../select-MMBWOverlay';
+} from '../services/select-MMBWOverlay';
 
 
 import { query } from '@angular/animations';
@@ -73,11 +75,16 @@ export class MainComponent implements OnInit, OnDestroy {
   user: Object;
   matchingProjects: Array<Project> = [];
   matchingOverlays = matchingHeritageOverlays;
+
+  // private _layersInfo: Array<LayerDescription>;
+  selectedLayersInfo: Array<LayerDescription> = [];
+
   overlayProperties: OverlayProperties = new OverlayProperties(null);
   selectedOverlayProperties: OverlayProperties = new OverlayProperties(null);
 
   selectedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   highlightedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
+
 
   mmbwMaps: Array<SelectMMBWOverlay> = MMBWMapsLibrary;
   selectedMmbwMaps: Array<SelectMMBWOverlay> = [];
@@ -176,7 +183,6 @@ export class MainComponent implements OnInit, OnDestroy {
     StyleProps.forEach((prop) => stylesGroupMap[prop.name] = this.createStyleFormGroup());
     this.stylesFormGroup = this._formBuilder.group(stylesGroupMap);
     this.stylesFormGroup.valueChanges.debounceTime(500).subscribe(() => this.updateStyles(''));
-
   }
 
 
@@ -207,6 +213,12 @@ export class MainComponent implements OnInit, OnDestroy {
 
     });
   }
+
+  handleSelectedLayersChanged(event) {
+    this.selectedLayersInfo = event;
+    this._changeDetectorRef.detectChanges();
+  }
+
 
   handleMapOverlayHighlighted(event) {
     this.overlayProperties = event;
@@ -277,6 +289,51 @@ export class MainComponent implements OnInit, OnDestroy {
       }
       this.matchingOverlays = queriedHeritageOverlays;
   }
+
+  queryPlanning() {
+    if (this.pending) { return; }
+    this.pending = true;
+
+    const { overlayId, projectID, sql, location } = this.dataFormGroup.getRawValue();
+    sql = '';
+    this.dataService.query(overlayId, projectID, sql, location)
+      .then(({ columns, columnNames, rows, stats }) => {
+        this.columns = columns;
+        this.columnNames = columnNames;
+        this.rows = rows;
+        this.stats = stats;
+        this.data = new MatTableDataSource(rows.slice(0, MAX_RESULTS_PREVIEW));
+        if (this.columnNames.find(h => h === 'ZONE_CODE')) {
+            this.updateOverlayNames();
+            // setup custom styling
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.strokeColor, OVERLAY_STROKE_COLOR.domain.length);
+            this.stylesFormGroup.controls.fillColor.patchValue(OVERLAY_FILL_COLOR);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(OVERLAY_FILL_OPACITY);
+            this.stylesFormGroup.controls.strokeColor.patchValue(OVERLAY_STROKE_COLOR);
+            this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
+
+            this.updateStyles('Overlays');
+            this.showMessage('Double Click an Overlay on the map for more details', 5000);
+
+          } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
+            this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
+            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+            this.updateStyles('HeritageStatus');
+            this.showMessage('Showing Heritage properties within Selected Overlay', 5000);
+          }
+      })
+      .catch((e) => {
+        this.showMessage(parseErrorMessage(e));
+      })
+      .then(() => {
+        this.pending = false;
+        this._changeDetectorRef.detectChanges();
+      });
+  }
+
 
   query() {
     if (this.pending) { return; }

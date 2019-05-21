@@ -29,10 +29,11 @@ import '../../../third_party/geocodezip/geoxml3';
 import { style } from '@angular/animations';
 import { OverlayInfoComponent as OverlayInfoComponent } from '../main/panels/overlay-info/overlay-info.component';
 
-import { SelectMMBWOverlay } from '../select-MMBWOverlay';
+import { SelectMMBWOverlay } from '../services/select-MMBWOverlay';
 import { GCS_BUCKET_SOS, HERITAGE_SITE_ZINDEX, HERITAGE_OVERLAY_STYLE } from '../app.constants';
 import { HeritageSiteInfo } from '../main/panels/heritage-site-info/heritage-site-info';
 import { HeritageSiteInfoComponent } from '../main/panels/heritage-site-info/heritage-site-info.component';
+import { LayerDescription } from '../services/layers-info-service';
 
 interface IFeature {
   setMap(map: google.maps.Map|null): void;
@@ -96,6 +97,12 @@ export class MapComponent implements AfterViewInit {
   set styles(styles: LayerStyles) {
     this.updateStyles(styles);
   }
+
+  @Input()
+  set selectedLayersInfo(layerInfo: Array<LayerDescription>) {
+    this.updateSelectedLayersInfo(layerInfo);
+  }
+
   @Input()
   set mmbwOverlay(mmbwOverlay: Array<SelectMMBWOverlay>) {
     this._mmbwOverlay = mmbwOverlay;
@@ -138,7 +145,29 @@ export class MapComponent implements AfterViewInit {
         this._propertiesLayer = new google.maps.Data();
 
       });
-    
+  }
+
+  islayerSelected(layerInfo: Array<LayerDescription>, name: string): boolean {
+    return layerInfo.find((layer) => {
+      return layer.name === name;
+    }) ? 
+    true : 
+    false;
+  }
+
+  updateSelectedLayersInfo(layerInfo: Array<LayerDescription>) {
+
+    if (this._overlaysLayer) {
+      this._overlaysLayer.setMap(this.islayerSelected(layerInfo, 'Overlays') ? 
+      this.map : 
+      null);
+    }
+    if (this._propertiesLayer) {
+      this._propertiesLayer.setMap(this.islayerSelected(layerInfo, 'Sites') ? 
+      this.map : 
+      null);
+    }
+    // this._mmbwOverlay.setMap(this.islayerSelected('Heritage Maps') ? this.map : null);
   }
 
   handleMMBWSelected(mmbwOvl: SelectMMBWOverlay) {
@@ -432,7 +461,6 @@ export class MapComponent implements AfterViewInit {
         this.heritageSiteInfoComponentRef.instance.heritageSiteInfo = this.highlightedHeritageSiteInfo;
         this.selectedHeritageSiteInfo = this.highlightedHeritageSiteInfo;
 
-        
         this.heritageSiteInfoComponentRef.instance.title = 'Clicked ';
         this.appRef.attachView(this.heritageSiteInfoComponentRef.hostView);
         div.appendChild(this.heritageSiteInfoComponentRef.location.nativeElement);

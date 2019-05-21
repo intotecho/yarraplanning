@@ -33,7 +33,7 @@ import {
     };
    }
 
-  getSoSContents(sosLink: string): Observable<String> {
+   getSoSContents(sosLink: string): Observable<String> {
     return this.http.get(sosLink, this.httpOptions).map(res => {
           return String(res);
         });

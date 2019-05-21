@@ -4,3 +4,4 @@ overlay_schedule/getstatus.py
 overlay_schedule/testshift.py
 overlay_schedule/tmp_heritage_schedule_cleaned.csv
 overlay_schedule/intermediate.csv
+*.pyc

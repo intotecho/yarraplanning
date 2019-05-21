@@ -36,6 +36,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
 
 import { AppComponent } from './app.component';
 import { MainComponent } from './main/main.component';
@@ -51,7 +52,8 @@ import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.co
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
 import { HttpClientModule } from '@angular/common/http';
 import { SoSService } from './services/sos.service';
-
+import { LayersInfoService } from './services/layers-info-service';
+import { LayerSelectComponent} from './map/layer-control.component/layer-control.component.component';
 if ( environment.production ) {
   enableProdMode();
 }
@@ -67,8 +69,9 @@ if ( environment.production ) {
     FileSizePipe,
     OverlayInfoComponent,
     HeritageSiteInfoComponent,
+    LayerSelectComponent
   ],
-  entryComponents: [OverlayInfoComponent, HeritageSiteInfoComponent],
+  entryComponents: [OverlayInfoComponent, HeritageSiteInfoComponent, LayerSelectComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -82,6 +85,7 @@ if ( environment.production ) {
     MatIconModule,
     MatStepperModule,
     MatSelectModule,
+    MatFormFieldModule,
     MatAutocompleteModule,
     MatTableModule,
     MatExpansionModule,
@@ -96,7 +100,8 @@ if ( environment.production ) {
     HttpClientModule
   ],
   providers: [
-    SoSService
+    SoSService,
+    LayersInfoService
   ],
   bootstrap: [AppComponent]
 })

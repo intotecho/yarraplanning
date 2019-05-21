@@ -15,11 +15,12 @@
   <app-map [rows]="rows" 
     [geoColumn]="schemaFormGroup.controls.geoColumn.value" 
     [styles]="styles"
+    [selectedLayersInfo]="selectedLayersInfo"
+    [mmbwOverlay]="selectedMmbwMaps"
     (overlayChanged)="handleMapOverlayHighlighted($event)" 
     (overlaySelected)="handleMapOverlaySelected($event)"
     (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)" 
-    (heritageSiteSelected)="handleMapHeritageSiteSelected($event)"
-    [mmbwOverlay]="selectedMmbwMaps">
+    (heritageSiteSelected)="handleMapHeritageSiteSelected($event)" >
   </app-map>
 
   <section class="drawer">
@@ -43,6 +44,9 @@
 
         </mat-select>
       </mat-form-field>
+      
+      <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)" ></app-layer-select>
+      
       <mat-form-field class="wide sql-location">
         <mat-select ([ngModel])="mmbwMaps" placeholder="Select Historic Map" formControlName="selectedMMBWIds"
           matTooltip="Select MMBW 1904 Map to Overlay." matTooltipPosition="after" multiple>
@@ -51,7 +55,7 @@
           </mat-option>
         </mat-select>
       </mat-form-field>
-    </form>
+      </form>
 
     <mat-expansion-panel>
       <mat-expansion-panel-header>
