@@ -45,6 +45,41 @@ export const HERITAGE_SITE_QUERY = `
     register.Overlay = @overlay
   `;
 
+export const PLANNING_APPS_QUERY = `
+    #standardsql
+    WITH params AS (
+      SELECT "HO330" AS overlay,
+            0.01   AS maxdist_km
+    ),
+    overlay AS (
+      SELECT ST_GeogFromGeoJson(geom) AS polygon
+      FROM  \`yarrascrape.YarraPlanning.YARRA_OVERLAYS\`, params
+      WHERE ZONE_CODE = @overlay
+    ),
+    applications AS (
+      SELECT
+        Application_Number,
+        Property_Address,
+        Estimated_Cost,
+        HeritageStatus,
+        Date_Received,
+        Description,
+        Decision,
+        Application_Status,
+        Abandoned,
+        Refused,
+        Approved,
+        In_Progress,
+        ST_GeogPoint(longitude, latitude) AS bndry,
+        ST_Distance(ST_GeogPoint(longitude, latitude), overlay.polygon) AS dist_meters
+      FROM
+      \`yarrascrape.YarraPlanning.YARRA_APPLICATIONS_WITH_HERITAGE\`,
+        params,
+        overlay
+      WHERE ST_DWithin(ST_GeogPoint(longitude, latitude), overlay.polygon,  params.maxdist_km*1000)
+    )
+    SELECT * from applications
+    ORDER BY dist_meters ASC`;
 
 export const OVERLAYS_QUERY = `
   #standardsql
@@ -125,16 +160,22 @@ export const HERITAGE_SITE_FILL_COLOR = {
 
 export const HERITAGE_SITE_CIRCLE_RADIUS = {
   isComputed: true,
-  property: 'num_bikes_available',
+  property: 'Estimated_Cost',
   function: 'linear',
-  domain: [0, 60],
-  range: [2, 24]
+  domain: [1, 5000000],
+  range: [4, 20]
 };
 
 export const HERITAGE_SITE_STROKE_COLOR = {
   isComputed: false,
   value: '#408040'
 };
+
+export const PLANNING_APP_STROKE_COLOR = {
+  isComputed: false,
+  value: '#202020'
+};
+
 
 // Maximum number of results to be returned by BigQuery API.
 export const MAX_RESULTS = 3600; // The biggest heritage overlay HO327 has 3535 sites

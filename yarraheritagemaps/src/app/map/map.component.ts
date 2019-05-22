@@ -69,6 +69,7 @@ export class MapComponent implements AfterViewInit {
   private _geoColumn: string;
   private _overlaysLayer: google.maps.Data;
   private _propertiesLayer: google.maps.Data;
+  private _planningLayer: google.maps.Data;
   private _mmbwOverlay: Array<Object>;
   private _geoXml: any = null;
   @Output() overlayChanged: EventEmitter<OverlayProperties> =   new EventEmitter();
@@ -143,6 +144,7 @@ export class MapComponent implements AfterViewInit {
 
         this._overlaysLayer = new google.maps.Data();
         this._propertiesLayer = new google.maps.Data();
+        this._planningLayer = new google.maps.Data();
 
       });
   }
@@ -164,6 +166,11 @@ export class MapComponent implements AfterViewInit {
     }
     if (this._propertiesLayer) {
       this._propertiesLayer.setMap(this.islayerSelected(layerInfo, 'Sites') ? 
+      this.map : 
+      null);
+    }
+    if (this._planningLayer) {
+      this._planningLayer.setMap(this.islayerSelected(layerInfo, 'Planning') ? 
       this.map : 
       null);
     }
@@ -275,6 +282,7 @@ export class MapComponent implements AfterViewInit {
     if (!this._rows || !this._geoColumn) { return; }
 
     const isZonelayer =  ('ZONE_CODE' in this._rows[0]) ? true : false;
+    const isPlanningLayer =  ('Estimated_Cost' in this._rows[0]) ? true : false;
 
     if (isZonelayer) {
       // Update the Overlays Key Map
@@ -311,8 +319,58 @@ export class MapComponent implements AfterViewInit {
           google.maps.event.trigger(this._propertiesLayer, 'click', event);
       });
 
-    } else {  // properties layer
+    } else if (isPlanningLayer) {
+      this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
+      this._planningLayer.setMap(null);
+      const bounds = new google.maps.LatLngBounds();
+      if (this.seletedOverlay.Overlay === '') {
+        this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
+      }
 
+      // this.removeMatchingFeaturesFromLayer(this._overlaysLayer, 'ZONE_CODE', this.seletedOverlay.Overlay);
+      const map = this.map;
+
+      this._planningLayer.addListener('addfeature', function(e) {
+        recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds);
+        }
+      });
+      this.addResultsToLayer(this._planningLayer, this._rows, HERITAGE_SITE_ZINDEX + 1);
+
+
+      this._planningLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
+
+        this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
+        this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
+
+        if (event.feature) {
+          this._planningLayer.overrideStyle(event.feature, {
+            strokeWeight: 3,
+            zIndex: HERITAGE_SITE_ZINDEX
+          });
+        }
+      });
+
+      this._planningLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
+        if (event.feature) {
+          this._planningLayer.overrideStyle(event.feature, {
+              strokeWeight: 1,
+              zIndex: HERITAGE_SITE_ZINDEX + 100
+            });
+        }
+      });
+
+      this._planningLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
+        this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
+        this.heritgeSiteSelected.emit(this.selectedHeritageSiteInfo);
+        const feature = event ? event.feature : null;
+        if (feature) {
+          // this.showInfoWindow(e, e.latLng);
+          this.zone.run(() => this.onMarkerClick(this._planningLayer, event));
+        }
+      });
+    } else {  // properties layer
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
       const bounds = new google.maps.LatLngBounds();
@@ -383,7 +441,14 @@ export class MapComponent implements AfterViewInit {
         feature['zIndex'] = HERITAGE_OVERLAY_STYLE.zIndex;
         this._overlaysLayer.overrideStyle(feature, featureStyles);
         });
-    } else if (styles.layer === 'HeritageStatus') {
+    } else if (styles.layer === 'Application_Number') {
+      this.styler.uncache();
+      this._planningLayer.forEach((feature) => {
+        const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
+        feature['zIndex'] = HERITAGE_SITE_ZINDEX;
+        this._planningLayer.overrideStyle(feature, featureStyles);
+        });
+    } else if (styles.layer === 'vhdplaceid') {
       this.styler.uncache();
       this._propertiesLayer.forEach((feature) => {
         const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
@@ -430,12 +495,16 @@ export class MapComponent implements AfterViewInit {
     if (feature) {
       const properties = {};
       const div = document.createElement('div'); // To place component into.
+      if (this.infoWindow === null) {
+        this.infoWindow = new google.maps.InfoWindow({
+          content: 'Default'});
+      }
 
       feature.forEachProperty((value, key) => {
         properties[key] = key === this._geoColumn ? truncateWKT(value) : value;
       });
 
-      if (properties.hasOwnProperty('HeritagePlace')) { // Create OverlayInfoComponent
+      if (properties.hasOwnProperty('ZONE_CODE')) { // Create OverlayInfoComponent
         if (this.overlayInfoComponentRef) {
           this.overlayInfoComponentRef.destroy();
         }
@@ -447,9 +516,9 @@ export class MapComponent implements AfterViewInit {
         this.overlayInfoComponentRef.instance.title = 'Clicked Overlay';
         this.appRef.attachView(this.overlayInfoComponentRef.hostView);
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
-      } else { // Create HeritageSiteInfoComponent
+        this.infoWindow.setContent(div);
 
-
+      } else if (properties.hasOwnProperty('vhdplaceid')) { // Create HeritageSiteInfoComponent
 
         if (this.heritageSiteInfoComponentRef) {
           this.heritageSiteInfoComponentRef.destroy();
@@ -464,12 +533,22 @@ export class MapComponent implements AfterViewInit {
         this.heritageSiteInfoComponentRef.instance.title = 'Clicked ';
         this.appRef.attachView(this.heritageSiteInfoComponentRef.hostView);
         div.appendChild(this.heritageSiteInfoComponentRef.location.nativeElement);
+        this.infoWindow.setContent(div);
+      } else if (properties.hasOwnProperty('Application_Number')) {
+
+        const status = properties['HeritageStatus'];
+        const htmlContentString = `
+        <b>${properties['Property_Address']}</b><br/>
+        ${properties['Application_Number']}<br/>
+        Received: ${properties['Date_Received']}<br/>
+        Cost: ${properties['Estimated_Cost']}<br/>
+        Decision: ${properties['Decision']}<br/>
+        Status: ${properties['Application_Status']}<br/><br/>
+        <span><b>Description:</b></span> ${properties['Description']}<br/><br/>
+        <p data-status=${status} class="heritageStatusColor">${status}</p>
+        `;
+        this.infoWindow.setContent(htmlContentString);
       }
-      if (this.infoWindow === null) {
-        this.infoWindow = new google.maps.InfoWindow({
-          content: 'Default'});
-      }
-      this.infoWindow.setContent(div);
       this.infoWindow.open(this.map, marker);
       this.infoWindow.setPosition(event.latLng);
       }
@@ -493,7 +572,7 @@ export class MapComponent implements AfterViewInit {
       feature.forEachProperty((value, key) => {
         properties[key] = key === this._geoColumn ? truncateWKT(value) : value;
       });
-      if (properties.hasOwnProperty('HeritageStatus')) {
+      if (properties.hasOwnProperty('vhdplaceid')) {
         const status = properties['HeritageStatus'];
         let htmlContentString = `
         <b>${properties['NormalAddress']}</b><br/>
@@ -511,6 +590,18 @@ export class MapComponent implements AfterViewInit {
         if (properties['Image'] !== 'null') {
           htmlContentString += `<img src="${properties['Image']}" alt="VHD Photo" height="60%" width="60%">`;
         }
+
+        this.infoWindow.setContent(htmlContentString);
+
+      } else if (properties.hasOwnProperty('Application_Number')) {
+        const status = properties['HeritageStatus'];
+        const htmlContentString = `
+        <b>${properties['Property_Address']}</b><br/>
+        ${properties['Application_Number']}<br/>
+        <p data-status=${status} class="heritageStatusColor">${status}</p>
+        In Heritage Overlay ${properties['Overlay']}
+        <p>VHR ${properties['VHR']}</p>
+        `;
 
         this.infoWindow.setContent(htmlContentString);
 

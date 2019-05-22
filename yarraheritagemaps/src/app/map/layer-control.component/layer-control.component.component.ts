@@ -34,7 +34,9 @@ export class LayerSelectComponent implements OnInit {
     */
     this.availableLayersInfo = this.layerInfoService.getLayersStatic();
     this.formLayersInfo = this.availableLayersInfo.map(layer => layer.name);
-    this.initalSelectionLayersInfo = this.formLayersInfo.slice(); // map(layer => layer.name);
+    this.initalSelectionLayersInfo = this.formLayersInfo.slice().filter((layer) => {
+        return  layer !== 'Planning';
+    });
     // this.layersForm.setValue(this.initalSelectionLayersInfo);
     this.layersForm.valueChanges.debounceTime(200).subscribe(() => {
       this._selectedLayersInfo = this.availableLayersInfo.filter((layer) => {

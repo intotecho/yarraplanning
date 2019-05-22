@@ -27,15 +27,11 @@
     <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Authorize</button>
     <div class="floating"><mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4"></mat-progress-spinner></div>
     
-    <app-overlay-info [overlayProperties]='overlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
-    <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'>
-    </app-overlay-info>
-    <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'>
-    </app-heritage-site-info>
 
 
     <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
-      <mat-form-field class="wide sql-location">
+        <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)" ></app-layer-select>
+        <mat-form-field class="wide sql-location">
         <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="matchingOverlays"
           matTooltip="Select Overlay to Map." matTooltipPosition="after">
           <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.ZONE_CODE">
@@ -45,7 +41,6 @@
         </mat-select>
       </mat-form-field>
       
-      <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)" ></app-layer-select>
       
       <mat-form-field class="wide sql-location">
         <mat-select ([ngModel])="mmbwMaps" placeholder="Select Historic Map" formControlName="selectedMMBWIds"
@@ -56,7 +51,11 @@
         </mat-select>
       </mat-form-field>
       </form>
-
+      <app-overlay-info [overlayProperties]='overlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
+      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'></app-overlay-info>
+      
+      <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'></app-heritage-site-info>
+  
     <mat-expansion-panel>
       <mat-expansion-panel-header>
         <mat-panel-title>

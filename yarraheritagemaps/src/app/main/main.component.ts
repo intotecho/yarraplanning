@@ -43,6 +43,8 @@ import {
   HERITAGE_SITE_PROJECT_ID,
   HERITAGE_SITE_DATACENTER,
   HERITAGE_SITE_STROKE_COLOR,
+  PLANNING_APPS_QUERY,
+  PLANNING_APP_STROKE_COLOR,
 } from '../app.constants';
 
 import {
@@ -213,12 +215,22 @@ export class MainComponent implements OnInit, OnDestroy {
 
     });
   }
+  
+  islayerSelected(layerInfo: Array<LayerDescription>, name: string): boolean {
+    return layerInfo.find((layer) => {
+      return layer.name === name;
+    }) ?
+    true :
+    false;
+  }
 
   handleSelectedLayersChanged(event) {
     this.selectedLayersInfo = event;
     this._changeDetectorRef.detectChanges();
+    if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
+        this.query(PLANNING_APPS_QUERY);
+    }
   }
-
 
   handleMapOverlayHighlighted(event) {
     this.overlayProperties = event;
@@ -290,13 +302,14 @@ export class MainComponent implements OnInit, OnDestroy {
       this.matchingOverlays = queriedHeritageOverlays;
   }
 
-  queryPlanning() {
+
+  query(sqlparam: string = null) {
     if (this.pending) { return; }
     this.pending = true;
 
     const { overlayId, projectID, sql, location } = this.dataFormGroup.getRawValue();
-    sql = '';
-    this.dataService.query(overlayId, projectID, sql, location)
+    const sqlarg = sqlparam ? sqlparam : sql;
+    this.dataService.query(overlayId, projectID, sqlarg, location)
       .then(({ columns, columnNames, rows, stats }) => {
         this.columns = columns;
         this.columnNames = columnNames;
@@ -316,57 +329,21 @@ export class MainComponent implements OnInit, OnDestroy {
             this.updateStyles('Overlays');
             this.showMessage('Double Click an Overlay on the map for more details', 5000);
 
-          } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
+          } else if (this.columnNames.find(h => h === 'Application_Number')) {
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
+            this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
+            this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
+            this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
+            this.updateStyles('Application_Number');
+            this.showMessage('Showing Planning Applications in Selected Overlay', 5000);
+
+          } else if (this.columnNames.find(h => h === 'vhdplaceid')) {
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
             this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
             this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
             this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
-            this.updateStyles('HeritageStatus');
-            this.showMessage('Showing Heritage properties within Selected Overlay', 5000);
-          }
-      })
-      .catch((e) => {
-        this.showMessage(parseErrorMessage(e));
-      })
-      .then(() => {
-        this.pending = false;
-        this._changeDetectorRef.detectChanges();
-      });
-  }
-
-
-  query() {
-    if (this.pending) { return; }
-    this.pending = true;
-
-    const { overlayId, projectID, sql, location } = this.dataFormGroup.getRawValue();
-
-    this.dataService.query(overlayId, projectID, sql, location)
-      .then(({ columns, columnNames, rows, stats }) => {
-        this.columns = columns;
-        this.columnNames = columnNames;
-        this.rows = rows;
-        this.stats = stats;
-        this.data = new MatTableDataSource(rows.slice(0, MAX_RESULTS_PREVIEW));
-        if (this.columnNames.find(h => h === 'ZONE_CODE')) {
-            this.updateOverlayNames();
-            // setup custom styling
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.strokeColor, OVERLAY_STROKE_COLOR.domain.length);
-            this.stylesFormGroup.controls.fillColor.patchValue(OVERLAY_FILL_COLOR);
-            this.stylesFormGroup.controls.fillOpacity.patchValue(OVERLAY_FILL_OPACITY);
-            this.stylesFormGroup.controls.strokeColor.patchValue(OVERLAY_STROKE_COLOR);
-            this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
-
-            this.updateStyles('Overlays');
-            this.showMessage('Double Click an Overlay on the map for more details', 5000);
-
-          } else if (this.columnNames.find(h => h === 'HeritageStatus')) {
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
-            this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
-            this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
-            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
-            this.updateStyles('HeritageStatus');
+            this.updateStyles('vhdplaceid');
             this.showMessage('Showing Heritage properties within Selected Overlay', 5000);
           }
       })
