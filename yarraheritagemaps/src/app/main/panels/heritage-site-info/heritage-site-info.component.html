@@ -1,5 +1,32 @@
 <div *ngIf="heritageSiteInfo.NormalAddress" [ngClass]="heritageStatusClass()">
   <b>{{heritageSiteInfo['NormalAddress']}}</b><br />
+  <div class="carousel-container">
+      <ngu-carousel #myCarousel [inputs]="carouselConfig" [dataSource]="[first, second, third]">
+          <div *nguCarouselDef="let item;" class="item">
+            <div class="tile">
+              <ng-container *ngTemplateOutlet="item"></ng-container>
+            </div>
+          </div>
+        
+          <ng-template #first>
+            <p>First</p>
+          </ng-template>
+        
+          <ng-template #second>
+            <p>Second</p>
+          </ng-template>
+        
+          <ng-template #third>
+            <p>Third</p>
+          </ng-template>
+        
+          <button NguCarouselNext class="rightRs">></button>
+          <button NguCarouselPrev class="leftRs"><</button>
+          <ul class="myPoint" NguCarouselPoint>
+            <li *ngFor="let j of myCarousel.pointNumbers; let j = index" [class.active]="j==myCarousel.activePoint" (click)="myCarousel.moveTo(j)"></li>
+          </ul>
+        </ngu-carousel>
+    </div>
   <p class="heritageStatusColor">{{heritageSiteInfo['Name']}}</p>
   <p>In Heritage Overlay: {{heritageSiteInfo['Overlay']}}</p>
   <p>Heritage Status: {{heritageSiteInfo['HeritageStatus']}}</p>

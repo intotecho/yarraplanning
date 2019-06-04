@@ -3,9 +3,8 @@
   "compilerOptions": {
     "allowJs": true,
     "outDir": "../out-tsc/app",
-    "baseUrl": "./",
-    "module": "es2015"
-  },
+    "baseUrl": "./"
+},
   "exclude": [
     "test.ts",
     "**/*.spec.ts"
