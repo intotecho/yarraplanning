@@ -43,3 +43,7 @@ Thumbs.db
 
 # Dev data
 sample_kml/
+
+assets/test/
+third_party/geocodezip/
+

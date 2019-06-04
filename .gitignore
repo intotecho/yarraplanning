@@ -5,3 +5,7 @@ overlay_schedule/testshift.py
 overlay_schedule/tmp_heritage_schedule_cleaned.csv
 overlay_schedule/intermediate.csv
 *.pyc
+heritage_register/City of Yarra Heritage Review Appendix 8 Revised Feb 2017.pdf
+heritage_register/Yarra C191 Database of Heritage Significant Areas January 2019.pdf
+heritage_register/tabula-City of Yarra Heritage Review Appendix 8 Revised Feb 2017.csv
+assets/test/
