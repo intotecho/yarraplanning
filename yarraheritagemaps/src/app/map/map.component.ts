@@ -146,6 +146,9 @@ export class MapComponent implements AfterViewInit {
         this._propertiesLayer = new google.maps.Data();
         this._planningLayer = new google.maps.Data();
 
+        this.map.addListener('click', (event: google.maps.MouseEvent) => {
+            console.log(`click lat:${event.latLng.lat}, lng:${event.latLng.lng}`);
+        });
       });
   }
 

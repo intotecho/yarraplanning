@@ -48,12 +48,15 @@ import { FileSizePipe } from './file-size.pipe';
 import { environment } from '../environments/environment';
 
 import {ColorPickerModule} from 'ngx-color-picker';
-import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
-import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
 import { HttpClientModule } from '@angular/common/http';
+import { NguCarouselModule } from '@ngu/carousel';
+
 import { SoSService } from './services/sos.service';
 import { LayersInfoService } from './services/layers-info-service';
 import { LayerSelectComponent} from './map/layer-control.component/layer-control.component.component';
+import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
+import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
+
 if ( environment.production ) {
   enableProdMode();
 }
@@ -93,7 +96,7 @@ if ( environment.production ) {
     MatProgressSpinnerModule,
     MatSlideToggleModule,
     MatTooltipModule,
-
+    NguCarouselModule,
     FormsModule,
     ReactiveFormsModule,
     ColorPickerModule,

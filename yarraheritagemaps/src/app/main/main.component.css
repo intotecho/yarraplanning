@@ -17,12 +17,14 @@
 }
 
 .drawer {
-    max-width: 300px;
-    width: 25vw;
+    max-width: 35vw;
+    width: 20vw;
     max-height: calc(100vh - 64px);
     min-width: 200px;
     overflow: auto;
     flex-shrink: 0;
+    margin: 10px;
+    background-color : #fffff6;
 }
 mat-progress-spinner {
     display: inline-block;
@@ -33,7 +35,7 @@ mat-progress-spinner {
     position: fixed;
     bottom: 2em;
     left: 1em;
-    background: #00539b;
+    background: #fbf7eb;
     z-index: 10000;
 }
 
@@ -82,14 +84,14 @@ mat-progress-spinner {
     flex-grow: 0;
 }
 
-.styles-prop-list .rule-badge.computed { background: #00539b; }
+.styles-prop-list .rule-badge.computed { background: #fbf7eb; }
 .styles-prop-list .rule-badge.global { background: #F4B400; }
 .styles-prop-list .rule-badge.none { background: #e5e3df; color: #000000; }
 
 .mat-toolbar.mat-primary,
 .mat-raised-button.mat-primary,
 .mat-step-header .mat-step-icon {
-    color: #FFFFFF;
+    color: $primary;
 }
 
 .mat-raised-button[disabled] {

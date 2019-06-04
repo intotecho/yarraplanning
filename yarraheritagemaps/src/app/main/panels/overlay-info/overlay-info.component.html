@@ -11,12 +11,24 @@
       <div>
         <div class='HeritagePlace'>{{overlayProperties.HeritagePlace}}</div>
         <div class='Expiry' *ngIf="overlayProperties.Status=='Interim'">Expires: {{overlayProperties.Expiry}}</div>
-        <div class='Controls'>Tree Controls: {{overlayProperties.TreeControls}}</div>
-        <div class='Controls'> Paint Controls: {{overlayProperties.PaintControls}}</div>
-        <div class='Controls'> Internal Controls: {{overlayProperties.InternalControls}}</div>
-        <div class='Controls'> Fence Controls: {{overlayProperties.FenceControls}}</div>
-        <div class='Controls'> Prohibited uses may be permitted: {{overlayProperties.Prohibited}}</div>
-        <div class='Aboriginal'> Aboriginal Heritage Place: {{overlayProperties.AboriginalHeritagePlace}}</div>
+        <div class='Controls'><p title="Tree Controls apply in this overlay. A Permit is requied to remove, destroy or lop a tree This does not apply:
+          – To any action which is necessary to keep the whole or any part of a tree clear of an electric line provided the action is carried out in accordance with a code of practice prepared under Section 86 of the Electricity Safety Act 1998.
+          – If the tree presents an immediate risk of personal injury or damage to property">
+          Tree Controls: {{overlayProperties.TreeControls}}</p></div>
+        <div class='Controls'><p title="A Permit is required to Externally paint a building.">
+          Paint Controls: {{overlayProperties.PaintControls}}</p> </div>
+        <div class='Controls'><p title="A Permit is required to Internally alter a building.">
+          Internal Controls: {{overlayProperties.InternalControls}}</p></div>
+        <div class='Controls'><p title="A permit is not required for Demolition or removal of an outbuilding (including a carport, garage, pergola, verandah, deck, shed or similar structure
+          unless the outbuilding is specified in the schedule to this overlay.">
+          Fence Controls: {{overlayProperties.FenceControls}}</p></div>
+        <div class='Controls'> <p title="A permit may be granted to use a heritage place for a use which would otherwise be prohibited if all of the following apply:
+          The schedule to this overlay specifies the heritage place as one where prohibited uses may be permitted.
+          The use will not adversely affect the significance of the heritage place.
+          The benefits obtained from the use can be demonstrably applied towards the conservation of the heritage place.">
+          Prohibited uses may be permitted: {{overlayProperties.Prohibited}}</p></div>
+        <div class='Aboriginal'><p title="A heritage place specified in the schedule to this overlay as an Aboriginal heritage place is also subject to the requirements of the Aboriginal Heritage Act 2006.">
+          Aboriginal Heritage Place: {{overlayProperties.AboriginalHeritagePlace}}</p></div>
       </div>
     </div>
   </div>
