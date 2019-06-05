@@ -16,7 +16,7 @@
 
 import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
-import { MatTableDataSource, MatSnackBar } from '@angular/material';
+import { MatTableDataSource, MatSnackBar, MatButton } from '@angular/material';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
@@ -70,6 +70,8 @@ const DEBOUNCE_MS = 1000;
 export class MainComponent implements OnInit, OnDestroy {
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
+  events: string[] = [];
+  opened: boolean = true;
 
   // GCP session data
   readonly dataService = new BigQueryService();
@@ -205,7 +207,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this._ngZone.run(() => {
       this.isSignedIn = this.dataService.isSignedIn;
       if (!this.dataService.isSignedIn) { return; }
-      this.user = this.dataService.getUserEmail();
+      this.user = this.dataService.getUserImageUrl();
       this.dataService.getProjects()
         .then((projects) => {
           this.matchingProjects = projects;
@@ -230,6 +232,7 @@ export class MainComponent implements OnInit, OnDestroy {
     if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
         this.query(PLANNING_APPS_QUERY);
     }
+    this.opened = false;
   }
 
   handleMapOverlayHighlighted(event) {
@@ -336,7 +339,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
             this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
             this.updateStyles('Application_Number');
-            this.showMessage('Showing Planning Applications in Selected Overlay', 5000);
+            this.showMessage(`Showing Planning Applications within Overlay ${this.overlayProperties.Overlay}`, 5000);
 
           } else if (this.columnNames.find(h => h === 'vhdplaceid')) {
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
@@ -344,7 +347,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
             this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
             this.updateStyles('vhdplaceid');
-            this.showMessage('Showing Heritage properties within Selected Overlay', 5000);
+            this.showMessage(`Showing Heritage properties within Overlay ${this.overlayProperties.Overlay}`, 5000);
           }
       })
       .catch((e) => {

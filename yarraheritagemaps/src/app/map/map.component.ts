@@ -48,8 +48,8 @@ interface IFeature {
 })
 export class MapComponent implements AfterViewInit {
   // DOM element for map.
-  @ViewChild('mapEl') mapEl: ElementRef;
-  @ViewChild('mouseinfo') mouseinfo: ElementRef;
+  @ViewChild('mapEl',  {static: true}) mapEl: ElementRef;
+  @ViewChild('mouseinfo',  {static: true}) mouseinfo: ElementRef;
 
   // Maps API instance.
   map: google.maps.Map;

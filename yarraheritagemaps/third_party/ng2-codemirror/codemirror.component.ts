@@ -33,7 +33,7 @@ export class CodemirrorComponent {
     @Output() change = new EventEmitter();
     @Output() query = new EventEmitter();
     editor;
-    @ViewChild('host') host;
+    @ViewChild('host',  {static: true}) host;
 
     _value = '';
     @Output() instance = null;

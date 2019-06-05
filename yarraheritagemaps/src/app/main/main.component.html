@@ -1,172 +1,181 @@
 <mat-toolbar color="primary" class="header">
-  <img class="header-logo" src="assets/ic_logo@2X.png" srcset="assets/ic_logo.png 1x,
-               assets/ic_logo@2X.png 2x" alt="Heritage Maps Logo">
-  <span>Yarra Heritage Maps</span>
+  <p><button class="material-icons" mat-button (click)="sidenav.toggle()"><i class="material-icons">
+        {{opened? "chevron_left" : "chevron_right" }}
+      </i></button></p>
   <span class="flex-spacer"></span>
-  <span *ngIf="overlayProperties">
+  <span *ngIf="isSignedIn && overlayProperties; else showtitle">
     <span><i>{{overlayProperties.Overlay}} </i> </span>
   </span>
+  <ng-template #showtitle>Yarra Heritage Maps</ng-template>
   <span class="flex-spacer"></span>
-  <span class="header-profile">{{ user }}</span>
-  <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
-  <a mat-button href="/terms">Terms &amp; Privacy</a>
+  <button mat-mini-fab [matMenuTriggerFor]="profileMenu"  matTooltip="Profile" matTooltipPosition="after">
+    <ng-container *ngIf="isSignedIn; else showannon"><img src={{user}} alt="user" height="20px" width="20px"></ng-container>
+    <ng-template #showannon><i class="material-icons">account_circle</i></ng-template>
+  </button>
+  <mat-menu #profileMenu="matMenu" yPosition="below">
+      <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
+      <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
+  </mat-menu>
+  <a mat-button href="/terms" matTooltip="Terms and Privacy" matTooltipPosition="after">?</a>
+  <a mat-button href="/terms" matTooltip="Send Feedback (TBD)" matTooltipPosition="after">!</a>
 </mat-toolbar>
-<div class="view">
-  <app-map [rows]="rows" 
-    [geoColumn]="schemaFormGroup.controls.geoColumn.value" 
-    [styles]="styles"
-    [selectedLayersInfo]="selectedLayersInfo"
-    [mmbwOverlay]="selectedMmbwMaps"
-    (overlayChanged)="handleMapOverlayHighlighted($event)" 
-    (overlaySelected)="handleMapOverlaySelected($event)"
-    (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)" 
-    (heritageSiteSelected)="handleMapHeritageSiteSelected($event)" >
-  </app-map>
-
-  <section class="drawer">
-    <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Authorize</button>
-    <div class="floating"><mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4"></mat-progress-spinner></div>
-    
-
-
-    <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
-        <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)" ></app-layer-select>
+<mat-sidenav-container class="example-container" [hasBackdrop]="false">
+  <mat-sidenav #sidenav mode="over" [(opened)]="opened" (opened)="events.push('open!')" class="drawer"
+    (closed)="events.push('close!')">
+    <section>
+      <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
+      <div class="floating">
+        <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4">
+        </mat-progress-spinner>
+      </div>
+      <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
+        <div class="wide sql-location">
+          <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)">
+          </app-layer-select>
+        </div>
         <mat-form-field class="wide sql-location">
-        <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="matchingOverlays"
-          matTooltip="Select Overlay to Map." matTooltipPosition="after">
-          <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.ZONE_CODE">
-            {{ overlay.ZONE_DESC }}
-          </mat-option>
-
-        </mat-select>
-      </mat-form-field>
-      
-      
-      <mat-form-field class="wide sql-location">
-        <mat-select ([ngModel])="mmbwMaps" placeholder="Select Historic Map" formControlName="selectedMMBWIds"
-          matTooltip="Select MMBW 1904 Map to Overlay." matTooltipPosition="after" multiple>
-          <mat-option *ngFor="let mmbwmap of mmbwMaps" [value]="mmbwmap.MMBWmapId">
-            {{ mmbwmap.MMBWmapId }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+          <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="matchingOverlays"
+            matTooltip="Select Overlay to Map." matTooltipPosition="after">
+            <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.ZONE_CODE">
+              {{ overlay.ZONE_DESC }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field class="wide sql-location">
+          <mat-select ([ngModel])="mmbwMaps" placeholder="Select Historic Map" formControlName="selectedMMBWIds"
+            matTooltip="Select MMBW 1904 Map to Overlay." matTooltipPosition="after" multiple>
+            <mat-option *ngFor="let mmbwmap of mmbwMaps" [value]="mmbwmap.MMBWmapId">
+              {{ mmbwmap.MMBWmapId }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
       </form>
       <app-overlay-info [overlayProperties]='overlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
-      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'></app-overlay-info>
-      
-      <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'></app-heritage-site-info>
-  
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Advanced Controls
-        </mat-panel-title>
-        <mat-panel-description>
-          Experimental
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'>
+      </app-overlay-info>
+      <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'>
+      </app-heritage-site-info>
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            Advanced Controls
+          </mat-panel-title>
+          <mat-panel-description>
+            Experimental
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <p>This is the primary content of the panel.</p>
+        <mat-vertical-stepper linear (selectionChange)="onStepperChange($event)" #stepper>
+          <mat-step [stepControl]="dataFormGroup">
 
-      <p>This is the primary content of the panel.</p>
-      <mat-vertical-stepper linear (selectionChange)="onStepperChange($event)" #stepper>
-        <mat-step [stepControl]="dataFormGroup">
+            <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
+              <mat-form-field class="sql-form-field">
+                <input type="text" placeholder="Project ID" matInput formControlName="projectID" ([ngModel])="model"
+                  [matAutocomplete]="auto">
+                <mat-autocomplete #auto="matAutocomplete">
+                  <mat-option *ngFor="let project of matchingProjects" [value]="project.id">
+                    {{ project.id }}
+                  </mat-option>
+                </mat-autocomplete>
+              </mat-form-field>
+              <codemirror ref="codemirror" formControlName="sql" ([ngModel])="model" [config]="cmConfig"
+                (change)="dryRun()" (query)="query()"></codemirror>
+              <div>
+                <button mat-raised-button color="primary" (click)="query(stepper)"
+                  [disabled]="!dataFormGroup.valid || pending">Run</button>
+                <button mat-raised-button color="primary" matStepperNext [disabled]="!rows.length || pending">See
+                  results</button>
+                <span *ngIf="!pending">{{ rows.length }} results.</span>
+                <p class="sql-cost" *ngIf="bytesProcessed >= 0">
+                  Estimated query size: {{ bytesProcessed | fileSize:1 }}
+                </p>
+                <p *ngIf="lintMessage" class="sql-lint">{{ lintMessage }}</p>
+                <mat-form-field class="wide sql-location">
+                  <mat-select placeholder="Processing location" formControlName="location" ([ngModel])="model"
+                    matTooltip="Select processing location." matTooltipPosition="after">
+                    <mat-option value="">Auto-select</mat-option>
+                    <mat-option value="US">United States (US)</mat-option>
+                    <mat-option value="EU">European Union (EU)</mat-option>
+                    <mat-option value="us-east4">Northern Virginia (us-east4)</mat-option>
+                    <mat-option value="northamerica-northeast1">Montréal (northamerica-northeast1)</mat-option>
+                    <mat-option value="europe-west2">London (europe-west2)</mat-option>
+                    <mat-option value="europe-north1">Finland (europe-north1)</mat-option>
+                    <mat-option value="asia-south1">Mumbai (asia-south1)</mat-option>
+                    <mat-option value="asia-southeast1">Singapore (asia-southeast1)</mat-option>
+                    <mat-option value="asia-east1">Taiwan (asia-east1)</mat-option>
+                    <mat-option value="asia-northeast1">Tokyo (asia-northeast1)</mat-option>
+                    <mat-option value="australia-southeast1">Sydney (australia-southeast1)</mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+            </form>
+          </mat-step>
 
-          <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
-            <mat-form-field class="sql-form-field">
-              <input type="text" placeholder="Project ID" matInput formControlName="projectID" ([ngModel])="model"
-                [matAutocomplete]="auto">
-              <mat-autocomplete #auto="matAutocomplete">
-                <mat-option *ngFor="let project of matchingProjects" [value]="project.id">
-                  {{ project.id }}
-                </mat-option>
-              </mat-autocomplete>
-            </mat-form-field>
-            <codemirror ref="codemirror" formControlName="sql" ([ngModel])="model" [config]="cmConfig"
-              (change)="dryRun()" (query)="query()"></codemirror>
-            <div>
-              <button mat-raised-button color="primary" (click)="query(stepper)"
-                [disabled]="!dataFormGroup.valid || pending">Run</button>
-              <button mat-raised-button color="primary" matStepperNext [disabled]="!rows.length || pending">See
-                results</button>
-              <span *ngIf="!pending">{{ rows.length }} results.</span>
-              <p class="sql-cost" *ngIf="bytesProcessed >= 0">
-                Estimated query size: {{ bytesProcessed | fileSize:1 }}
-              </p>
-              <p *ngIf="lintMessage" class="sql-lint">{{ lintMessage }}</p>
-              <mat-form-field class="wide sql-location">
-                <mat-select placeholder="Processing location" formControlName="location" ([ngModel])="model"
-                  matTooltip="Select processing location." matTooltipPosition="after">
-                  <mat-option value="">Auto-select</mat-option>
-                  <mat-option value="US">United States (US)</mat-option>
-                  <mat-option value="EU">European Union (EU)</mat-option>
-                  <mat-option value="us-east4">Northern Virginia (us-east4)</mat-option>
-                  <mat-option value="northamerica-northeast1">Montréal (northamerica-northeast1)</mat-option>
-                  <mat-option value="europe-west2">London (europe-west2)</mat-option>
-                  <mat-option value="europe-north1">Finland (europe-north1)</mat-option>
-                  <mat-option value="asia-south1">Mumbai (asia-south1)</mat-option>
-                  <mat-option value="asia-southeast1">Singapore (asia-southeast1)</mat-option>
-                  <mat-option value="asia-east1">Taiwan (asia-east1)</mat-option>
-                  <mat-option value="asia-northeast1">Tokyo (asia-northeast1)</mat-option>
-                  <mat-option value="australia-southeast1">Sydney (australia-southeast1)</mat-option>
+          <mat-step [stepControl]="schemaFormGroup" label="Define columns">
+            <div style="margin-bottom: 2em">
+              <button mat-raised-button color="primary" matStepperNext>Add styles</button>
+            </div>
+            <form [formGroup]="schemaFormGroup">
+              <mat-form-field class="wide">
+                <mat-select placeholder="Geometry column" formControlName="geoColumn" ([ngModel])="columnNames"
+                  matTooltip="Select field containing WKT-formatted geometry" matTooltipPosition="after">
+                  <mat-option *ngFor="let column of columnNames" [value]="column">{{ column }}</mat-option>
                 </mat-select>
               </mat-form-field>
-            </div>
-          </form>
-        </mat-step>
+              <mat-table *ngIf="data" [dataSource]="data" class="result-table">
+                <ng-container *ngFor="let column of columnNames; let i = index" [matColumnDef]="column">
+                  <mat-header-cell *matHeaderCellDef>
+                    <div class="header-cell-title">{{ column }}</div>
+                  </mat-header-cell>
+                  <mat-cell *matCellDef="let row" class="result-table-cell" [title]="row[column]">{{ row[column] }}
+                  </mat-cell>
+                </ng-container>
+                <mat-header-row *matHeaderRowDef="columnNames" [ngStyle]="{'min-width': getRowWidth()}">
+                </mat-header-row>
+                <mat-row *matRowDef="let row; columns: columnNames;" [ngStyle]="{'min-width': getRowWidth()}"></mat-row>
+              </mat-table>
+            </form>
+          </mat-step>
 
-        <mat-step [stepControl]="schemaFormGroup" label="Define columns">
-          <div style="margin-bottom: 2em">
-            <button mat-raised-button color="primary" matStepperNext>Add styles</button>
-          </div>
-          <form [formGroup]="schemaFormGroup">
-            <mat-form-field class="wide">
-              <mat-select placeholder="Geometry column" formControlName="geoColumn" ([ngModel])="columnNames"
-                matTooltip="Select field containing WKT-formatted geometry" matTooltipPosition="after">
-                <mat-option *ngFor="let column of columnNames" [value]="column">{{ column }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-table *ngIf="data" [dataSource]="data" class="result-table">
-              <ng-container *ngFor="let column of columnNames; let i = index" [matColumnDef]="column">
-                <mat-header-cell *matHeaderCellDef>
-                  <div class="header-cell-title">{{ column }}</div>
-                </mat-header-cell>
-                <mat-cell *matCellDef="let row" class="result-table-cell" [title]="row[column]">{{ row[column] }}
-                </mat-cell>
-              </ng-container>
-              <mat-header-row *matHeaderRowDef="columnNames" [ngStyle]="{'min-width': getRowWidth()}"></mat-header-row>
-              <mat-row *matRowDef="let row; columns: columnNames;" [ngStyle]="{'min-width': getRowWidth()}"></mat-row>
-            </mat-table>
-          </form>
-        </mat-step>
+          <mat-step [stepControl]="stylesFormGroup" label="Style">
+            <form [formGroup]="stylesFormGroup">
+              <mat-accordion class="styles-prop-list">
+                <mat-expansion-panel *ngFor="let prop of StyleProps" [formGroupName]="prop.name">
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>{{ prop.name }}</mat-panel-title>
+                    <mat-panel-description>
+                      <span *ngIf="getPropStatus(prop.name) === 'computed'"
+                        class="rule-badge computed">data-driven</span>
+                      <span *ngIf="getPropStatus(prop.name) === 'global'" class="rule-badge global">global</span>
+                      <span *ngIf="getPropStatus(prop.name) === 'none'" class="rule-badge none">none</span>
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+                  <app-rule-input [prop]="prop" [columns]="columnNames" [stats]="getPropStats(prop.name)"
+                    [formGroup]="getPropFormGroup(prop.name)"></app-rule-input>
+                </mat-expansion-panel>
+              </mat-accordion>
 
-        <mat-step [stepControl]="stylesFormGroup" label="Style">
-          <form [formGroup]="stylesFormGroup">
-            <mat-accordion class="styles-prop-list">
-              <mat-expansion-panel *ngFor="let prop of StyleProps" [formGroupName]="prop.name">
-                <mat-expansion-panel-header>
-                  <mat-panel-title>{{ prop.name }}</mat-panel-title>
-                  <mat-panel-description>
-                    <span *ngIf="getPropStatus(prop.name) === 'computed'" class="rule-badge computed">data-driven</span>
-                    <span *ngIf="getPropStatus(prop.name) === 'global'" class="rule-badge global">global</span>
-                    <span *ngIf="getPropStatus(prop.name) === 'none'" class="rule-badge none">none</span>
-                  </mat-panel-description>
-                </mat-expansion-panel-header>
-                <app-rule-input [prop]="prop" [columns]="columnNames" [stats]="getPropStats(prop.name)"
-                  [formGroup]="getPropFormGroup(prop.name)"></app-rule-input>
-              </mat-expansion-panel>
-            </mat-accordion>
-
-          </form>
-        </mat-step>
-      </mat-vertical-stepper>
-      <button mat-icon-button (click)="onFillPreset()" class="preset-button" color="primary">
+            </form>
+          </mat-step>
+        </mat-vertical-stepper>
+        <button mat-icon-button (click)="onFillPreset()" class="preset-button" color="primary">
           <mat-icon aria-label="Fill magic presets">
             <img src="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png" srcset="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png 1x,
-                          https://www.gstatic.com/images/icons/material/system/2x/auto_fix_white_24dp.png 2x"
+                            https://www.gstatic.com/images/icons/material/system/2x/auto_fix_white_24dp.png 2x"
               alt="magic wand">
           </mat-icon>
         </button>
-    
-    </mat-expansion-panel>
 
-  </section>
-</div>
+      </mat-expansion-panel>
+
+    </section>
+  </mat-sidenav>
+  <mat-sidenav-content>
+    <app-map [rows]="rows" [geoColumn]="schemaFormGroup.controls.geoColumn.value" [styles]="styles"
+      [selectedLayersInfo]="selectedLayersInfo" [mmbwOverlay]="selectedMmbwMaps"
+      (overlayChanged)="handleMapOverlayHighlighted($event)" (overlaySelected)="handleMapOverlaySelected($event)"
+      (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
+      (heritageSiteSelected)="handleMapHeritageSiteSelected($event)">
+    </app-map>
+  </mat-sidenav-content>
+</mat-sidenav-container>

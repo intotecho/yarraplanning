@@ -17,15 +17,37 @@
 }
 
 .drawer {
-    max-width: 35vw;
-    width: 20vw;
+    /*max-width: 100%;
+    width: 100%;
     max-height: calc(100vh - 64px);
     min-width: 200px;
     overflow: auto;
     flex-shrink: 0;
     margin: 10px;
-    background-color : #fffff6;
+    */
+    min-width: 200px;
+    width: 50%;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 200px;
+    overflow: hidden;
 }
+
+.example-container {
+    background-color : #fffff6;
+    width: 100%;
+    left: 0;
+    overflow: hidden;
+  }
+  
+  .example-events {
+    width: 100%;
+    overflow: none;
+    border: 1px solid #555;
+  }
+
 mat-progress-spinner {
     display: inline-block;
     vertical-align: middle;
@@ -106,3 +128,6 @@ mat-progress-spinner {
     left: 330px;
     top: 130px;
 }
+
+
+  

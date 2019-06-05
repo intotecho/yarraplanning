@@ -103,7 +103,7 @@ export const OVERLAYS_QUERY = `
   \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays
   where LGA = "YARRA"
   AND SCHEMECODE = "HO" 
-  AND Overlay LIKE '%HO337%'` // for testing only
+  AND Overlay LIKE '%HO33%'` // for testing only
   ;
 
 

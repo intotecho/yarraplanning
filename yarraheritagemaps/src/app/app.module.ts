@@ -33,6 +33,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule} from '@angular/material/menu';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -85,6 +86,7 @@ if ( environment.production ) {
     MatSidenavModule,
     MatToolbarModule,
     MatButtonModule,
+    MatMenuModule,
     MatIconModule,
     MatStepperModule,
     MatSelectModule,
