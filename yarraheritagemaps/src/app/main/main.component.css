@@ -1,3 +1,36 @@
+#mapcontainer {
+    height:70%;
+    position: relative; 
+}
+
+.cardcontainer {
+    margin: 0 auto;
+    width: 95%;
+    /*background: #888888ff;
+    border-radius: 2px;
+    height: 30%;
+    margin: 1rem;
+    width: 95%;
+    position: absolute;
+    max-height: 30%;
+    z-index: 999;
+    left: 10px;
+    bottom: 2px;
+    font-family: 'Roboto','sans-serif';
+    */
+}
+
+
+.floating {
+    position: fixed;
+    z-index: 999;
+    float: right;
+    position: absolute;
+    left: 330px;
+    top: 130px;
+}
+
+
 .view {
     display: flex;
     flex-direction: row-reverse;
@@ -119,15 +152,5 @@ mat-progress-spinner {
 .mat-raised-button[disabled] {
     background: #e5e3df;
 }
-
-.floating {
-    position: fixed;
-    z-index: 999;
-    float: right;
-    position: absolute;
-    left: 330px;
-    top: 130px;
-}
-
 
   

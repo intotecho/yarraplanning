@@ -1,13 +1,13 @@
 .overlay-panel {
-    min-height:100px;
-    background-color: #ffffd280;
-    overflow: auto;
-    border-style: solid;
-    border-width: 1px;
-    border-color: #380801;
-    overflow: auto;
-    max-height: 500px;
-    margin: 3px
+    margin: 3px;
+    background: #fff;
+    border-radius: 2px;
+    display: inline-block;
+    height: 300px;
+    margin: 1rem;
+    position: relative;
+    width: 300px;
+    overflow: hidden;
 }
 
 .OverlayId {

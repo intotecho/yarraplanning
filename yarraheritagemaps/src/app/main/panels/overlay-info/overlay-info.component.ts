@@ -18,7 +18,17 @@ export class OverlayInfoComponent implements OnInit {
 
   }
 
-  vhrLink() {
+  public vhrLink() {
     return 'https://vhd.heritagecouncil.vic.gov.au/search?kw=' + this.overlayProperties.VHR;
   }
+
+  public heritagePlaceName() {
+    const name = this.overlayProperties.HeritagePlace.split('Incorporated plan')[0];
+    return name ? name.trim() : '';
+ }
+
+ public incorporatedPlan() {
+    const plan = this.overlayProperties.HeritagePlace.split(': Incorporated Plan')[1];
+    return plan ? plan.trim() : '';
+ }
 }

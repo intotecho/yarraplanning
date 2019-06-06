@@ -48,8 +48,6 @@ import {
 } from '../app.constants';
 
 import {
-  matchingHeritageOverlays,
-  HeritageOverlay,
   OverlayProperties
 } from './panels/overlays-properties';
 
@@ -71,20 +69,20 @@ export class MainComponent implements OnInit, OnDestroy {
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
   events: string[] = [];
-  opened: boolean = true;
+  opened = true;
 
   // GCP session data
   readonly dataService = new BigQueryService();
   isSignedIn: boolean;
   user: Object;
   matchingProjects: Array<Project> = [];
-  matchingOverlays = matchingHeritageOverlays;
-
+  
   // private _layersInfo: Array<LayerDescription>;
   selectedLayersInfo: Array<LayerDescription> = [];
 
   overlayProperties: OverlayProperties = new OverlayProperties(null);
   selectedOverlayProperties: OverlayProperties = new OverlayProperties(null);
+  matchingOverlays: Array<OverlayProperties> = [];
 
   selectedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   highlightedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
@@ -168,8 +166,14 @@ export class MainComponent implements OnInit, OnDestroy {
 
 
     this.dataFormGroup.controls.overlayId.valueChanges.debounceTime(200).subscribe(() => {
+      const overlayId = this.dataFormGroup.controls.overlayId.value;
+      this.selectedOverlayProperties =  this.matchingOverlays.find( o => o.Overlay = overlayId);
       this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
       this.query(); // kick off inital query to load the overlays
+      this.opened = false;
+      if (this.selectedOverlayProperties) {
+        this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+      }
     });
 
     this.dataFormGroup.controls.selectedMMBWIds.valueChanges.debounceTime(200).subscribe(() => {
@@ -177,6 +181,7 @@ export class MainComponent implements OnInit, OnDestroy {
          return  this.dataFormGroup.controls.selectedMMBWIds.value.includes(mmbwMap.MMBWmapId);
       });
       console.log(this.selectedMmbwMaps);
+      this.opened = false;
     });
 
     // Schema form group
@@ -217,7 +222,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
     });
   }
-  
+
   islayerSelected(layerInfo: Array<LayerDescription>, name: string): boolean {
     return layerInfo.find((layer) => {
       return layer.name === name;
@@ -227,12 +232,15 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   handleSelectedLayersChanged(event) {
+    if (this.selectedLayersInfo !== event) {
+      this.opened = false;
+    } 
     this.selectedLayersInfo = event;
     this._changeDetectorRef.detectChanges();
     if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
         this.query(PLANNING_APPS_QUERY);
-    }
-    this.opened = false;
+        this.showMessage(`Loading Planning Applications for Overlay ${this.overlayProperties.Overlay}`, 5000);
+      }
   }
 
   handleMapOverlayHighlighted(event) {
@@ -244,6 +252,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.selectedOverlayProperties = event;
     localStorage.setItem('selectedOverlay',  JSON.stringify(this.overlayProperties));
     this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
+    this.opened = false;
   }
 
 
@@ -285,19 +294,17 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   updateOverlayNames() {
-      const queriedHeritageOverlays: Array<HeritageOverlay> = [];
+      const queriedHeritageOverlays: Array<OverlayProperties> = [];
       const rows = this.rows;
 
       // Get selection from previous session to initialise.
       const lastSelectedOverlay: OverlayProperties = JSON.parse(localStorage.getItem('selectedOverlay'));
 
       for (let i = 0; i < rows.length; i++) {
-            const ovl: HeritageOverlay = {
-              'ZONE_CODE': rows[i]['ZONE_CODE'],
-              'ZONE_DESC': rows[i]['ZONE_DESC']
-            };
+            const ovl: OverlayProperties = new OverlayProperties(null);
+            ovl.setOverlayFromRows(rows[i]);
             queriedHeritageOverlays.push(ovl);
-            if (lastSelectedOverlay.Overlay === ovl.ZONE_CODE) {
+            if (lastSelectedOverlay.Overlay === ovl.Overlay) {
               this.overlayProperties = lastSelectedOverlay;
               this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
             }

@@ -16,7 +16,6 @@
       <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
       <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
   </mat-menu>
-  <a mat-button href="/terms" matTooltip="Terms and Privacy" matTooltipPosition="after">?</a>
   <a mat-button href="/terms" matTooltip="Send Feedback (TBD)" matTooltipPosition="after">!</a>
 </mat-toolbar>
 <mat-sidenav-container class="example-container" [hasBackdrop]="false">
@@ -24,10 +23,6 @@
     (closed)="events.push('close!')">
     <section>
       <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
-      <div class="floating">
-        <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4">
-        </mat-progress-spinner>
-      </div>
       <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
         <div class="wide sql-location">
           <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)">
@@ -36,8 +31,8 @@
         <mat-form-field class="wide sql-location">
           <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="matchingOverlays"
             matTooltip="Select Overlay to Map." matTooltipPosition="after">
-            <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.ZONE_CODE">
-              {{ overlay.ZONE_DESC }}
+            <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.Overlay">
+              {{ overlay.Overlay }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -51,10 +46,6 @@
         </mat-form-field>
       </form>
       <app-overlay-info [overlayProperties]='overlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
-      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'>
-      </app-overlay-info>
-      <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'>
-      </app-heritage-site-info>
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -136,7 +127,6 @@
               </mat-table>
             </form>
           </mat-step>
-
           <mat-step [stepControl]="stylesFormGroup" label="Style">
             <form [formGroup]="stylesFormGroup">
               <mat-accordion class="styles-prop-list">
@@ -158,24 +148,27 @@
             </form>
           </mat-step>
         </mat-vertical-stepper>
-        <button mat-icon-button (click)="onFillPreset()" class="preset-button" color="primary">
-          <mat-icon aria-label="Fill magic presets">
-            <img src="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png" srcset="https://www.gstatic.com/images/icons/material/system/1x/auto_fix_white_24dp.png 1x,
-                            https://www.gstatic.com/images/icons/material/system/2x/auto_fix_white_24dp.png 2x"
-              alt="magic wand">
-          </mat-icon>
-        </button>
-
       </mat-expansion-panel>
-
     </section>
   </mat-sidenav>
   <mat-sidenav-content>
+    <div id="mapcontainer">
     <app-map [rows]="rows" [geoColumn]="schemaFormGroup.controls.geoColumn.value" [styles]="styles"
       [selectedLayersInfo]="selectedLayersInfo" [mmbwOverlay]="selectedMmbwMaps"
       (overlayChanged)="handleMapOverlayHighlighted($event)" (overlaySelected)="handleMapOverlaySelected($event)"
       (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
       (heritageSiteSelected)="handleMapHeritageSiteSelected($event)">
     </app-map>
+    <div class="floating">
+        <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4">
+        </mat-progress-spinner>
+      </div>
+
+    <div class="cardcontainer">
+        <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'>
+          </app-heritage-site-info>
+        <!--    <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'></app-overlay-info> -->      
+    </div>  
+    </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

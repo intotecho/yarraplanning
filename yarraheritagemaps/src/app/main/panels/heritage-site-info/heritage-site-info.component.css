@@ -5,33 +5,63 @@
 .heritage-status-noncontrib,
 .heritage-status-unknown
 {
-    min-height:50%;
-    overflow: auto;
+    /*overflow: hidden;
     border-style: solid;
-    border-width: 1px;
-    border-color: #380801;
-    overflow: auto;
-    max-height: 500px;
-    margin: 3px
+    border-width: 1px; */
+    text-align: center;
 }
 
+.imagestyle {
+    max-height: 100%;
+    max-width: 100%;
+    object-fit: cover;
+}
+
+.Image-Container {
+   
+    display: inline-block;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .Image-Container img {
+    position: absolute;
+    display: inline-block;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 35vh;
+    max-width: 100%;
+    max-height: 100%;
+    left: 50%;
+    transform: translate(-50%);
+  }
 
 .heritage-status-contrib {
-    background-color: #9eac9e;
+    background-color: #d5dfc9;
+    text-align: center;
 }
 
 .heritage-status-individually {
-    background-color: #aa9eac;
+    background-color: #f1d7f7;
+    text-align: center;
 }
 .heritage-status-vhr {
-    background-color: #ad9898;
+    background-color: #ec6b6b;
+    text-align: center;
 }
 .heritage-status-noncontrib {
-    background-color: #9ba0aa;
+    background-color: #e1e7e8;
+    text-align: center;
 }
 
 .heritage-status-unknown{
     background-color: #fff491;
+    text-align: center;
 }
 
 .vhr {
@@ -42,6 +72,12 @@
 
 .carousel-container {
     height: 200px;
+    background-color: #ffffff;
+}
+
+.example-card {
+    bottom: 0;
+    position: absolute;
 }
 
 .bannerStyle h1 {
@@ -50,27 +86,25 @@
     text-align: center;
     line-height: 800px;
 }
-.leftRs {
+
+.scrollArrows {
     position: absolute;
     margin: auto;
-    top: 0;
     bottom: 0;
-    width: 50px;
-    height: 50px;
-    box-shadow: 1px 2px 10px -1px rgba(0, 0, 0, .3);
+    width: 25px;
+    height: 25px;
+    color: #380801;
+    background-color: #fffba361;
+    /* box-shadow: 1px 2px 10px -1px rgba(0, 0, 0, .3);*/
     border-radius: 999px;
+
+
+}
+.leftRs
+{
     left: 0;
 }
-
 .rightRs {
-    position: absolute;
-    margin: auto;
-    top: 0;
-    bottom: 0;
-    width: 50px;
-    height: 50px;
-    box-shadow: 1px 2px 10px -1px rgba(0, 0, 0, .3);
-    border-radius: 999px;
     right: 0;
 }
 
@@ -85,20 +119,25 @@
     border-radius: 999px;
   }
 
-  .tile {
-    min-height: 400px;
+.tile {
+    /*min-height: 400px;*/
     background-size: cover !important;
-    display: flex;
+    /*display: flex;*/
     align-items: center;
     justify-content: center;
-  }
+    bottom: 0;
+}
 
-  .item {
-    padding: 10px;
-    box-sizing: border-box;
-  }
+.details-tile {
+    margin-left: 30px;
+}
 
-  .myPoint {
+.item {
+    /*padding: 10px;
+    box-sizing: border-box;*/
+}
+
+.myPoint {
     list-style-type: none;
     text-align: center;
     padding: 12px;
@@ -120,4 +159,18 @@
         background: #6b6b6b;
         transform: scale(1.2);
       }
-   
+
+.mat-card-subtitle {
+    display: block;
+    margin-bottom: 3px;
+}
+
+.mat-card {
+    background-color: #f5f4ec;
+}
+
+.sos-panel {
+    overflow-y: scroll;
+    max-height: 50vh;
+    height: 60%
+}

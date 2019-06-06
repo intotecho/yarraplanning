@@ -16,7 +16,7 @@
 
 import { environment } from '../../environments/environment';
 import { MAX_RESULTS, TIMEOUT_MS } from '../app.constants';
-import { HeritageOverlay } from '../main/panels/overlays-properties';
+import { OverlayProperties } from '../main/panels/overlays-properties';
 
 export const ColumnType = {
   STRING: 'string',
@@ -135,7 +135,7 @@ export class BigQueryService {
    * @param projectID
    * @param sql
    */
-  prequery(overlay: HeritageOverlay, projectID: string, sql: string, location: string): Promise<number> {
+  prequery(overlay: OverlayProperties, projectID: string, sql: string, location: string): Promise<number> {
     const body = {
       dryRun: true,
       query: sql,
@@ -170,7 +170,7 @@ export class BigQueryService {
     });
   }
 
-  query(overlay: HeritageOverlay, projectID: string, sql: string, location: string): Promise<BigQueryResponse> {
+  query(overlay: OverlayProperties, projectID: string, sql: string, location: string): Promise<BigQueryResponse> {
     const body = {
       query: sql,
       maxResults: MAX_RESULTS,

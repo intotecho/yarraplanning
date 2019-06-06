@@ -1,11 +1,24 @@
 <div class="overlay-panel">
   <div *ngIf="overlayProperties!=null && overlayProperties.Overlay">
-    <div class='OverlayId'>{{title}} {{overlayProperties.Overlay}}
+    <div class='OverlayId'>{{title}} Overlay {{overlayProperties.Overlay}}
       <span class='VHR' *ngIf="overlayProperties.Included=='true'"> VHR: <a [href]="vhrLink()"
           target="_blank">{{overlayProperties.VHR}}</a></span>
     </div>
-    <div *ngIf="overlayProperties.HeritagePlace">
-      {{overlayProperties.HeritagePlace}}
+    <div *ngIf="overlayProperties.HeritagePlace!=null">
+      {{heritagePlaceName()}}      
+      <div *ngIf="incorporatedPlan()!=''">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+                Incorporated Plan
+              </mat-panel-title>
+            <mat-panel-description>
+              ...
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <p>{{incorporatedPlan()}}</p>
+        </mat-expansion-panel>
+        </div>
     </div>
       <div *ngIf="title=='Selected'">
       <div>

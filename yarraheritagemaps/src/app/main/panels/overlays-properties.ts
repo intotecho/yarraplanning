@@ -4,21 +4,6 @@ export interface Overlay {
     name: String;
 }
 
-export interface HeritageOverlay {
-    ZONE_CODE: String;
-    ZONE_DESC: String;
-}
-
-export const matchingHeritageOverlays: Array<HeritageOverlay> = [
-    {
-        ZONE_CODE: 'HO317',
-        ZONE_DESC: 'Clifton Hill West'
-    },
-    {
-        ZONE_CODE: 'HO330',
-        ZONE_DESC: 'Queens Parade'
-    }
-    ];
 
 export class OverlayProperties {
     Overlay: String = '';
@@ -34,7 +19,6 @@ export class OverlayProperties {
     AboriginalHeritagePlace: String = '';
     Status: String = '';
     Expiry: Date = new Date('1900/01/01');
-
 
     constructor(event: google.maps.Data.MouseEvent) {
         if (event && event.feature) {
@@ -53,7 +37,24 @@ export class OverlayProperties {
         }
     }
 
-    setOverlayInfo(event: google.maps.Data.MouseEvent) {
+    public setOverlayFromRows(row: Object) {
+        if (row) {
+            this.Overlay =  row['ZONE_CODE'];
+            this.HeritagePlace = row['HeritagePlace'];
+            this.Included = row['Included'];
+            this.VHR = row['VHR'];
+            this.PaintControls = row['PaintControls'];
+            this.InternalControls = row['InternalControls'];
+            this.TreeControls = row['TreeControls'];
+            this.FenceControls = row['FenceControls'];
+            this.Prohibited = row['Prohibited'];
+            this.AboriginalHeritagePlace = row['AboriginalHeritagePlace'];
+            this.Status = row['Status'];
+            this.Expiry = row['Expiry'];
+        }
+    }
+
+    public setOverlayInfo(event: google.maps.Data.MouseEvent) {
         if (event && event.feature) {
           this.Overlay = event.feature.getProperty('Overlay');
           this.HeritagePlace = event.feature.getProperty('HeritagePlace');
@@ -72,4 +73,14 @@ export class OverlayProperties {
           return null;
         }
       }
+
+    public heritagePlaceName() {
+        const name = this.HeritagePlace.split('Incorporated plan')[0];
+        return name.trim() || '';
+    }
+
+    public incorporatedPlan() {
+        const plan = this.HeritagePlace.split(': Incorporated Plan')[1];
+        return plan.trim() || '';
+    }
 }

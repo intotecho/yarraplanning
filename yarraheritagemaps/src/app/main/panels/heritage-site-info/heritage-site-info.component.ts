@@ -18,13 +18,8 @@ export class HeritageSiteInfoComponent implements OnInit {
 
   _sosDetails: String = 'SOS Placeholder';
   sosDetails$: Observable<String>;
+  sosExpanded = false;
 
-  imgags = [
-    'assets/test/1.jpg',
-    'assets/test/2.jpg',
-    'assets/test/3.jpg',
-    'assets/test/4.jpg',
-  ];
   public carouselTileItems: Array<any> = [0, 1, 2, 3];
   public carouselTiles = {
     0: [],
@@ -54,17 +49,12 @@ export class HeritageSiteInfoComponent implements OnInit {
       this.carouselTileLoad();
   }
 
-  onmoveFn(data: NguCarouselStore) {
+  onCarouselMove(data: NguCarouselStore) {
     console.log(data);
+    this.sosExpanded = (data.currentSlide === 2) ? true : false;
   }
 
   public carouselTileLoad() {
-    const len = this.carouselTileItems.length;
-    for (let i = 0; i < len; i++) {
-      this.carouselTiles[i].push(
-        this.imgags[Math.floor(Math.random() * this.imgags.length)]
-      );
-    }
   }
 
   sosLink() {
@@ -86,15 +76,16 @@ export class HeritageSiteInfoComponent implements OnInit {
     return this.heritageSiteInfo.href;
   }
 
+
   heritageStatusClass() {
-    switch (this.heritageSiteInfo.HeritageStatus) {
-          case 'Contributory':
+    switch (this.heritageSiteInfo.HeritageStatus.toLowerCase()) {
+          case 'contributory':
           return 'heritage-status-contrib';
-          case 'Not contributory':
+          case 'not contributory':
           return 'heritage-status-noncontrib' ;
-          case 'Individually Significant':
+          case 'individually significant':
           return 'heritage-status-individually';
-          case 'Victorian Heritage Register':
+          case 'victorian heritage register':
           return 'heritage-status-vhr';
           default:
           return 'heritage-status-unknown';

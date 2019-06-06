@@ -31,6 +31,7 @@ export const HERITAGE_SITE_QUERY = `
     HeritageStatus,
     Overlay,
     NormalAddress,
+    PropertyType,
     EstimatedDate,
     Image,
     VHR,

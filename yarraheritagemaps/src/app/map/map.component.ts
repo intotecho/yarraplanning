@@ -134,7 +134,21 @@ export class MapComponent implements AfterViewInit {
     Promise.all([ pendingMap, this.pendingStyles ])
       .then(([_, mapStyles]) => {
         this._geoColumn = 'bndry';
-        this.map = new google.maps.Map(this.mapEl.nativeElement, {center: {lat: -37.83433865, lng: 144.96147273999998}, zoom: 6});
+        const mapOptions =  {
+            center: {lat: -37.83433865, lng: 144.96147273999998}, 
+            zoom: 6,
+            mapTypeControl: false, // hide the Map and Satellite options
+            zoomControl: true,
+            zoomControlOptions: {
+                position: google.maps.ControlPosition.TOP_RIGHT
+            },
+            scaleControl: true,
+            streetViewControl: true,
+            streetViewControlOptions: {
+                position: google.maps.ControlPosition.TOP_RIGHT
+            }
+        };
+        this.map = new google.maps.Map(this.mapEl.nativeElement, mapOptions);
         this.map.setOptions({styles: mapStyles});
 
         const bounds = new google.maps.LatLngBounds();
@@ -308,7 +322,7 @@ export class MapComponent implements AfterViewInit {
         }
       });
 
-      this._overlaysLayer.addListener('dblclick', (event: google.maps.Data.MouseEvent) => {
+      this._overlaysLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
         if (event.feature) {
           this.highlightedOverlay = new OverlayProperties(event);
           this.overlayChanged.emit(this.highlightedOverlay );
@@ -318,9 +332,9 @@ export class MapComponent implements AfterViewInit {
         }
       });
 
-      this._overlaysLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
-          google.maps.event.trigger(this._propertiesLayer, 'click', event);
-      });
+      //this._overlaysLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
+      //    google.maps.event.trigger(this._propertiesLayer, 'click', event);
+      //});
 
     } else if (isPlanningLayer) {
       this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
@@ -519,7 +533,7 @@ export class MapComponent implements AfterViewInit {
         this.overlayInfoComponentRef.instance.title = 'Clicked Overlay';
         this.appRef.attachView(this.overlayInfoComponentRef.hostView);
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
-        this.infoWindow.setContent(div);
+        //this.infoWindow.setContent(div);
 
       } else if (properties.hasOwnProperty('vhdplaceid')) { // Create HeritageSiteInfoComponent
 
@@ -536,7 +550,7 @@ export class MapComponent implements AfterViewInit {
         this.heritageSiteInfoComponentRef.instance.title = 'Clicked ';
         this.appRef.attachView(this.heritageSiteInfoComponentRef.hostView);
         div.appendChild(this.heritageSiteInfoComponentRef.location.nativeElement);
-        this.infoWindow.setContent(div);
+        //this.infoWindow.setContent(div);
       } else if (properties.hasOwnProperty('Application_Number')) {
 
         const status = properties['HeritageStatus'];
@@ -552,8 +566,8 @@ export class MapComponent implements AfterViewInit {
         `;
         this.infoWindow.setContent(htmlContentString);
       }
-      this.infoWindow.open(this.map, marker);
-      this.infoWindow.setPosition(event.latLng);
+      //this.infoWindow.open(this.map, marker);
+      //this.infoWindow.setPosition(event.latLng);
       }
     // componentRef.instance.someObservableOrEventEmitter.subscribe(data => this.prop = data);
   }
@@ -563,7 +577,7 @@ export class MapComponent implements AfterViewInit {
    * @param feature
    * @param latLng
    */
-  showInfoWindow(event: any, latLng: google.maps.LatLng) {
+  showInfoWindow_unused(event: any, latLng: google.maps.LatLng) {
     const feature: google.maps.Data.Feature = event ? event.feature : null;
     const properties = {};
     if (this.infoWindow === null) {
@@ -610,10 +624,9 @@ export class MapComponent implements AfterViewInit {
 
       } else {
         //this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);
-        this.infoWindow.setContent(`<app-overlay-properties [overlayProperties]='overlayProperties'></app-overlay-properties>`);
+        this.infoWindow.setContent(`<app-overlay-info [overlayProperties]='overlayProperties'></app-overlay-info>`);
         // We need to run dynamic component  in angular2 zone
         this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
-
       }
       this.infoWindow.open(this.map);
       this.infoWindow.setPosition(latLng);

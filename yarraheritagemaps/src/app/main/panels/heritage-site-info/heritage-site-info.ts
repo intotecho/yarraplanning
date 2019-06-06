@@ -5,7 +5,7 @@ import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../../app.constants';
  */
 export class HeritageSiteInfo {
     Overlay: String ;
-    Name: String = '';
+    PropertyType: String = '';
     NormalAddress: String = '';
     Authority: String = '';
     SosHash: String = '';
@@ -20,7 +20,7 @@ export class HeritageSiteInfo {
     constructor(event) {
         if (event && event.feature) {
             this.Overlay = event.feature.getProperty('Overlay');
-            this.Name = event.feature.getProperty('Name');
+            this.PropertyType = event.feature.getProperty('PropertyType');
             this.NormalAddress = event.feature.getProperty('NormalAddress');
             this.VHR = event.feature.getProperty('VHR');
             this.Authority = event.feature.getProperty('Authority');
@@ -37,7 +37,7 @@ export class HeritageSiteInfo {
     setHeritageSiteInfo(event: google.maps.Data.MouseEvent) {
         if (event && event.feature) {
           this.Overlay = event.feature.getProperty('Overlay');
-          this.Name = event.feature.getProperty('Name');
+          this.PropertyType = event.feature.getProperty('PropertyType');
           this.NormalAddress = event.feature.getProperty('NormalAddress');
           this.VHR = event.feature.getProperty('VHR');
           this.Authority = event.feature.getProperty('Authority');

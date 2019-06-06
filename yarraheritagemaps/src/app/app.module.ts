@@ -22,6 +22,7 @@ import { routes } from './app.routing';
 import { RouterModule } from '@angular/router';
 
 import { MatInputModule } from '@angular/material/input';
+import { MatCardModule } from '@angular/material/card';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -83,6 +84,7 @@ if ( environment.production ) {
     RouterModule.forRoot(routes),
 
     MatInputModule,
+    MatCardModule,
     MatSidenavModule,
     MatToolbarModule,
     MatButtonModule,
