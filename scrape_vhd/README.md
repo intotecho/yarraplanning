@@ -44,17 +44,18 @@ cd yarraplanning/scrape_vhd
 ## SAMPLE COMMANDS
 Use [screen](https://gist.github.com/jctosta/af918e1618682638aa82) for long running processes; in case the session is interrupted midway.
 
-First run scrapy crawl with  -a buildindex="True" to build the index of placeids. 
-Then run again -a buildindex="filename" to scrape the place details. WHere filename is the index.
+First run scrapy crawl with  *-a index="True"* and -o indexfile.csv to build the index of placeids and store in filename.csv
+Then run again *-a index="indexfile.csv"* to scrape the place details. Where filename is the index.
 ```
 >cd ~/yarraplanning/scrape_vhd
->rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a buildindex="True" -o yarra_vhd-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
+>rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a index="True" -o yarra_vhd-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
 
 >scrapy crawl scrapevhd -a buildindex="True" first to build the index file. Then False to get the place details.
 
+Each time the output file is appended. So delete it before rerunning.
 =======
- rm yarra_vhd_index_$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a buildindex="True" -o yarra_vhd_index_$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
- rm yarra_vhd_places_$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a buildindex="yarra_vhd_index_$DATE.csv" -o yarra_vhd_places_$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
+ rm yarra_vhd_index_$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a index="True" -o yarra_vhd_index_$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
+ rm yarra_vhd_places_$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a index="yarra_vhd_index_$DATE.csv" -o yarra_vhd_places_$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
 ```
 ## Output
 The file yarra_vhd-$DATE.csv can be uploaded to BigQuery

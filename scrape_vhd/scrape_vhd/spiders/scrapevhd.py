@@ -67,6 +67,7 @@ class ScrapevhdSpider(CrawlSpider):
                 'Overlay',
                 'Name',
                 'Location',
+                'Municipality',
                 'Description',
                 'Authority',
                 'href',
@@ -86,7 +87,7 @@ class ScrapevhdSpider(CrawlSpider):
             pages = np.resize(pages, total_pages)
             # self.logger.debug("\n\n PAGES {} \n\n".format(pages))
 
-            self.start_urls = pages[10000:].tolist()
+            self.start_urls = pages[0:].tolist()
             self.logger.debug("\n\n START URLS {} \n\n".format(self.start_urls))
 
         super(ScrapevhdSpider, self).__init__(**kwargs)
@@ -132,6 +133,27 @@ class ScrapevhdSpider(CrawlSpider):
             return 'none'
 
     '''
+    Remove commas and municipality
+    Returns:
+        normal: address sans commas and sans municipality in upper
+        municipality - everything after the last comma  in upper
+    '''
+
+    def normaliseaddress(self, locn):
+        substring = ","
+        municipality = locn[locn.rfind(substring)+1:].upper().strip()  # Everything after the last comma.
+
+        # commacount = locn.count(substring)
+
+        # first remove last comma and everything after it.
+        normal = locn[:locn.rfind(substring)]
+
+        # replace first comma (otpioonally followed by a space) with a single space and make upper case.
+        normal = normal.replace(substring, ' ').upper()
+        normal = re.sub(' +', ' ', normal).strip()  # remove multiple spaces
+        return normal, municipality
+
+    '''
     parse detail place page
     '''
 
@@ -149,9 +171,11 @@ class ScrapevhdSpider(CrawlSpider):
         mapLocation = response.css('div .listing-sidebar-map').css('iframe::attr(src)').get()
         # self.logger.debug(mapLocation)
         item['vhdplaceid'] = response.url.rsplit('/', 1)[-1]
+
+        location = self.stripif(response.xpath('//h5[contains(text(),"Location")]/following-sibling::text()').get())
+        item['Location'], item['Municipality'] = self.normaliseaddress(location)
         item['href'] = response.url
         item['Name'] = self.stripif(response.css('div.col-place-title::text').get())
-        item['Location'] = self.stripif(response.xpath('//h5[contains(text(),"Location")]/following-sibling::text()').get())
         item['Overlay'] = self.stripif(response.xpath('//h5[contains(text(),"Heritage Overlay Numbers")]/following-sibling::text()').get())
         item['VHR'] = self.stripif(response.xpath("//*[contains(text(), 'Victorian Heritage Register (VHR) Number')]/following-sibling::text()").get())
         item['Image'] = self.stripif(response.css('img.gallery-image::attr(src)').get())
@@ -161,7 +185,9 @@ class ScrapevhdSpider(CrawlSpider):
         sos = sosElement.getall() # a list
         separator = ' '
         item['StatementContent'] = separator.join(sos).encode('utf-8')
-        item['SoSHash'] = hash(item['StatementContent'])
+
+        # To avoid storing duplicate SOS, we will only store each unique SOS once and store the hash in each site that includes it.
+        item['SoSHash'] = '{}'.format(hash(item['StatementContent'])) # Convert hash to a string here.
         try:
             item['VHRlat'] = re.search(r'q=([+-]?(\d*\.)?\d+),([+-]?(\d*\.))',
                                        mapLocation).group(1)

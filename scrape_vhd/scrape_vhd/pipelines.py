@@ -10,6 +10,10 @@ import os.path
 class ScrapeVhdPipeline(object):
 
     def process_item(self, item, spider):
+        # Pipeline is not needed when building the index
+        if 1 in item:
+            return item
+
         try:
             id = item['SoSHash']
             filename = './/sos//{}.html'.format(id)

@@ -1,6 +1,6 @@
 [
     {
-      "origin": ["http://yarrascrape.appspot.com"],
+      "origin": ["https://yarrascrape.appspot.com"],
       "responseHeader": ["Content-Type"],
       "method": ["GET", "HEAD", "DELETE"],
       "maxAgeSeconds": 3600
