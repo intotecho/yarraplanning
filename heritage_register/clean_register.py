@@ -35,6 +35,63 @@ ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 
+months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+]
+
+'''
+    shortdate_to_address() converts 
+        print(shortdate_to_address('Feb-12'))
+        2/12
+        print(shortdate_to_address('Jan-13'))
+        1/13
+        print(shortdate_to_address('13-Jan'))
+        13/1
+'''
+def shortdate_to_address(string):
+    if string:
+        for i, month in enumerate(months, 1):
+            if re.search(r'{}-'.format(month), string):
+                return re.sub(r'{}(-)(\d*)'.format(month), r'{}/\2'.format(i), string)
+            elif re.search(r'-{}'.format(month), string):
+                return re.sub(r'(\d*)(-){}'.format(month), r'\1/{}'.format(i), string)
+    return string
+
+
+'''
+    longdate_to_address() converts 
+        print(longdate_to_address('1/07/2009'))
+        1/7-9
+        print(longdate_to_address('1/02/2004'))
+        1/2-4
+'''
+
+def longdate_to_address(string):
+    if string:
+        return re.sub(r'(\d{1,2})/(0?)(\d)/(\d{3})(\d)', r'\1/\3-\5', string)
+    return string
+
+
+'''
+    remove_brackets() 
+    Do this last. 
+    converts 
+    print(remove_brackets('107 (under) 123'))
+    print(remove_brackets('1/02 (west)x'))
+    print(remove_brackets('1/02(first) y'))
+    107 123
+    1/02 x
+    1/02 x
+'''
+
+
+def remove_brackets(string):
+    if string:
+        return re.sub(r'(.*?)( ?\(.*\) ?)(.*)', r'\1 \3', string)
+    return string
+
+
 
 # ------------------ CONFIGURATION -------------------------------
 
@@ -427,7 +484,7 @@ input_df['Number'] = input_df['Number'].str.replace(
      r'Victorian Heritage register', 'Victorian Heritage Register', regex=True)
 '''
 
-
+'''
 # --- Fix street Numbers when converted to date buy Tabula ---
 # First converts 'Jan-13' to '1/13', then '13-Jan' to '13/1'.
 def fixdate(df, column, month, number):
@@ -452,6 +509,10 @@ fixdate(input_df, 'Number', 'Sep', 9)
 fixdate(input_df, 'Number', 'Oct', 10)
 fixdate(input_df, 'Number', 'Nov', 11)
 fixdate(input_df, 'Number', 'Dec', 12)
+'''
+input_df['Number'] = input_df['Number'].replace(np.nan, '', regex=True) # remove Nan
+input_df['Number'] = input_df['Number'].apply(shortdate_to_address) # remove Jan-1
+input_df['Number'] = input_df['Number'].apply(longdate_to_address) # remove 1/7/2009
 
 # Normalise the (Unit n) to VicData address
 input_df['Number'] = input_df['Number'].str.replace(
@@ -459,16 +520,21 @@ input_df['Number'] = input_df['Number'].str.replace(
             "\\4/\\1",
             regex=True)
 
-
 # Insert 'Street' when missing for Johnston Street HO505
 condition = (
     (input_df['Type'].str.match("")) |
     (input_df['AddressName'].str.match("Johnston")))
 input_df['Type'].where(condition, other="Street", inplace=True)
 
-# Make a new normalised address field.
-# This fomrat matches VicData addresses except for the postcode we don't have.
+input_df['OriginalAddress'] = \
+    ' '.join(
+    input_df['Number']
+    + ' ' + input_df['AddressName']
+    + ' ' + input_df['Type']
+    + ' ' + input_df['Suburb'])
 
+# Make a new normalised address field.
+# This format matches VicData addresses except for the postcode we don't have.
 input_df['NormalAddress'] = \
     input_df['Number'] \
     + ' ' + input_df['AddressName'].str.upper() \
@@ -505,6 +571,8 @@ input_df['PropertyType'] = input_df['PropertyType'].str.replace(
             r'(\#NAME\?)',
             "Oonah",
             regex=True)
+
+input_df['Number'] = input_df['Number'].apply(remove_brackets)
 
 # ---- save the results. ---- #
 output_df = input_df

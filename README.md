@@ -1,5 +1,7 @@
 # yarraplanning
-Geospatial Analysis and display of City of Yarra Heritage Register and Planning Applications 
+Contains the App for Geospatial analysis and display of City of Yarra Heritage Register and Planning Applications 
+
+Summary of Data preparation tools. Each has its own details readme
 
 ## geolocate
 Python script to convert addresses in the planning applications to coordinates and merge back into the list of applications.
@@ -16,9 +18,14 @@ Scripts to import offical GIS overlays from the Victorian Government, filter and
 - Addresses
 
 ## heritage_register 
-- Scan and clean the heritage register (pdf) into a CSV that can be imported to BigQuery
-- Normalise the addresses
-- Fix some minor errors.
+- clean_register.py: 
+   - Scans and cleand the heritage register (pdf) into a CSV.
+   - Normalise the addresses to a format similar to VICMAP (GNAF)
+   - Fix some minor errors like missing suburb, or moving sites from Burnley to Richmond.
+- register-2gnaf.py: 
+   - Uses an RNN to decompose the addresses output by clean_register.py into components.(Slow)
+- match_addresses.py
+   - uses complex logic to match addresses output by clean_register.py with adresses in the vicmap address data.
 
 ## overlay_schedule
  - Convert and clean the PDF schedule to the Yarra Heritage Overlays.
