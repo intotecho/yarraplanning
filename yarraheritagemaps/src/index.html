@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <link href="https://codemirror.net/lib/codemirror.css" rel="stylesheet">
 
-  <script>
+  <script  type="text/javascript">
     window.pendingMap = new Promise((resolve) => {
       window.initMap = () => resolve();
     });
@@ -22,7 +22,7 @@
   </script>
   <!-- Maps API key for local development and production site. For custom apps, create a new API key. -->
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDpqCLE4_VZcGqJQGSgjLFpXiDdF7M6hD0&callback=initMap" async defer></script>
-  <script async defer src="https://apis.google.com/js/api.js"
+  <script type="text/javascript" async defer src="https://apis.google.com/js/api.js"
     onload="this.onload=function(){};initGapi()"
     onreadystatechange="if (this.readyState === 'complete') this.onload()">
   </script>
@@ -35,8 +35,8 @@
   <app-root></app-root>
 
   <!-- Google Analytics -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-4850069-1"></script>
-  <script>
+  <script  type="text/javascript" async src="https://www.googletagmanager.com/gtag/js?id=UA-4850069-1"></script>
+  <script  type="text/javascript">
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());

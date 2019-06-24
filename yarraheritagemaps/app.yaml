@@ -23,6 +23,14 @@ handlers:
   upload: index.html
   http_headers:
     X-Frame-Options: DENY
+    content_type: text/javascript
+
+- url: /(.*\.(js))$
+  secure: always
+  static_files: \1
+  upload: (.*)
+  http_headers:
+    content_type: text/javascript
 
 - url: /terms
   secure: always
@@ -35,3 +43,5 @@ handlers:
   secure: always
   static_files: \1
   upload: (.*)
+  http_headers:
+    content_type: text/javascript

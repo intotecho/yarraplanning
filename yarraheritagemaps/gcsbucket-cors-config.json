@@ -11,4 +11,4 @@
         "method": ["GET", "HEAD", "DELETE"],
         "maxAgeSeconds": 3600
       }  
-]
+]y

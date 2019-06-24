@@ -20,8 +20,8 @@ import { MatTableDataSource, MatSnackBar, MatButton } from '@angular/material';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/debounceTime.js';
+import 'rxjs/add/operator/map.js';
 
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';

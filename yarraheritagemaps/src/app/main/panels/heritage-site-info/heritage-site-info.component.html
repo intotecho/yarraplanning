@@ -20,11 +20,11 @@
                 <img src="{{heritageSiteInfo.Image}}" alt="Photo of Heritage Site from VHD Database">
               </div>
             </ng-template>
-          <ng-template #second class='details-tile'>
-            <div class="details-panel">
-              <p>Estimated Date: {{heritageSiteInfo['EstimatedDate']}}</p>
-              <p>Name: {{heritageSiteInfo['PropertyType']}}</p>
-              <h4>Heritage Status: {{heritageSiteInfo['HeritageStatus']}}</h4>
+          <ng-template #second>
+            <div class="details-tile">
+                <p *ngIf="heritageSiteInfo['PropertyType']">{{heritageSiteInfo['PropertyType']}}</p>
+                <p>Estimated Date: {{heritageSiteInfo['EstimatedDate']}}</p>
+                <p>Heritage Status: {{heritageSiteInfo['HeritageStatus']}}</p>
               <div *ngIf="heritageSiteInfo.VHR!=='none'" class='vhr'>
                 VHR: <a target="_blank" [href]="vhrLink()">{{heritageSiteInfo['VHR']}}</a><br/>
               </div>

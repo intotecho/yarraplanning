@@ -25,7 +25,7 @@ import * as parseWKT from 'wellknown';
 import { OverlayProperties } from '../main/panels/overlays-properties';
 
 declare var geoXML3: any;
-import '../../../third_party/geocodezip/geoxml3';
+import '../../../third_party/geocodezip/geoxml3.js';
 import { style } from '@angular/animations';
 import { OverlayInfoComponent as OverlayInfoComponent } from '../main/panels/overlay-info/overlay-info.component';
 
@@ -53,7 +53,7 @@ export class MapComponent implements AfterViewInit {
 
   // Maps API instance.
   map: google.maps.Map;
-
+  
   // Info window for display over Maps API.
   infoWindow: google.maps.InfoWindow = null;
   overlayInfoComponentRef: ComponentRef<OverlayInfoComponent>;
@@ -135,7 +135,7 @@ export class MapComponent implements AfterViewInit {
       .then(([_, mapStyles]) => {
         this._geoColumn = 'bndry';
         const mapOptions =  {
-            center: {lat: -37.83433865, lng: 144.96147273999998}, 
+            center: {lat: -37.83433865, lng: 144.96147273999998},
             zoom: 6,
             mapTypeControl: false, // hide the Map and Satellite options
             zoomControl: true,

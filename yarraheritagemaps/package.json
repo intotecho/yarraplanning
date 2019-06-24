@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "TBD",
   "scripts": {
-    "start": "node server.js",
+    "start": "ng serve",
     "installcors": "gsutil cors set gcsbucket-cors-config.json  gs://historic_map_overlays",
     "ng": "ng",
     "dev": "ng serve",
@@ -44,7 +44,7 @@
     "npm": "^6.9.0",
     "rxjs": "^6.5.2",
     "rxjs-compat": "^6.5.2",
-    "serve": "^10.0.2",
+    "serve": "^11.0.2",
     "wellknown": "^0.5.0",
     "zone.js": "~0.9.1"
   },

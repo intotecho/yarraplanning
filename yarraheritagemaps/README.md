@@ -17,7 +17,7 @@ This tool is provided as is for educational purposes.
 
 It is not a substitue for the reference planning documentation.
 
-cd ya**Data may be incorrect, incomplete or out of date!**
+**Data may be incorrect, incomplete or out of date!**
 
 For planning matters, always refer to the reference documents for reliable information:
 

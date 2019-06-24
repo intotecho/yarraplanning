@@ -25,26 +25,37 @@ export const Step = {
 export const HERITAGE_SITE_DATACENTER = 'australia-southeast1';
 
 export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
-export const HERITAGE_SITE_QUERY = `
-    #standardsql
-    SELECT
-    HeritageStatus,
-    Overlay,
-    NormalAddress,
-    PropertyType,
-    EstimatedDate,
-    Image,
-    VHR,
-    href,
-    vhdplaceid,
-    SosHash,
-    SAFE.ST_GeogFromGeoJson(boundary) as bndry,
-    ST_GeogFromGeoJson(location) as locn
-    FROM
-    \`yarrascrape.YarraPlanning.YARRAHERITAGEMAPS_PROPERTIES\` as register
-    WHERE
-    register.Overlay = @overlay
-  `;
+
+
+  /* 
+   * Changing these fields must algin with HeritageSiteInfo
+   */
+  export const HERITAGE_SITE_QUERY = `
+  #standardsql
+  SELECT
+  EZI_ADD,
+  HeritageStatus,
+  Overlay,
+  vhdOverlay,
+  Name,
+  vhdplaceid,
+  Image,
+  PropertyType,
+  PropertyId,
+  EstimatedDate,
+  NormalAddress,
+  Matched,
+  PROPERTY_PFI
+  VHR,
+  href,
+  SosHash,
+  SAFE.ST_GeogFromGeoJson(boundary) as bndry
+  FROM
+  \`yarrascrape.YarraPlanning.YARRAHERITAGEMAPS_PROPERTIES\` as register
+  WHERE
+  register.Overlay = @overlay
+`;
+
 
 export const PLANNING_APPS_QUERY = `
     #standardsql
@@ -103,8 +114,8 @@ export const OVERLAYS_QUERY = `
   FROM
   \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays
   where LGA = "YARRA"
-  AND SCHEMECODE = "HO" 
-  AND Overlay LIKE '%HO33%'` // for testing only
+  AND SCHEMECODE = "HO"
+  ` // AND Overlay LIKE '%HO33%' for testing only
   ;
 
 
