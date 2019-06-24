@@ -1,0 +1,225 @@
+[
+     {
+        "mode": "NULLABLE", 
+        "name": "Overlay", 
+        "type": "STRING"
+      },
+       {
+        "mode": "NULLABLE", 
+        "name": "AddressName", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Type", 
+        "type": "STRING"
+      }, 
+     
+      {
+        "mode": "NULLABLE", 
+        "name": "Number", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Suburb", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "PropertyType", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "PropertyId", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "HeritageStatus", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "EstimatedDate", 
+        "type": "STRING"
+      }, 
+
+      {
+        "mode": "NULLABLE", 
+        "name": "NormalAddress", 
+        "type": "STRING"
+      },
+     {
+        "mode": "NULLABLE", 
+        "name": "number_last_suffix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "state", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "postcode", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "number_first", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "street_type", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "number_last", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "locality_name", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "building_name", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "street_name", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "flat_number", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "level_number", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "level_number_suffix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "number_first_prefix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "flat_type", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "flat_number_suffix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "number_first_suffix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "flat_number_prefix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "level_number_prefix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "street_suffix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "number_last_prefix", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "level_type", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "OriginalAddress", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "Matched", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "VHDMatched", 
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "EZI_ADD", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "PROPERTY_PFI", 
+        "type": "STRING"
+      }, 
+      {
+        "mode": "NULLABLE", 
+        "name": "geom", 
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "vhdplaceid", 
+        "type": "STRING"
+      },
+  
+      {
+        "mode": "NULLABLE", 
+        "name": "DatePrefix", 
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "earliest", 
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "latest", 
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "DateSuffix", 
+        "type": "STRING"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "sec_earliest", 
+        "type": "INTEGER"
+      },
+      {
+        "mode": "NULLABLE", 
+        "name": "sec_latest", 
+        "type": "INTEGER"
+      }
+    ]
