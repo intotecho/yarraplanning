@@ -54,6 +54,12 @@ I suppressed this by adding params={}
 This makes it run faster.
 However, the correct approach is to patch and install the library
 
+I think it is also necessary to copy the pretrained folder from the library to the current folder
+```
+cd ~/yarraplanning/heritage_register
+cp -r env/lib/python3.5/site-packages/addressnet/pretrained/ .
+```
+
 ### Note
 register_2gnaf is slow, so is designed to allow interruption at anytime. It will pickup where it left off at the first non-matched item.
 
@@ -91,7 +97,7 @@ register_MATCHED.csv contains new columns:
   - EZI_ADDRESS from matching address 
   - PROPERTY_PFI from matching address
 
-Matched will be one of 
+*Matched* will be one of 
 - '', No match tried
 - 'NotAnAddress', The Road name, Road Type and Suburb don't exist
 - 'NoMatch', None of the strategies mathced
@@ -104,6 +110,13 @@ Matched will be one of
 - 'Range', 
 - 'Complex'
 
+*VHDMatched* will be one of
+- VHDNF, VHD Location Fully Matched NormalAddress
+- VHDEF, VHD Location Fully Matched EZI_ADDRESS 
+- VHDEP, VHD Location Contains EZI_ADDRESS
+- VHDOF, VHD Location Fully Matched OriginalAddress 
+- VHDOP, VHD Location Contains OriginalAddress 
+- VHDN,  No Matching VHD Found (This is expected for Not Signficiant Places)
 
 address_MATCHED.csv contains new columns:
   - MatchCount

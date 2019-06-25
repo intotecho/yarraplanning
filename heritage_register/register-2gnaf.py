@@ -42,7 +42,7 @@ logger.addHandler(ch)
 
 # Set your input file here
 # e.g. "revew_of_heritage_overlay_areas_2007_rev_may_2017.csv"
-input_filename = "yarra_heritage_register_C191_auto.csv" # output of clean_register.py
+input_filename = "yarra_heritage_register_C191_CLEAN.csv" # output of clean_register.py
 #input_filename = "test_register.csv" # output of clean_register.py
 
 # Set your output file name here.
@@ -58,7 +58,7 @@ input_address_column_name = "NormalAddress"
 register_cols = [
     'Overlay',	'AddressName',	'Type',	'Number',	'Suburb',
     'PropertyType',	'PropertyId',	'HeritageStatus',
-    'EstimatedDate',	'NormalAddress'
+    'EstimatedDate',	'OriginalAddress', 'NormalAddress'
 ]
 output_cols = [
         'number_last_suffix',
@@ -84,7 +84,7 @@ def save_results(df):
         index=False,
         encoding='utf8')
 
-
+print('open files')
 # Read the input data to a Pandas Dataframe
 try:
     df = pd.read_csv(
@@ -98,6 +98,8 @@ if 'Overlay' not in df.columns:
     raise ValueError("Missing Address column in input data")
 
 input_count = len(df['Overlay'])
+
+print('1')
 
 # --- Read the output file already processed ---
 try:
@@ -113,6 +115,8 @@ try:
 except Exception as e:
     logger.error("Output File Not Found. Starting from Scratch {} ".format(e))
     output_count = 0
+
+print('read files')
 
 def map_address_components(address):
     #print('predicting for {}'.format(address))
@@ -141,9 +145,10 @@ else:
     new_df = df_done
 
 check_counter=output_count
-
+print('start')
 for i in range(0, input_count):
     row = df.iloc[i].copy()
+    print('{}'.format(i))
     if row['street_name'] == '' and row['street_type'] == '' and row['locality_name'] == '':
         # only call the RNN is we don't already have components of the address
         print('row', i, 'decomposing Address: ', row['NormalAddress'])

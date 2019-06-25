@@ -60,7 +60,7 @@ vhd_dtypes = {
     'SoSHash': unicode
 }
 
-register_dtypes = {
+register_dtypes_gnaf = {
     # level_number,level_number_suffix,number_first_prefix,flat_type,flat_number_suffix,number_first_suffix,flat_number_prefix,level_number_prefix,street_suffix,number_last_prefix,level_type
     'Overlay': unicode,
     'AddressName': unicode,
@@ -94,11 +94,54 @@ register_dtypes = {
     'number_last_prefix': unicode,
     'level_type': unicode,
     'Matched': unicode,  # Added by this process
+    'VHDMatched': unicode,  # Added by this process
     'EZI_ADD': unicode,  # Added by this process
     'PROPERTY_PFI': unicode,  # Added by this process
     'geom': unicode,   # Added by this process
-    'OriginalAddress': unicode,  # Added by this process
-    'vhdplaceid': unicode
+    'vhdplaceid': unicode,
+    'OriginalAddress': unicode  # Added by this process
+}
+
+#,OriginalAddress
+register_columns_gnaf = {
+    # level_number,level_number_suffix,number_first_prefix,flat_type,flat_number_suffix,number_first_suffix,flat_number_prefix,level_number_prefix,street_suffix,number_last_prefix,level_type
+    'Overlay',
+    'AddressName',
+    'Type',
+    'Number',
+    'Suburb',
+    'PropertyType',
+    'PropertyId',
+    'HeritageStatus',
+    'EstimatedDate',
+    'NormalAddress',
+    'number_last_suffix',
+    'state',
+    'postcode',
+    'number_first',
+    'street_type',
+    'number_last',
+    'locality_name',
+    'building_name',
+    'street_name',
+    'flat_number',
+    'level_number',
+    'level_number_suffix',
+    'number_first_prefix',
+    'flat_type',
+    'flat_number_suffix',
+    'number_first_suffix',
+    'flat_number_prefix',
+    'level_number_prefix',
+    'street_suffix',
+    'number_last_prefix',
+    'level_type'  #,
+    # 'Matched',  # Added by this process
+    # 'EZI_ADD',  # Added by this process
+    # 'PROPERTY_PFI',  # Added by this process
+    # 'geom',   # Added by this process
+    # 'OriginalAddress',  # Added by this process
+    # 'vhdplaceid'
 }
 
 vicmap_address_attribs = {
@@ -164,3 +207,18 @@ vicmap_address_attribs = {
     'UFI_OLD': long,
     'MatchCount': long,
 }
+
+# === BQ SCHEMA ===
+# USe for importing to a  BQ Table
+# Overlay,AddressName,Type,Number,Suburb,PropertyType,PropertyId,HeritageStatus,EstimatedDate,
+# NormalAddress,number_last_suffix,state,postcode,number_first,street_type,number_last,locality_name,
+# building_name,street_name,flat_number,level_number,level_number_suffix,number_first_prefix,flat_type,
+# flat_number_suffix,number_first_suffix,flat_number_prefix,level_number_prefix,street_suffix,number_last_prefix,level_type,OriginalAddress,Matched,
+# EZI_ADD,PROPERTY_PFI,geom,vhdplaceid,
+# DatePrefix,earliest,latest,DateSuffix,sec_earliest,sec_latest
+# "fields": []
+# bq --location=australia-southeast1 load --source_format=NEWLINE_DELIMITED_JSON YarraPlanning.YARRA_HERITAGE_REGISTER_C191_WITH_VHD gs://yarra_planning_applications_au/yarra_heritage_register_C191_GNAF.csv_MATCHED_DATE.csv
+# git a
+
+# BQ SCHEMA
+'Overlay:STRING,AddressName:STRING,Type:STRING,Number:STRING,Suburb:STRING,PropertyType:STRING,PropertyId:STRING,HeritageStatus:STRING,EstimatedDate:STRING,NormalAddress:STRING,number_last_suffix:STRING,state:STRING,postcode:STRING,number_first:STRING,street_type:STRING,number_last:STRING,locality_name:STRING,building_name:STRING,street_name:STRING,flat_number:STRING,level_number:STRING,level_number_suffix:STRING,number_first_prefix:STRING,flat_type:STRING,flat_number_suffix:STRING,number_first_suffix:STRING,flat_number_prefix:STRING,level_number_prefix:STRING,street_suffix:STRING,number_last_prefix:STRING,level_type:STRING,OriginalAddress:STRING,Matched:STRING,VHDMatched:STRING,EZI_ADD:STRING,PROPERTY_PFI:STRING,geom:STRING,vhdplaceid:STRING,DatePrefix:STRING,earliest:INTEGER,latest:INTEGER,DateSuffix:STRING,sec_earliest:INTEGER,sec_latest:INTEGER'

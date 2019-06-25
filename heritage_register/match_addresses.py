@@ -22,7 +22,7 @@ logger.addHandler(ch)
 # ------------------ CONFIGURATION -------------------------------
 
 # Set your input file
-register_input = "yarra_heritage_register_C191_GNAF.csv"  # output of register_2gnaf.py  # noqa: E501
+register_input = "yarra_heritage_register_C191_GNAF2.csv"  # output of register_2gnaf.py  # noqa: E501
 
 addresses_input = "addresses_in_yarra_LGA376.csv"  # from VicMap Spatial Data Mart, filtered to LGA  # noqa: E501
 
@@ -35,7 +35,7 @@ map_file = "address_map.csv"
 prematched_address = "prematched_addresses.csv"
 
 map_columns = cd.map_columns
-register_dtypes = cd.register_dtypes
+register_dtypes = cd.register_dtypes_gnaf
 vicmap_address_attribs = cd.vicmap_address_attribs
 
 vhd_dtypes = cd.vhd_dtypes
@@ -79,6 +79,7 @@ def open_file(filetype, check_column):
         if filetype == 'register':
             columns.pop('OriginalAddress')
             columns.pop('Matched')
+            columns.pop('VHDMatched')
             columns.pop('EZI_ADD')
             columns.pop('PROPERTY_PFI')
             columns.pop('geom')
@@ -95,13 +96,12 @@ def open_file(filetype, check_column):
             if filetype == 'register':
                 df['OriginalAddress'] = df['NormalAddress']
                 df['Matched'] = ""
+                df['VHDMatched'] = ""
                 df['EZI_ADD'] = ""
                 df['PROPERTY_PFI'] = ""
                 df['geom'] = ""
                 df['vhdplaceid'] = ""
                 logger.debug('added columns', df.columns)
-            else:
-                df['MatchCount'] = 0
             return df
         else:
             logger.error('Input {} is not not formatted.'.format(filetype))
@@ -176,6 +176,7 @@ matched_count = register_count - len(r[r['Matched'] == ''])
 if matched_count == 0:
     a['EZI_MATCH'] = a['EZI_ADD'].str.replace(r'^(.*) (\d{4})$', '\\1', regex=True)  # noqa: E501
 logger.info('So far matched {} of {}\n'.format(matched_count, register_count))
+
 
 # ------------------ MATCH ADDRESS   --------------------------------
 
@@ -347,7 +348,12 @@ def fullmatch(i, row, r, a):
                 row['Matched'] += 'SwappedFlatAndBuilding'
                 # logger.warn('Swapped FlatAndBuilding: {}'.format(address))
                 return True
-
+        # === SEE IF FLAT/BUILDING MATCHES A RANGE FLAT-BUILDING ===
+            mask = bldg_mask.loc[(matchingstreet['HSE_NUM2'] == number_first)]
+            if testmatch(mask, row):
+                row['Matched'] += 'ConvertFlatToRange'
+                # logger.warn('Converted  Flat/Building to Flat-Building: {}'.format(address))
+                return True
 
     # === GIVE UP NO MATCH FOUND === 
     logger.warn('NO MATCHING EZI_ADDRESS FOUND for: {}'.format(address))
@@ -358,14 +364,17 @@ def fullmatch(i, row, r, a):
 
 
 def vhdtestmatch(mask, row):
+    if row['VHDMatched'] == np.isnan:
+        row['VHDMatched'] = ''
+
     if not mask.empty:
         matchcount = len(mask['vhdplaceid'])
         if matchcount == 1:
-            row['Matched'] += 'VHDS'
+            #row['Matched'] += 'VHDS'
             logger.debug('Found one VHD match!')
         else:
-            row['Matched'] += 'VHDM'
-            logger.debug('\n!VHD Multiple ({}) matches found for: {}'.format(matchcount, row['NormalAddress']))  # noqa: E501
+            #row['Matched'] += 'VHDM'
+            logger.debug('\n!VHD Multiple ({}) matches found for: {}'.format(matchcount, row['OriginalAddress']))  # noqa: E501
         row['vhdplaceid'] = mask['vhdplaceid'].values  # collect all matching VHD places
         return True
     else:
@@ -380,8 +389,8 @@ def vhd_match(i, row, r, a):
     address = ' '.join(row['NormalAddress'].split())  # Remove multiple spaces.
     mask = v.loc[v['Location'] == address]
     if vhdtestmatch(mask, row):
+        row['VHDMatched'] += 'VHDNF'  # provisional for now
         return True
-
 
     # === TRY FULL MATCH EZI_ADD -> Location === #
     ezi_add_with_postcode = row['EZI_ADD']
@@ -393,12 +402,32 @@ def vhd_match(i, row, r, a):
             mask = v.loc[v['Location'] == ezi_add]
             if vhdtestmatch(mask, row):
                 logger.debug('Matched VHD to EZI_ADDRESS: {}'.format(ezi_add))
+                row['VHDMatched'] += 'VHDEF'  # provisional for now
                 return True
+            # === TRY PARTIAL MATCH EZI_ADD -> Location === #
+            mask = v.loc[v['Location'].str.contains(ezi_add)]
+            if vhdtestmatch(mask, row):
+                logger.debug('Matched VHD Partial to EZI_ADDRESS: {}'.format(ezi_add))
+                row['VHDMatched'] += 'VHDEP'  # provisional for now
+                return True
+    # === TRY FULL MATCH OriginalAddress -> Location === #
+    originalAddress = row['OriginalAddress']
+    if originalAddress:
+        mask = v.loc[v['Location'] == originalAddress]
+        if vhdtestmatch(mask, row):
+            logger.debug('Matched VHD to OriginalAddress: {}'.format(originalAddress))
+            row['VHDMatched'] += 'VHDOF'  # provisional for now
+            return True
+        mask = v.loc[v['Location'].str.contains(originalAddress)]
+        if vhdtestmatch(mask, row):
+            logger.debug('Matched VHD Partial to OriginalAddress: {}'.format(originalAddress))
+            row['VHDMatched'] += 'VHDOP'  # provisional for now
+            return True
 
     # === GIVE UP NO MATCH FOUND === 
     if row['HeritageStatus'].upper() != 'NOT CONTRIBUTORY':
         logger.warn('NO VHD ENTRY FOUND for {} place: {}'.format(row['HeritageStatus'], address))
-    row['Matched'] += 'VHDN'  # provisional for now
+    row['VHDMatched'] += 'VHDN'  # provisional for now
     return False
 
 # ------------------ MAIN LOOP  --------------------------------
@@ -406,18 +435,16 @@ def vhd_match(i, row, r, a):
 SAVE_ROWS = 200
 next_batch = 0
 start_pt = 0 # matched_count 
-
+if 'VHDMatched' not in r:
+    r['VHDMatched'] = ""
 for i in range(start_pt, register_count):
     row = r.iloc[i]  # not a copy
     # logger.debug('row', i, 'Matching Address: ', row['NormalAddress'])
     try:
         if (row['Matched'] == 'NoMatch') or (row['Matched'] == ''):
             fullmatch(i, row, r, a)
-            if (row['vhdplaceid'] == ''):
-                vhd_match(i, row, r, a)
-        elif (row['vhdplaceid'] == ''):
+        if row['vhdplaceid'] == '':
             vhd_match(i, row, r, a)
-
         if i % SAVE_ROWS == SAVE_ROWS-1:  # save after every Nth row
             logger.info('Saving rows {} to {} of {}'.format(next_batch, matched_count + i, register_count))  # noqa: E501
             save_results(r, register_output)
@@ -429,5 +456,7 @@ for i in range(start_pt, register_count):
         exit()
 
 logger.info('Finished matching addresses')
+register_output.pop('postcode')
+register_output.pop('state')
 save_results(r, register_output)
 exit(1)

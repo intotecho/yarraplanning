@@ -28,12 +28,14 @@ import pandas as pd
 import numpy as np
 import logging
 import re
+
 logger = logging.getLogger("root")
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 # create console handler
 ch = logging.StreamHandler()
 ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
+
 
 months = [
     "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -99,7 +101,7 @@ def remove_brackets(string):
 # e.g. "revew_of_heritage_overlay_areas_2007_rev_may_2017.csv"
 input_filename = "tabula_yarra_heritage_database_c191_Jan2019.csv"
 # Set your output file name here.
-output_filename = "yarra_heritage_register_C191_auto.csv"
+output_filename = "yarra_heritage_register_C191_CLEAN.csv"
 
 # Specify the columns we wish to read from the apps file. We want them all.
 register_columns_in = [
@@ -327,8 +329,8 @@ copycol(input_df, 'Number', 'PropertyType', condition)
 
 '''
 A little diagnostic to see which step caused a change to the matching row
-logger.debug('2 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
 '''
+logger.debug('2')
 
 # --  When the Suburb contains a HeritageStatus.
 input_df['keycolumn'] = input_df['Suburb'].copy()
@@ -380,7 +382,7 @@ copycol(input_df, 'Number', 'Suburb', condition)
 copycol(input_df, 'Type', 'Number', condition)
 copycol(input_df, 'AddressName', 'Type', condition)
 
-# logger.debug('2 - {}'.format(input_df.loc[input_df['Test'] == 'MATCH']))
+logger.debug('3')
 
 # --  When AddressName is a StreetType & both Suburb and Number are not blank
 input_df['keycolumn'] = input_df['AddressName'].copy()
@@ -527,11 +529,10 @@ condition = (
 input_df['Type'].where(condition, other="Street", inplace=True)
 
 input_df['OriginalAddress'] = \
-    ' '.join(
-    input_df['Number']
-    + ' ' + input_df['AddressName']
-    + ' ' + input_df['Type']
-    + ' ' + input_df['Suburb'])
+    input_df['Number'] \
+    + ' ' + input_df['AddressName'].str.upper() \
+    + ' ' + input_df['Type'].str.upper() \
+    + ' ' + input_df['Suburb'].str.upper()
 
 # Make a new normalised address field.
 # This format matches VicData addresses except for the postcode we don't have.
@@ -575,7 +576,12 @@ input_df['PropertyType'] = input_df['PropertyType'].str.replace(
 input_df['Number'] = input_df['Number'].apply(remove_brackets)
 
 # ---- save the results. ---- #
+
 output_df = input_df
+print('Writing output {}\nColumns: {}'.format(output_df.shape, output_df.columns))
+print('Head\n:{}'.format(output_df.head(20)))
+print('Tail\n:{}'.format(output_df.tail(20)))
+
 output_df.to_csv("{}".format(
     output_filename),
     mode='w',
