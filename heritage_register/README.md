@@ -219,3 +219,16 @@ ADD_CLASS,
 ACCESSTYPE,
 OUT_PROP,
 LABEL_ADD,
+
+# Load table into biq query
+- Need to specify the schema so that all types are string, except the dates.
+- Edit Table Schema on console as Text and drop in the contents of register_schema.json
+- Load output of estimate_dates.py to GCS. This is the input file for BQ.
+- If table does not exist, it can be created with 
+- `bq --dataset_id=YarraPlanning mk  --schema=./register_schema.json HERITAGE_REGISTER_C191_WITHVHD`
+- This table is then used to join YARRA PROPERTIES.
+- BQ Console Job options
+- Allow upto 4 errors, 
+- Skip header row
+- Allow new line in quotes
+

@@ -17,7 +17,7 @@ logger = logging.getLogger("root")
 logger.setLevel(logging.INFO)
 # create console handler
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+#ch.setLevel(logging.DEBUG)
 logger.addHandler(ch)
 # ------------------ CONFIGURATION -------------------------------
 
@@ -26,7 +26,8 @@ register_input = "yarra_heritage_register_C191_GNAF2.csv"  # output of register_
 
 addresses_input = "addresses_in_yarra_LGA376.csv"  # from VicMap Spatial Data Mart, filtered to LGA  # noqa: E501
 
-vhd_input = "../scrape_vhd/yarra_vhd-20190517.csv"  # from VicMap Spatial Data Mart, filtered to LGA  # noqa: E501
+#vhd_input = "../scrape_vhd/yarra_vhd-20190517.csv"  # from VicMap Spatial Data Mart, filtered to LGA  # noqa: E501
+vhd_input = "VHD_YARRA_GNAF.csv"  # from VicMap Spatial Data Mart, filtered to LGA  # noqa: E501
 
 # Set your output file name here.
 register_output = "{}_MATCHED.csv".format(register_input)
@@ -38,7 +39,9 @@ map_columns = cd.map_columns
 register_dtypes = cd.register_dtypes_gnaf
 vicmap_address_attribs = cd.vicmap_address_attribs
 
-vhd_dtypes = cd.vhd_dtypes
+vhd_dtypes = dict()
+vhd_dtypes.update(cd.vhd_dtypes) # columns output of scrape_vhd.py
+vhd_dtypes.update(cd.gnaf_output_dtypes) #columns output of vhd_2gnaf.py
 
 # ---- save the results. ---- #
 def save_results(df, filename):
@@ -120,7 +123,7 @@ def open_map():
         )
         # Add checkpoint columns to new frames and init new columns
         if df is None:
-            logger.warn("Address Map File not read: {}".format(map_file))
+            logger.warning("Address Map File not read: {}".format(map_file))
             logger.debug(df)
         return df
     except Exception as e:
@@ -137,7 +140,7 @@ def open_vhd():
         )
         # Add checkpoint columns to new frames and init new columns
         if df is None:
-            logger.warn("VHD addresses read error: {}".format(vhd_input))
+            logger.warning("VHD addresses read error: {}".format(vhd_input))
             logger.debug(df)
         return df
     except Exception as e:
@@ -146,13 +149,14 @@ def open_vhd():
 
 
 # ------------------ DATA LOADING --------------------------------
+start_time = time.time()
 
 # Read the addresss_map data to a Pandas Dataframe
 m = open_map()
 if m is None:
     logger.info("Address Map File not read: {}".format(map_file))
 else:
-     logger.warn('Loaded Map File with {} entries. {}'.format(m.size, m.columns))
+     logger.warning('Loaded Map File with {} entries. {}'.format(m.size, m.columns))
 
 # Read the input register data to a Pandas Dataframe
 r = open_file('register', 'Overlay')
@@ -168,6 +172,13 @@ if v is None:
 else:
      logger.info('Loaded VHD  with {} entries. {}'.format(v.size, v.columns))
 
+# ---- FILTER ROWS ----------------
+# Filter out rows that were not read or cleaned well and cause problems.
+# r = r.loc[r['Overlay'] == 'HO452']  # Address in address_map?
+r = r.dropna(subset=['AddressName', 'Suburb'])  
+# pd.set_option('display.max_columns', 20)
+# print (r)
+# exit()
 
 # ------------------ INITIALIZE --------------------------------
 
@@ -215,9 +226,9 @@ def to_int(string, name):
 
 def fullmatch(i, row, r, a):
     address = ' '.join(row['NormalAddress'].split())  # Remove multiple spaces.
-    road_type = row['Type'].upper()
-    road_name = row['AddressName'].upper()
-    locality = row['Suburb'].upper()
+    road_type = str(row['Type']).upper()
+    road_name = str(row['AddressName']).upper()
+    locality = str(row['Suburb']).upper()
     if 'ESPLANADE' in address:
         road_type = None
         road_name = 'THE ESPLANADE'
@@ -237,7 +248,7 @@ def fullmatch(i, row, r, a):
             mapped_address = mapmask['RegularAddress'].values[0]  # Swap it
             address = ' '.join(mapped_address.split())  # Remove spaces.
             row['Matched'] = 'Mapped'
-            logger.info('MAPPING to {}\n'.format(address))
+            logger.info('MAPPING to {}'.format(address))
             if address == 'NotExist':
                 row['Matched'] = address  # This address has been checked and is non-existent
                 return False
@@ -253,7 +264,7 @@ def fullmatch(i, row, r, a):
     #    logger.info(matchingstreet)
 
     if matchingstreet.empty:
-        #logger.warn('No matching street found! {}. Trying suburb swaps'.format(address))
+        #logger.warning('No matching street found! {}. Trying suburb swaps'.format(address))
         #print("\n\nNotAnAddress {}".format(address))
         #print("\n\nRowMatched {}".format(row['Matched']))
         row['Matched'] += 'NotAnAddress'
@@ -346,17 +357,17 @@ def fullmatch(i, row, r, a):
             mask = bldg_mask.loc[(matchingstreet['BUNIT_ID1'] == number_first)]
             if testmatch(mask, row):
                 row['Matched'] += 'SwappedFlatAndBuilding'
-                # logger.warn('Swapped FlatAndBuilding: {}'.format(address))
+                # logger.warning('Swapped FlatAndBuilding: {}'.format(address))
                 return True
         # === SEE IF FLAT/BUILDING MATCHES A RANGE FLAT-BUILDING ===
             mask = bldg_mask.loc[(matchingstreet['HSE_NUM2'] == number_first)]
             if testmatch(mask, row):
                 row['Matched'] += 'ConvertFlatToRange'
-                # logger.warn('Converted  Flat/Building to Flat-Building: {}'.format(address))
+                # logger.warning('Converted  Flat/Building to Flat-Building: {}'.format(address))
                 return True
 
     # === GIVE UP NO MATCH FOUND === 
-    logger.warn('NO MATCHING EZI_ADDRESS FOUND for: {}'.format(address))
+    logger.info('NO EZI_ADD for: {}'.format(address))
     row['Matched'] += 'NoMatch'  # provisional for now
     return
 
@@ -405,7 +416,7 @@ def vhd_match(i, row, r, a):
                 row['VHDMatched'] += 'VHDEF'  # provisional for now
                 return True
             # === TRY PARTIAL MATCH EZI_ADD -> Location === #
-            mask = v.loc[v['Location'].str.contains(ezi_add)]
+            mask = v.loc[v['Location'].str.contains(ezi_add, regex=True)]
             if vhdtestmatch(mask, row):
                 logger.debug('Matched VHD Partial to EZI_ADDRESS: {}'.format(ezi_add))
                 row['VHDMatched'] += 'VHDEP'  # provisional for now
@@ -418,15 +429,44 @@ def vhd_match(i, row, r, a):
             logger.debug('Matched VHD to OriginalAddress: {}'.format(originalAddress))
             row['VHDMatched'] += 'VHDOF'  # provisional for now
             return True
-        mask = v.loc[v['Location'].str.contains(originalAddress)]
+        mask = v.loc[v['Location'].str.contains(originalAddress, regex=True)]
         if vhdtestmatch(mask, row):
             logger.debug('Matched VHD Partial to OriginalAddress: {}'.format(originalAddress))
             row['VHDMatched'] += 'VHDOP'  # provisional for now
             return True
+    
+    # TRY TO MATCH ADDRESS TO FIRST NUMBER IN v.location
+    road_type = str(row['Type']).upper()
+    road_name = str(row['AddressName']).upper()
+    locality = str(row['Suburb']).upper()
+    vhd_matchingstreet =  v.loc[(v['street_name'] == road_name) & (v['street_type'] == road_type) & (v['locality_name'] == locality)] 
+    
+    number_first = to_int(row['number_first'], 'number_first')
+    #address = ' '.join(row['NormalAddress'].split())  # Remove multiple spaces.
+
+    if number_first != -1: 
+        mask = vhd_matchingstreet.loc[(vhd_matchingstreet['number_first'] == number_first)]
+        if testmatch(mask, row):
+            row['VHDMatched'] += 'VHDFirstInRange'
+            return True
+        # === TRY MATCH R.address to last address in range === #
+        # 13 GROSVENOR => 9-13 GROSVENOR 3066
+        mask = vhd_matchingstreet.loc[(vhd_matchingstreet['number_last'] == number_first)]
+        if testmatch(mask, row):
+            row['Matched'] += 'MatchedSecondInRange'
+            return True
+
+        # === TRY MATCH First Address in R to A  === #
+        # 13-16 GROSVENOR => 13 GROSVENOR 3066
+        number_last = to_int(row['number_last'], 'number_last')
+        mask = vhd_matchingstreet.loc[(vhd_matchingstreet['number_first'] == number_last)]
+        if testmatch(mask, row):
+            row['Matched'] += 'FirstInRangedMatched'
+            return True
 
     # === GIVE UP NO MATCH FOUND === 
-    if row['HeritageStatus'].upper() != 'NOT CONTRIBUTORY':
-        logger.warn('NO VHD ENTRY FOUND for {} place: {}'.format(row['HeritageStatus'], address))
+    if str(row['HeritageStatus']).upper() != 'NOT CONTRIBUTORY':
+        logger.warning('NO VHD ENTRY FOUND for {} place: {}, {}\n'.format(row['HeritageStatus'], address, row['PropertyType']))
     row['VHDMatched'] += 'VHDN'  # provisional for now
     return False
 
@@ -446,17 +486,16 @@ for i in range(start_pt, register_count):
         if row['vhdplaceid'] == '':
             vhd_match(i, row, r, a)
         if i % SAVE_ROWS == SAVE_ROWS-1:  # save after every Nth row
-            logger.info('Saving rows {} to {} of {}'.format(next_batch, matched_count + i, register_count))  # noqa: E501
+            logger.info('\nSAVING ROWS {} to {} of {}\n'.format(next_batch, matched_count + i, register_count))  # noqa: E501
             save_results(r, register_output)
             next_batch = i
     except Exception as e:
         logger.error('Exception processing row {}\nException:{}'.format(i, e))
         logger.info('Row {}:\n {}'.format(i, row))
-        time.sleep(5)
+        save_results(r, register_output)
         exit()
 
-logger.info('Finished matching addresses')
-register_output.pop('postcode')
-register_output.pop('state')
+logger.info('\nSAVING ROWS {} to {} of {}\n'.format(next_batch, matched_count + i, register_count))  # noqa: E501
 save_results(r, register_output)
+logger.info('Finished matching addresses after {} seconds'.format(time.time() - start_time))
 exit(1)
