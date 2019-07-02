@@ -11,36 +11,6 @@
     text-align: center;
 }
 
-.imagestyle {
-    max-height: 100%;
-    max-width: 100%;
-    object-fit: cover;
-}
-
-.Image-Container {
-   
-    display: inline-block;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-  }
-
-  .Image-Container img {
-    position: absolute;
-    display: inline-block;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    margin: auto;
-    height: 35vh;
-    max-width: 100%;
-    max-height: 100%;
-    left: 50%;
-    transform: translate(-50%);
-  }
-
 .heritage-status-contrib {
     background-color: #d5dfc9;
     text-align: center;
@@ -71,14 +41,104 @@
 /* Styles from demp https://stackblitz.com/edit/ngu-carousel-ng6 */
 
 .carousel-container {
-    height: 200px;
-    background-color: #ffffff;
+    /*height: 200px;*/
+    background-color: #fef7ebed;
 }
 
-.example-card {
+.mat-card {
+    background-color: #fef7ebed;
     bottom: 0;
+    /*transition: all 1s linear;
+    display: block;
+    width: 90vh;*/
     position: absolute;
+    align-self: center; 
+    margin-left: auto;
+    margin-right: auto;  
+    vertical-align: middle;
+    max-width: 91vw;
+    padding: 8px;
 }
+
+.mat-card-content {
+    /*height:35vh;*/
+}
+.mat-card-actions {
+    padding-top: 0px;
+    text-align:center;
+}
+
+.normal-heritage-site-card {
+    max-height:45vh;
+}
+
+.expanded-heritage-site-card {
+    top: 0;
+    height: 90vh;
+}
+
+mat-expansion-panel {
+    overflow-y: scroll !important;
+    background:transparent;
+}
+
+.expanded-mat-panel {
+    max-height: 73vh;
+}
+
+.normal-mat-panel {
+    max-height: 27vh;
+}
+
+mat-expansion-panel-content {
+    overflow-y: scroll !important;
+    /*max-height: 27vh;
+    height: 27vh;*/
+}
+
+
+/* align the icon with the heading text 
+.material-icons {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    padding-bottom: 3px;  
+}
+*/
+h3 a {
+    vertical-align: middle;   
+    text-decoration: none;
+}
+
+
+.mat-card-subtitle {
+    display: block;
+    margin-bottom: 3px;
+}
+
+.center-image {
+    display: block;
+    text-align: center;
+    /*max-width: 330px;
+    max-height:220px;*/
+    max-width: 91vw;
+    max-height:80vh;
+}
+
+.expanded-image{
+    max-width: 91vw;
+    max-height:80vh;
+}
+
+mat-card img{
+    overflow:hidden;
+    object-fit: cover; /*this makes de image in src fit to the size of specified below*/
+    max-width: 91vw; /* Here you can use wherever you want to specify the width and also the height of the <img>*/
+    max-height: 90vh;
+    margin-left:auto;
+    margin-right:auto;  
+  }
 
 .bannerStyle h1 {
     background-color: #ccc;
@@ -90,11 +150,11 @@
 .scrollArrows {
     position: absolute;
     margin: auto;
-    bottom: 0;
+    bottom: 0px;
     width: 25px;
     height: 25px;
     color: #380801;
-    background-color: #fffba361;
+    background-color: #fef7ebed;
     /* box-shadow: 1px 2px 10px -1px rgba(0, 0, 0, .3);*/
     border-radius: 999px;
 
@@ -112,7 +172,7 @@
     position: absolute;
     margin: auto;
     top: 0;
-    bottom: 0;
+    bottom: 50px;
     width: 50px;
     height: 50px;
     box-shadow: 1px 2px 10px -1px rgba(0, 0, 0, 0.3);
@@ -125,17 +185,13 @@
     /*display: flex;*/
     align-items: center;
     justify-content: center;
-    bottom: 0;
+    bottom: 0px;
 }
 
 .details-tile {
-    padding-left: 30px;
+    margin-left: 20px;
 }
 
-.item {
-    /*padding: 10px;
-    box-sizing: border-box;*/
-}
 
 .myPoint {
     list-style-type: none;
@@ -145,6 +201,7 @@
     white-space: nowrap;
     overflow: auto;
     box-sizing: border-box;
+    /*background-color: white;*/
   }
   .myPoint  li {
       display: inline-block;
@@ -159,18 +216,3 @@
         background: #6b6b6b;
         transform: scale(1.2);
       }
-
-.mat-card-subtitle {
-    display: block;
-    margin-bottom: 3px;
-}
-
-.mat-card {
-    background-color: #f5f4ec;
-}
-
-.sos-panel {
-    overflow-y: scroll;
-    max-height: 50vh;
-    height: 60%
-}

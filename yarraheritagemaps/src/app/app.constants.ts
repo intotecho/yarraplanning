@@ -36,13 +36,14 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   EZI_ADD,
   HeritageStatus,
   Overlay,
-  vhdOverlay,
   Name,
   vhdplaceid,
   Image,
   PropertyType,
   PropertyId,
   EstimatedDate,
+  earliest,
+  latest,
   NormalAddress,
   Matched,
   PROPERTY_PFI
@@ -93,31 +94,33 @@ export const PLANNING_APPS_QUERY = `
     SELECT * from applications
     ORDER BY dist_meters ASC`;
 
-export const OVERLAYS_QUERY = `
-  #standardsql
-  SELECT
-  ZONE_DESC,
-  ZONE_CODE,
-  Overlay,
-  HeritagePlace,
-  Included,
-  VHR,
-  TreeControls,
-  PaintControls,
-  InternalControls,
-  FenceControls,
-  AboriginalHeritagePlace,
-  Prohibited,
-  Status,
-  Expiry,
-  SAFE.ST_GeogFromGeoJson(geom) as bndry
-  FROM
-  \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays
-  where LGA = "YARRA"
-  AND SCHEMECODE = "HO"
-  ` // AND Overlay LIKE '%HO33%' for testing only
-  ;
-
+    export const OVERLAYS_QUERY = `
+    #standardsql
+    SELECT
+    ZONE_DESC,
+    ZONE_CODE,
+    Overlay,
+    HeritagePlace,
+    Included,
+    VHR,
+    TreeControls,
+    PaintControls,
+    InternalControls,
+    FenceControls,
+    AboriginalHeritagePlace,
+    Prohibited,
+    Status,
+    Expiry,
+    OverlayBoundary as bndry
+    FROM
+    \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays`;
+  /*
+    WHERE Overlay LIKE '%HO88%'
+    OR Overlay LIKE '%HO91%'
+    OR Overlay LIKE '%HO330%'
+    OR Overlay LIKE '%HO317%'
+    OR Overlay LIKE '%HO93%'
+    */
 
 export const HERITAGE_OVERLAY_STYLE = {
   strokeColor: '#F0A0A0',

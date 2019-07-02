@@ -165,9 +165,12 @@
       </div>
 
     <div class="cardcontainer">
-        <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo' title='SelectedSite' context='fixed'>
-          </app-heritage-site-info>
-        <!--    <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Selected' context='fixed'></app-overlay-info> -->      
+        <app-heritage-site-info 
+        [heritageSiteInfo]='highlightedHeritageSiteInfo' 
+        [overlayProperties] = "selectedOverlayProperties" 
+        title='Selected' 
+        context='fixed'>
+        </app-heritage-site-info>
     </div>  
     </div>
   </mat-sidenav-content>

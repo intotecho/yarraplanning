@@ -1,9 +1,10 @@
-
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, OnInit } from '@angular/core';
-import { NguCarouselConfig, NguCarousel, NguCarouselStore } from '@ngu/carousel';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, Input } from '@angular/core';
+import { NguCarouselConfig, NguCarousel } from '@ngu/carousel';
 import { SoSService } from '../../../../../src/app/services/sos.service';
 import { HeritageSiteInfo } from './heritage-site-info';
 import { Observable } from 'rxjs';
+import { OverlayProperties } from '../overlays-properties';
+const SOS_SLIDE = 2;
 
 @Component({
   selector: 'app-heritage-site-info',
@@ -11,84 +12,136 @@ import { Observable } from 'rxjs';
   styleUrls: ['./heritage-site-info.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeritageSiteInfoComponent implements OnInit {
-  @Input() heritageSiteInfo: HeritageSiteInfo;
+export class HeritageSiteInfoComponent {
   @Input() title: String;
   @Input() context: String;
 
+  @Input()
+  set heritageSiteInfo(heritageSiteInfo: HeritageSiteInfo) {
+    this._heritageSiteInfo = heritageSiteInfo;
+    this.carouselTileLoad();
+  }
+
+  @Input()
+  set overlayProperties(overlayProperties: OverlayProperties) {
+    this._overlayProperties = overlayProperties;
+    // this.carouselTileLoad();
+  }
+
+  _heritageSiteInfo: HeritageSiteInfo = null;
+  _overlayProperties: OverlayProperties = null;
   _sosDetails: String = 'SOS Placeholder';
   sosDetails$: Observable<String>;
   sosExpanded = false;
+  fullSize = false;
+  portrait =  false;
+  naturalWidth = 320;
+  naturalHeight = 220;
+  currentSlide = -1;
 
-  public carouselTileItems: Array<any> = [0, 1, 2, 3];
-  public carouselTiles = {
-    0: [],
-    1: [],
-    2: [],
-    3: []
-  };
-  public carouselTile: NguCarouselConfig = {
+  @ViewChild('myCarousel', {static: false}) myCarousel: NguCarousel<Number>;
+  carouselConfig: NguCarouselConfig = {
     grid: { xs: 1, sm: 1, md: 1, lg: 1, all: 0 },
-    slide: 3,
-    speed: 250,
+    load: 2,
+    touch: true,
     point: {
       visible: true
     },
-    load: 2,
-    velocity: 0,
-    touch: true
+    slide: 3,
+    speed: 250,
+    velocity: 0
   };
-
 
   constructor(
     private cdr: ChangeDetectorRef,
     private sosService: SoSService
   ) { }
 
-  ngOnInit() {
-      this.carouselTileLoad();
-  }
-
-  onCarouselMove(data: NguCarouselStore) {
-    console.log(data);
-    this.sosExpanded = (data.currentSlide === 2) ? true : false;
+  onCarouselMove() {
+    this.sosExpanded = (this.currentSlide === SOS_SLIDE) ? true : false;
   }
 
   public carouselTileLoad() {
+    if (this.myCarousel) {
+      this.currentSlide = this.myCarousel.currentSlide;
+      if (this.currentSlide  === SOS_SLIDE) {
+        this.getDetails();
+      }
+    }
+  }
+
+  moveLeft() {
+    const myCarousel = this.myCarousel;
+    if (myCarousel) {
+      const currentSlide = myCarousel.currentSlide;
+      if (currentSlide > 0) {
+        myCarousel.moveTo(myCarousel.currentSlide - 1);
+      }
+    }
+  }
+
+  moveRight() {
+    const myCarousel = this.myCarousel;
+    if (myCarousel) {
+      if (! myCarousel.isLast) {
+        const currentSlide = myCarousel.currentSlide;
+        myCarousel.moveTo(myCarousel.currentSlide + 1);
+      }
+    }
   }
 
   sosLink() {
-    return this.heritageSiteInfo.sosLink();
+    return this._heritageSiteInfo.sosLink();
   }
 
   getDetails() {
     const sosLink: string = this.sosLink();
     if (sosLink.length > 0) {
       this.sosDetails$ = this.sosService.getSoSContents(this.sosLink());
+      this.sosExpanded = true;
     }
   }
 
   vhrLink() {
-    return this.heritageSiteInfo.vhrLink();
+    return this._heritageSiteInfo.vhrLink();
   }
 
   vhdLink() {
-    return this.heritageSiteInfo.href;
+    return this._heritageSiteInfo.href;
   }
 
+  handleCardTitleClick() {
+    this.fullSize = !this.fullSize;
+  }
 
   heritageStatusClass() {
-    switch (this.heritageSiteInfo.HeritageStatus.toLowerCase()) {
-          case 'contributory':
-          return 'heritage-status-contrib';
-          case 'not contributory':
-          return 'heritage-status-noncontrib' ;
-          case 'individually significant':
-          return 'heritage-status-individually';
-          case 'victorian heritage register':
-          return 'heritage-status-vhr';
-          default:
-          return 'heritage-status-unknown';
+    return this._heritageSiteInfo.heritageStatusClass;
+  }
+
+  onImageLoad(evt) {
+    if (evt && evt.target) {
+      const width = evt.srcElement.width;
+      const height = evt.srcElement.height;
+      const x = evt.srcElement.x;
+      const y = evt.srcElement.y;
+      if ((x === 0 ) && (y === 0)) {
+        this.portrait = height > width ? true : false;
+        console.log('Loaded: ', width, height, 'portrait: ', this.portrait);
+        this.naturalWidth = width;
+        this.naturalHeight = height;
+        this.cdr.detectChanges();
+      }
     }
+  }
+
+  getImageStyle() {
+    const style = {
+      'max-width.px': this.naturalWidth,
+      'max-height.px': this.naturalHeight
+    };
+    const unusedstyle2 = `{'max-width.px': ${this.naturalWidth},
+                    'max-height.px':${this.naturalHeight}}`;
+    console.log(style);
+    return style;
   }
 }

@@ -53,7 +53,7 @@ export class OverlayProperties {
             this.Expiry = row['Expiry'];
         }
     }
-
+/*
     public setOverlayInfo(event: google.maps.Data.MouseEvent) {
         if (event && event.feature) {
           this.Overlay = event.feature.getProperty('Overlay');
@@ -73,14 +73,21 @@ export class OverlayProperties {
           return null;
         }
       }
+*/
 
     public heritagePlaceName() {
         const name = this.HeritagePlace.split('Incorporated plan')[0];
-        return name.trim() || '';
+        return name ? name.trim() : '';
     }
 
     public incorporatedPlan() {
         const plan = this.HeritagePlace.split(': Incorporated Plan')[1];
-        return plan.trim() || '';
+        return plan ? plan.trim() : '';
+    }
+
+    public vhrLink() {
+        return 'https://vhd.heritagecouncil.vic.gov.au/search?kw=' + this.VHR;
     }
 }
+
+

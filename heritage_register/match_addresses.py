@@ -200,13 +200,13 @@ def testmatch(mask, row):
         if matchcount == 1:
             row['Matched'] += 'Full'
             row['EZI_ADD'] = mask['EZI_ADD'].values[0]  # collect the postcode.
-            row['PROPERTY_PFI'] = mask['PR_PFI'].values
+            row['PROPERTY_PFI'] = mask['PR_PFI'].tolist()
             row['geom'] = mask['geom'].values[0]
             logger.debug('Found one match!')
         else:
             row['Matched'] += 'Multiple'
             row['EZI_ADD'] = mask['EZI_ADD'].values[0]  # collect the postcode.
-            row['PROPERTY_PFI'] = mask['PR_PFI'].values
+            row['PROPERTY_PFI'] = mask['PR_PFI'].tolist()
             row['geom'] = mask['geom'].values
             logger.debug('\n!Multiple ({}) matches found for: {}'.format(matchcount, row['NormalAddress']))  # noqa: E501
         return True
@@ -382,11 +382,13 @@ def vhdtestmatch(mask, row):
         matchcount = len(mask['vhdplaceid'])
         if matchcount == 1:
             #row['Matched'] += 'VHDS'
-            logger.debug('Found one VHD match!')
+            logger.debug ('\nFound one VHD match {}: {}'.format(row['OriginalAddress'], mask['vhdplaceid']))  # noqa: E501
         else:
-            #row['Matched'] += 'VHDM'
-            logger.debug('\n!VHD Multiple ({}) matches found for: {}'.format(matchcount, row['OriginalAddress']))  # noqa: E501
-        row['vhdplaceid'] = mask['vhdplaceid'].values  # collect all matching VHD places
+            logger.info('\n!VHD Multiple ({}) matches found for: {}'.format(matchcount, row['OriginalAddress']))  # noqa: E501
+        vhdplaces = mask['vhdplaceid'].drop_duplicates().tolist()
+        logger.info('Places:{}'.format(vhdplaces))  # noqa: E501
+        row['vhdplaceid'] = vhdplaces  # collect all matching VHD places
+        #exit(1)
         return True
     else:
         return False

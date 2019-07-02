@@ -33,6 +33,8 @@ export class HeritageSiteInfo {
     SosHash: String = '';
     EstimatedDate: String = '';
     VHR: String = '';
+    heritageStatusClass: String = '';
+    earliest: Number = 0;
     // Boundary: String = '';
 
     constructor(event) {
@@ -49,31 +51,27 @@ export class HeritageSiteInfo {
             this.Image = event.feature.getProperty('Image');
             this.href = event.feature.getProperty('href');
             this.vhdplaceid = event.feature.getProperty('vhdplaceid');
-            return this;
-        }
-    }
+            this.earliest = event.feature.getProperty('earliest');
 
-    /*
-    setHeritageSiteInfo(event: google.maps.Data.MouseEvent) {
-        if (event && event.feature) {
-          this.EZI_ADD = event.feature.getProperty('EZI_ADD');
-          this.Overlay = event.feature.getProperty('Overlay');
-          this.PropertyType = event.feature.getProperty('PropertyType');
-          this.NormalAddress = event.feature.getProperty('NormalAddress');
-          this.VHR = event.feature.getProperty('VHR');
-          this.Authority = event.feature.getProperty('Authority');
-          this.HeritageStatus = event.feature.getProperty('HeritageStatus');
-          this.EstimatedDate = event.feature.getProperty('EstimatedDate');
-          this.Image = event.feature.getProperty('Image');
-          this.href = event.feature.getProperty('href');
-          this.vhdplaceid = event.feature.getProperty('vhdplaceid');
-          this.SosHash = event.feature.getProperty('SosHash');
+            switch (this.HeritageStatus.toLowerCase()) {
+              case 'contributory':
+                this.heritageStatusClass = 'heritage-status-contrib';
+                break;
+              case 'not contributory':
+              this.heritageStatusClass = 'heritage-status-noncontrib' ;
+              break;
+              case 'individually significant':
+              this.heritageStatusClass = 'heritage-status-individually';
+              break;
+              case 'victorian heritage register':
+              this.heritageStatusClass = 'heritage-status-vhr';
+              break;
+              default:
+              this.heritageStatusClass = 'heritage-status-unknown';
+            }
           return this;
-        } else {
-          return null;
-        }
-       }
-     */
+      }
+    }
 
     vhrLink() {
         return `${VHD_KEYWORD_SEARCH}${this.VHR}`;

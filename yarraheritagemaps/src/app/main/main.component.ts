@@ -167,12 +167,16 @@ export class MainComponent implements OnInit, OnDestroy {
 
     this.dataFormGroup.controls.overlayId.valueChanges.debounceTime(200).subscribe(() => {
       const overlayId = this.dataFormGroup.controls.overlayId.value;
-      this.selectedOverlayProperties =  this.matchingOverlays.find( o => o.Overlay = overlayId);
-      this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
-      this.query(); // kick off inital query to load the overlays
-      this.opened = false;
-      if (this.selectedOverlayProperties) {
-        this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+      const row = this.matchingOverlays.find( o => o.Overlay = overlayId);
+      if (row) {
+        if (this.selectedOverlayProperties) {
+          this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+        }
+        this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
+        this.query(); // kick off inital query to load the overlays
+        this.opened = false;
+        } else {
+        console.log('Overlay not found in form data!');
       }
     });
 
@@ -251,7 +255,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.overlayProperties = event;
     this.selectedOverlayProperties = event;
     localStorage.setItem('selectedOverlay',  JSON.stringify(this.overlayProperties));
-    this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
+    this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
     this.opened = false;
   }
 
@@ -306,6 +310,7 @@ export class MainComponent implements OnInit, OnDestroy {
             queriedHeritageOverlays.push(ovl);
             if (lastSelectedOverlay.Overlay === ovl.Overlay) {
               this.overlayProperties = lastSelectedOverlay;
+              this.handleMapOverlaySelected(this.overlayProperties);
               this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
             }
       }

@@ -237,6 +237,39 @@ export class MapComponent implements AfterViewInit {
     });
   }
 
+  /* private utility is only called by this.hideOnlyMatchingFeaturesFromLayer() */
+  private _overrideStyleOnFeature(feature, layer, key, value,  overrideStyle, defaultStyle) {
+    if (feature.getProperty(key) === value) {
+      if (this.map) {
+        layer.overrideStyle(feature, overrideStyle);
+      }
+    } else {
+      if (this.map) {
+        layer.overrideStyle(feature, defaultStyle);
+      }
+    }
+  }
+
+  /* Apply an overrideStyle style to features in a data layer that  match key==value
+   * All non-matching features will have the default style applied.
+   * Otherwise all features except the matching feature is hidden!
+   * Examples:
+   *    overrideStyle = { clickable: false,strokeWeight: 3}
+   *    defaultStyle = { clickable: true,strokeWeight: 1}
+   */
+
+  overrideStyleOnMatchingFeaturesInLayer(layer, key, value, overrideStyle, defaultStyle) {
+    layer.forEach((feature) => {
+      if (Array.isArray(feature)) {
+        feature.forEach((f) => {
+          this._overrideStyleOnFeature(f, layer, key, value, overrideStyle, defaultStyle);
+        });
+      } else {
+        this._overrideStyleOnFeature(feature, layer, key, value, overrideStyle, defaultStyle);
+      }
+    });
+  }
+
   removeMismatchingFeaturesFromLayer(layer, key, value) {
     layer.forEach((feature) => {
       if (Array.isArray(feature)) {
@@ -328,7 +361,7 @@ export class MapComponent implements AfterViewInit {
           this.overlayChanged.emit(this.highlightedOverlay );
           this.seletedOverlay = this.highlightedOverlay;
           this.overlaySelected.emit(this.seletedOverlay);
-          //this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
+          this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
         }
       });
 
@@ -340,11 +373,11 @@ export class MapComponent implements AfterViewInit {
       this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
       this._planningLayer.setMap(null);
       const bounds = new google.maps.LatLngBounds();
+
       if (this.seletedOverlay.Overlay === '') {
         this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
       }
 
-      // this.removeMatchingFeaturesFromLayer(this._overlaysLayer, 'ZONE_CODE', this.seletedOverlay.Overlay);
       const map = this.map;
 
       this._planningLayer.addListener('addfeature', function(e) {
@@ -395,7 +428,13 @@ export class MapComponent implements AfterViewInit {
         this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
       }
 
-      this.removeMatchingFeaturesFromLayer(this._overlaysLayer, 'ZONE_CODE', this.seletedOverlay.Overlay);
+      this.overrideStyleOnMatchingFeaturesInLayer(
+              this._overlaysLayer,
+              'ZONE_CODE',
+              this.seletedOverlay.Overlay,
+              { clickable: false, strokeWeight: 3},
+              { clickable: true, strokeWeight: 1}
+      );
       const map = this.map;
 
       this._propertiesLayer.addListener('addfeature', function(e) {
@@ -531,12 +570,12 @@ export class MapComponent implements AfterViewInit {
         this.highlightedOverlay = new OverlayProperties(event);
         this.overlayInfoComponentRef.instance.overlayProperties = this.highlightedOverlay;
         this.overlayInfoComponentRef.instance.title = 'Clicked Overlay';
+
         this.appRef.attachView(this.overlayInfoComponentRef.hostView);
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
-        //this.infoWindow.setContent(div);
 
       } else if (properties.hasOwnProperty('vhdplaceid')) { // Create HeritageSiteInfoComponent
-
+        /*
         if (this.heritageSiteInfoComponentRef) {
           this.heritageSiteInfoComponentRef.destroy();
         }
@@ -548,9 +587,10 @@ export class MapComponent implements AfterViewInit {
         this.selectedHeritageSiteInfo = this.highlightedHeritageSiteInfo;
 
         this.heritageSiteInfoComponentRef.instance.title = 'Clicked ';
+        this.heritageSiteInfoComponentRef.instance.overlayProperties = this.seletedOverlay;
         this.appRef.attachView(this.heritageSiteInfoComponentRef.hostView);
         div.appendChild(this.heritageSiteInfoComponentRef.location.nativeElement);
-        //this.infoWindow.setContent(div);
+         */
       } else if (properties.hasOwnProperty('Application_Number')) {
 
         const status = properties['HeritageStatus'];
