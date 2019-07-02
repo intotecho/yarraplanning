@@ -3,7 +3,7 @@
         {{opened? "chevron_left" : "chevron_right" }}
       </i></button></p>
   <span class="flex-spacer"></span>
-  <span *ngIf="isSignedIn && overlayProperties; else showtitle">
+  <span *ngIf="isSignedIn && overlayProperties!=null; else showtitle">
     <span><i>{{overlayProperties.Overlay}} </i> </span>
   </span>
   <ng-template #showtitle>Yarra Heritage Maps</ng-template>
@@ -45,7 +45,7 @@
           </mat-select>
         </mat-form-field>
       </form>
-      <app-overlay-info [overlayProperties]='overlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
+      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>

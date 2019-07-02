@@ -22,19 +22,24 @@ export class HeritageSiteInfo {
     EZI_ADD: String = '';
     HeritageStatus: String = '';
     Overlay: String ;
-    vhdOverlay: String ;
-    vhdplaceid: String = '';
     Name: String = '';
+    vhdplaceid: String = '';
+    vhdPlacesId: String = '';
     Image: String = '';
     Authority: String = '';
-    href: String = '';
     PropertyType: String = '';
-    NormalAddress: String = '';
-    SosHash: String = '';
+    PropertyId: String = '';
     EstimatedDate: String = '';
+    NormalAddress: String = '';
+    OriginalAddress: String = '';
+    vhdLocation: String = '';
+    Matched: String = '';
+    PROPERTY_PFI: String = '';
     VHR: String = '';
-    heritageStatusClass: String = '';
+    href: String = '';
+    SosHash: String = '';
     earliest: Number = 0;
+    heritageStatusClass: String = '';
     // Boundary: String = '';
 
     constructor(event) {
@@ -42,15 +47,22 @@ export class HeritageSiteInfo {
             this.EZI_ADD = event.feature.getProperty('EZI_ADD');
             this.HeritageStatus = event.feature.getProperty('HeritageStatus');
             this.Overlay = event.feature.getProperty('Overlay');
-            this.PropertyType = event.feature.getProperty('PropertyType');
-            this.NormalAddress = event.feature.getProperty('NormalAddress');
-            this.Authority = event.feature.getProperty('Authority');
-            this.SosHash = event.feature.getProperty('SosHash');
-            this.VHR = event.feature.getProperty('VHR');
-            this.EstimatedDate = event.feature.getProperty('EstimatedDate');
-            this.Image = event.feature.getProperty('Image');
-            this.href = event.feature.getProperty('href');
+            this.Name = event.feature.getProperty('Name'); // vhd name
             this.vhdplaceid = event.feature.getProperty('vhdplaceid');
+            this.vhdPlacesId = event.feature.getProperty('vhdPlacesId');
+            this.Image = event.feature.getProperty('Image');
+            this.Authority = event.feature.getProperty('Authority');
+            this.PropertyType = event.feature.getProperty('PropertyType');
+            this.PropertyId = event.feature.getProperty('PropertyId');
+            this.EstimatedDate = event.feature.getProperty('EstimatedDate');
+            this.NormalAddress = event.feature.getProperty('NormalAddress');
+            this.OriginalAddress = event.feature.getProperty('OriginalAddress');
+            this.vhdLocation = event.feature.getProperty('vhdLocation');
+            this.Matched = event.feature.getProperty('Matched');
+            this.PROPERTY_PFI = event.feature.getProperty('PROPERTY_PFI');
+            this.VHR = event.feature.getProperty('VHR');
+            this.href = event.feature.getProperty('href');
+            this.SosHash = event.feature.getProperty('SosHash');
             this.earliest = event.feature.getProperty('earliest');
 
             switch (this.HeritageStatus.toLowerCase()) {
@@ -74,6 +86,8 @@ export class HeritageSiteInfo {
     }
 
     vhrLink() {
+        //const reformat = this.VHR.replace(/'/g, '"');
+        //const vhr = JSON.parse(reformat);
         return `${VHD_KEYWORD_SEARCH}${this.VHR}`;
       }
 

@@ -45,6 +45,7 @@ import {
   HERITAGE_SITE_STROKE_COLOR,
   PLANNING_APPS_QUERY,
   PLANNING_APP_STROKE_COLOR,
+  AppSettings,
 } from '../app.constants';
 
 import {
@@ -76,7 +77,7 @@ export class MainComponent implements OnInit, OnDestroy {
   isSignedIn: boolean;
   user: Object;
   matchingProjects: Array<Project> = [];
-  
+
   // private _layersInfo: Array<LayerDescription>;
   selectedLayersInfo: Array<LayerDescription> = [];
 
@@ -105,7 +106,6 @@ export class MainComponent implements OnInit, OnDestroy {
   data: MatTableDataSource<Object>;
   stats: Map<String, ColumnStat> = new Map();
   mapsLib = [];
-
   // UI state
   stepIndex: Number = 0;
 
@@ -122,7 +122,7 @@ export class MainComponent implements OnInit, OnDestroy {
   };
   readonly cmDebouncer: Subject<string> = new Subject();
   cmDebouncerSub: Subscription;
-
+  appSettings: AppSettings;
   constructor(
     private _formBuilder: FormBuilder,
     private _renderer: Renderer2,
@@ -138,7 +138,9 @@ export class MainComponent implements OnInit, OnDestroy {
     // Set up BigQuery service.
     this.dataService.onSigninChange(() => this.onSigninChange());
     this.dataService.init()
-      .catch((e) => this.showMessage(parseErrorMessage(e)));
+      .catch((e) => this.showMessage(
+        parseErrorMessage(e)
+        ));
   }
 
   ngOnInit() {
@@ -170,7 +172,7 @@ export class MainComponent implements OnInit, OnDestroy {
       const row = this.matchingOverlays.find( o => o.Overlay = overlayId);
       if (row) {
         if (this.selectedOverlayProperties) {
-          this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+          this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 3000);
         }
         this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
         this.query(); // kick off inital query to load the overlays
@@ -222,8 +224,12 @@ export class MainComponent implements OnInit, OnDestroy {
           this.matchingProjects = projects;
           this._changeDetectorRef.detectChanges();
         });
-      this.query(); // kick off inital query to load the overlays
 
+      const appSettingsString = localStorage.getItem('appSettings');
+      if (appSettingsString) {
+        this.appSettings   = JSON.parse(appSettingsString);
+      }
+      this.query(); // kick off inital query to load the overlays
     });
   }
 
@@ -254,7 +260,6 @@ export class MainComponent implements OnInit, OnDestroy {
   handleMapOverlaySelected(event) {
     this.overlayProperties = event;
     this.selectedOverlayProperties = event;
-    localStorage.setItem('selectedOverlay',  JSON.stringify(this.overlayProperties));
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
     this.opened = false;
   }
@@ -297,26 +302,7 @@ export class MainComponent implements OnInit, OnDestroy {
       });
   }
 
-  updateOverlayNames() {
-      const queriedHeritageOverlays: Array<OverlayProperties> = [];
-      const rows = this.rows;
-
-      // Get selection from previous session to initialise.
-      const lastSelectedOverlay: OverlayProperties = JSON.parse(localStorage.getItem('selectedOverlay'));
-
-      for (let i = 0; i < rows.length; i++) {
-            const ovl: OverlayProperties = new OverlayProperties(null);
-            ovl.setOverlayFromRows(rows[i]);
-            queriedHeritageOverlays.push(ovl);
-            if (lastSelectedOverlay.Overlay === ovl.Overlay) {
-              this.overlayProperties = lastSelectedOverlay;
-              this.handleMapOverlaySelected(this.overlayProperties);
-              this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
-            }
-      }
-      this.matchingOverlays = queriedHeritageOverlays;
-  }
-
+ 
 
   query(sqlparam: string = null) {
     if (this.pending) { return; }
@@ -332,7 +318,7 @@ export class MainComponent implements OnInit, OnDestroy {
         this.stats = stats;
         this.data = new MatTableDataSource(rows.slice(0, MAX_RESULTS_PREVIEW));
         if (this.columnNames.find(h => h === 'ZONE_CODE')) {
-            this.updateOverlayNames();
+            this.handleQueryOverlaysResponse();
             // setup custom styling
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.strokeColor, OVERLAY_STROKE_COLOR.domain.length);
@@ -371,6 +357,33 @@ export class MainComponent implements OnInit, OnDestroy {
       });
   }
 
+   /* convert row to overlays in form drop down.
+   * Optionally if the selectedOverlay is included in the data, request details of it.
+   */
+  handleQueryOverlaysResponse() {
+    const queriedHeritageOverlays: Array<OverlayProperties> = [];
+    const rows = this.rows;
+    rows.forEach(row => {
+      const ovl: OverlayProperties = new OverlayProperties(null);
+      ovl.setOverlayFromRows(row);
+      queriedHeritageOverlays.push(ovl);
+    });
+    this.matchingOverlays = queriedHeritageOverlays;
+
+    // Get selection from previous session to initialise.
+    const item = localStorage.getItem('selectedOverlay');
+    if (item !== 'undefined') {
+      const lastSelectedOverlay: OverlayProperties = JSON.parse(item);
+      const selOverlay = lastSelectedOverlay.Overlay;
+      const foundLastSelectedOverlay: OverlayProperties = this.matchingOverlays.find( o => o.Overlay === selOverlay);
+      if (foundLastSelectedOverlay) {
+        // Select this overlay
+        this.handleMapOverlaySelected(foundLastSelectedOverlay);
+      }
+    }
+
+}
+
   updateStyles(layer: String) {
     if (this.stylesFormGroup.invalid) {
       console.log('invalid style');
@@ -380,6 +393,8 @@ export class MainComponent implements OnInit, OnDestroy {
     styles.styleRules = this.stylesFormGroup.getRawValue();
     styles.layer = layer;
     this.styles = styles;
+    // defer setting it
+    localStorage.setItem('selectedOverlay',  JSON.stringify(this.selectedOverlayProperties));
   }
 
   getRowWidth() {

@@ -304,7 +304,7 @@ export class MapComponent implements AfterViewInit {
   }
 
   addResultsToLayer(layer, rows, zIndex) {
-    console.error(`Adding ${rows.length} Features`);
+    console.log(`Adding ${rows.length} Features`);
     rows.forEach((row) => {
       try {
         const geometry = parseWKT(row[this._geoColumn]);
@@ -420,7 +420,7 @@ export class MapComponent implements AfterViewInit {
           this.zone.run(() => this.onMarkerClick(this._planningLayer, event));
         }
       });
-    } else {  // properties layer
+    } else {  // Heritage Properties layer
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
       const bounds = new google.maps.LatLngBounds();
@@ -574,7 +574,8 @@ export class MapComponent implements AfterViewInit {
         this.appRef.attachView(this.overlayInfoComponentRef.hostView);
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
 
-      } else if (properties.hasOwnProperty('vhdplaceid')) { // Create HeritageSiteInfoComponent
+      } else if (properties.hasOwnProperty('vhdplaceid')) { 
+        // Create HeritageSiteInfoComponent
         /*
         if (this.heritageSiteInfoComponentRef) {
           this.heritageSiteInfoComponentRef.destroy();

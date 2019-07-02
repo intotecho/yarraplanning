@@ -31,8 +31,13 @@
 }
 
 .Controls {
-    font-size: 0.8em;
-    color: rgb(119, 119, 236);
+    font-size: 1.0em;
+    color: rgb(67, 67, 250);
+    margin-block-end: 4px;
+    margin-block-start: 4px;
+    margin-bottom: 4px;
+    margin-inline-end: 0px;
+    margin-inline-start: 0px;
 }
 
 .Aboriginal {

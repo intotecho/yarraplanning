@@ -38,25 +38,28 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   Overlay,
   Name,
   vhdplaceid,
+  vhdPlacesId,
   Image,
+  Authority,
   PropertyType,
   PropertyId,
   EstimatedDate,
-  earliest,
-  latest,
   NormalAddress,
+  OriginalAddress,
+  vhdLocation,
   Matched,
-  PROPERTY_PFI
+  PROPERTY_PFI,
   VHR,
   href,
   SosHash,
-  SAFE.ST_GeogFromGeoJson(boundary) as bndry
+  earliest,
+  bndry
   FROM
   \`yarrascrape.YarraPlanning.YARRAHERITAGEMAPS_PROPERTIES\` as register
   WHERE
   register.Overlay = @overlay
 `;
-
+//  SAFE.ST_GeogFromGeoJson(boundary) as bndry
 
 export const PLANNING_APPS_QUERY = `
     #standardsql
@@ -209,3 +212,7 @@ export const GCS_BUCKET_SOS: String = 'https://storage.googleapis.com/historic_m
 
 export const VHD_KEYWORD_SEARCH: String = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=';
 
+export interface AppSettings {
+  loadSitesForPreviousOverlay: Boolean;
+  maxSitesToLoad: Number;
+}

@@ -5,11 +5,8 @@
     <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <ngu-carousel #myCarousel 
-                [inputs]="carouselConfig" 
-                (onMove)="onCarouselMove($event)"
-                (carouselLoad)="carouselTileLoad()" 
-                [dataSource]="[first, second, third, fourth]">
+    <ngu-carousel #myCarousel [inputs]="carouselConfig" (onMove)="onCarouselMove($event)"
+      (carouselLoad)="carouselTileLoad()" [dataSource]="[first, second, third, fourth]">
       <div *nguCarouselDef="let item;" class="item">
         <div class="tile">
           <ng-container *ngTemplateOutlet="item"></ng-container>
@@ -17,16 +14,16 @@
       </div>
       <ng-template #first>
         <div *ngIf="fullSize; else normalimage">
-            <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
-                <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
-                  alt="Large Photo of Heritage Site from VHD Database">
-              </div>      
+          <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
+            <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
+              alt="Large Photo of Heritage Site from VHD Database">
+          </div>
         </div>
         <ng-template #normalimage>
-            <div *ngIf="_heritageSiteInfo.Image" class="center-image">
-                <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()"
-                  alt="Photo of Heritage Site from VHD Database">
-              </div>
+          <div *ngIf="_heritageSiteInfo.Image" class="center-image">
+            <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()"
+              alt="Photo of Heritage Site from VHD Database">
+          </div>
         </ng-template>
       </ng-template>
       <ng-template #second>
@@ -44,14 +41,14 @@
         </div>
       </ng-template>
       <ng-template #third>
-        <mat-expansion-panel 
-            [ngClass]="fullSize? 'expanded-mat-panel' : 'normal-mat-panel'"
-            (opened)="getDetails($event)" [(expanded)]="sosExpanded">
+        <mat-expansion-panel [ngClass]="fullSize? 'expanded-mat-panel' : 'normal-mat-panel'"
+          (opened)="getDetails($event)" [(expanded)]="sosExpanded">
           <mat-expansion-panel-header>
             <mat-panel-title>
-              <h3><a target="_blank" [href]="sosLink()"><span class="material-icons">launch</span></a>&ensp;Statement of Significance </h3>
+              <h3><a target="_blank" [href]="sosLink()"><span class="material-icons">launch</span></a>&ensp;Statement of
+                Significance </h3>
             </mat-panel-title>
-            <mat-panel-description>  
+            <mat-panel-description>
             </mat-panel-description>
           </mat-expansion-panel-header>
           <h4>Summary</h4>
@@ -59,69 +56,81 @@
         </mat-expansion-panel>
       </ng-template>
       <ng-template #fourth>
-        <h3>Heritage Overlay {{_heritageSiteInfo['Overlay']}}</h3>
-        <div *ngIf="_overlayProperties!=null && _overlayProperties.Overlay">
-            <div *ngIf="_overlayProperties.HeritagePlace!=null">
-                <h4>{{_overlayProperties.heritagePlaceName()}}</h4>
-            </div>
-              <div class='OverlayId'>Overlay {{_overlayProperties.Overlay}}
+        <div class="details-tile">
+          <div *ngIf="_overlayProperties!=null && _overlayProperties.Overlay">
+            <h3 class='OverlayId'>Overlay {{_overlayProperties.Overlay}}
               <span class='VHR' *ngIf="_overlayProperties.Included=='true'"> VHR: <a [href]="vhrLink()"
                   target="_blank">{{_overlayProperties.VHR}}</a></span>
+            </h3>
+            <div *ngIf="_overlayProperties.HeritagePlace!=null">
+              <h3>{{_overlayProperties.heritagePlaceName()}}</h3>
             </div>
-              <div *ngIf="title=='Selected'">
-              <div>
-                <div class='Expiry' *ngIf="_overlayProperties.Status=='Interim'">Expires: {{_overlayProperties.Expiry}}</div>
-                <div class='Controls'><p title="Tree Controls apply in this overlay. A Permit is requied to remove, destroy or lop a tree This does not apply:
+            <div class='Expiry Controls' *ngIf="_overlayProperties.Status=='Interim'">Interim Overlay Expires:
+              {{_overlayProperties.Expiry}}</div>
+            <div>
+              <h4 title="According to the schedule to clause 43.03 of the Yarra Planning Scheme">Planning Controls for this overlay</h4>
+              <div class='Controls'>
+                <p title="Tree Controls apply in this overlay. A Permit is required to remove, destroy or lop a tree This does not apply:
                   – To any action which is necessary to keep the whole or any part of a tree clear of an electric line provided the action is carried out in accordance with a code of practice prepared under Section 86 of the Electricity Safety Act 1998.
                   – If the tree presents an immediate risk of personal injury or damage to property">
-                  Tree Controls: {{_overlayProperties.TreeControls}}</p></div>
-                <div class='Controls'><p title="A Permit is required to Externally paint a building.">
-                  Paint Controls: {{_overlayProperties.PaintControls}}</p> </div>
-                <div class='Controls'><p title="A Permit is required to Internally alter a building.">
-                  Internal Controls: {{_overlayProperties.InternalControls}}</p></div>
-                <div class='Controls'><p title="A permit is not required for Demolition or removal of an outbuilding (including a carport, garage, pergola, verandah, deck, shed or similar structure
+                  Tree Controls: {{_overlayProperties.TreeControls}}</p>
+              </div>
+              <div class='Controls'>
+                <p title="A Permit is required to Externally paint a building.">
+                  Paint Controls: {{_overlayProperties.PaintControls}}</p>
+              </div>
+              <div class='Controls'>
+                <p title="A Permit is required to Internally alter a building.">
+                  Internal Controls: {{_overlayProperties.InternalControls}}</p>
+              </div>
+              <div class='Controls'>
+                <p title="A permit is not required for Demolition or removal of an outbuilding (including a carport, garage, pergola, verandah, deck, shed or similar structure
                   unless the outbuilding is specified in the schedule to this overlay.">
-                  Fence Controls: {{_overlayProperties.FenceControls}}</p></div>
-                <div class='Controls'> <p title="A permit may be granted to use a heritage place for a use which would otherwise be prohibited if all of the following apply:
+                  Fence Controls: {{_overlayProperties.FenceControls}}</p>
+              </div>
+              <div class='Controls'>
+                <p
+                  title="A permit may be granted to use a heritage place for a use which would otherwise be prohibited if all of the following apply:
                   The schedule to this overlay specifies the heritage place as one where prohibited uses may be permitted.
                   The use will not adversely affect the significance of the heritage place.
                   The benefits obtained from the use can be demonstrably applied towards the conservation of the heritage place.">
-                  Prohibited uses may be permitted: {{_overlayProperties.Prohibited}}</p></div>
-                <div class='Aboriginal'><p title="A heritage place specified in the schedule to this overlay as an Aboriginal heritage place is also subject to the requirements of the Aboriginal Heritage Act 2006.">
-                  Aboriginal Heritage Place: {{_overlayProperties.AboriginalHeritagePlace}}</p></div>
+                  Prohibited uses may be permitted: {{_overlayProperties.Prohibited}}</p>
+              </div>
+              <div class='Aboriginal Controls'>
+                <p
+                  title="A heritage place specified in the schedule to this overlay as an Aboriginal heritage place is also subject to the requirements of the Aboriginal Heritage Act 2006.">
+                  Aboriginal Heritage Place: {{_overlayProperties.AboriginalHeritagePlace}}</p>
               </div>
             </div>
-            <div>
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        Incorporated Plan
-                      </mat-panel-title>
-                    <mat-panel-description>
-                      ...
-                    </mat-panel-description>
-                  </mat-expansion-panel-header>
-                  <p>{{_overlayProperties.incorporatedPlan()}}</p>
-                </mat-expansion-panel>
-                </div>
+
+            <ng-template *ngIf="_overlayProperties!=null && _overlayProperties.incorporatedPlan()!=''">
+              <mat-expansion-panel>
+                <mat-expansion-panel-header>
+                  <mat-panel-title>
+                    Incorporated Plan
+                  </mat-panel-title>
+                  <mat-panel-description>
+                    ...
+                  </mat-panel-description>
+                </mat-expansion-panel-header>
+                <p>{{_overlayProperties.incorporatedPlan()}}</p>
+              </mat-expansion-panel>
+            </ng-template>
           </div>
+        </div>
       </ng-template>
     </ngu-carousel>
   </mat-card-content>
   <mat-card-actions>
-      <i NguCarouselPrev 
-         class="scrollArrows leftRs material-icons"
-         [style.opacity]="myCarousel.isFirst ? 0.1:1"
-         (click)="moveLeft()">chevron_left</i>
-      <i NguCarouselNext 
-         class="scrollArrows rightRs material-icons"
-         [style.opacity]="myCarousel.isLast ? 0.1:1"
-         (click)="moveRight()">chevron_right</i>
+    <i NguCarouselPrev class="scrollArrows leftRs material-icons" [style.opacity]="myCarousel.isFirst ? 0.1:1"
+      (click)="moveLeft()">chevron_left</i>
+    <i NguCarouselNext class="scrollArrows rightRs material-icons" [style.opacity]="myCarousel.isLast ? 0.1:1"
+      (click)="moveRight()">chevron_right</i>
     <button mat-button>LIKE</button>
     <span class="myPoint" NguCarouselPoint>
       <li *ngFor="let j of myCarousel.pointNumbers; let j = index" [class.active]="j==myCarousel.activePoint"
         (click)="myCarousel.moveTo(j)"></li>
     </span>
     <button mat-button>SHARE</button>
-    </mat-card-actions>
+  </mat-card-actions>
 </mat-card>
