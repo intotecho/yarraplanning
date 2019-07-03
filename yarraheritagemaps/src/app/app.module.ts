@@ -32,6 +32,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule} from '@angular/material/menu';
@@ -80,9 +81,7 @@ if ( environment.production ) {
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
-
     RouterModule.forRoot(routes),
-
     MatInputModule,
     MatCardModule,
     MatSidenavModule,
@@ -98,6 +97,7 @@ if ( environment.production ) {
     MatExpansionModule,
     MatSnackBarModule,
     MatProgressSpinnerModule,
+    MatRadioModule,
     MatSlideToggleModule,
     MatTooltipModule,
     NguCarouselModule,

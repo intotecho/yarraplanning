@@ -16,7 +16,7 @@
 
 import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
-import { MatTableDataSource, MatSnackBar, MatButton } from '@angular/material';
+import { MatTableDataSource, MatSnackBar } from '@angular/material';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
@@ -26,13 +26,13 @@ import 'rxjs/add/operator/map.js';
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
 import { LayerDescription } from '../services/layers-info-service';
-import { LayerSelectComponent} from '../map/layer-control.component/layer-control.component.component';
 
 import {
   Step,
   HERITAGE_SITE_QUERY,
   OVERLAYS_QUERY,
-  HERITAGE_SITE_FILL_COLOR,
+  HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS,
+  HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE,
   OVERLAY_FILL_COLOR,
   OVERLAY_FILL_OPACITY,
   OVERLAY_STROKE_COLOR,
@@ -56,8 +56,6 @@ import {
   SelectMMBWOverlay, MMBWMapsLibrary
 } from '../services/select-MMBWOverlay';
 
-
-import { query } from '@angular/animations';
 import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
 const DEBOUNCE_MS = 1000;
 
@@ -67,6 +65,9 @@ const DEBOUNCE_MS = 1000;
   styleUrls: ['./main.component.css']
 })
 export class MainComponent implements OnInit, OnDestroy {
+  selectedShadingScheme: string = 'Heritage Status';
+  shadingSchemes: string[] = ['Heritage Status', 'Established Date'];
+
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
   events: string[] = [];
@@ -147,25 +148,30 @@ export class MainComponent implements OnInit, OnDestroy {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
+
     // Data form group
     this.dataFormGroup = this._formBuilder.group({
-      selectedMMBWIds: [],
       overlayId: ['HO0'],
+      selectedMMBWIds: [],
+      shadingSchemesOptions: []
+    });
+
+    // Schema form group
+    this.schemaFormGroup = this._formBuilder.group({
+      geoColumn: [''],
       projectID: [HERITAGE_SITE_PROJECT_ID, Validators.required],
-      sql: [OVERLAYS_QUERY
-      , Validators.required],
+      sql: [OVERLAYS_QUERY, Validators.required],
       location: [HERITAGE_SITE_DATACENTER],
     });
 
-    this.dataFormGroup.controls.projectID.valueChanges.debounceTime(200).subscribe(() => {
+    this.schemaFormGroup.controls.projectID.valueChanges.debounceTime(200).subscribe(() => {
       this.dataService.getProjects()
         .then((projects) => {
           this.matchingProjects = projects.filter((project) => {
-            return project['id'].indexOf(this.dataFormGroup.controls.projectID.value) >= 0;
+            return project['id'].indexOf(this.schemaFormGroup.controls.projectID.value) >= 0;
           });
         });
     });
-
 
     this.dataFormGroup.controls.overlayId.valueChanges.debounceTime(200).subscribe(() => {
       const overlayId = this.dataFormGroup.controls.overlayId.value;
@@ -174,7 +180,7 @@ export class MainComponent implements OnInit, OnDestroy {
         if (this.selectedOverlayProperties) {
           this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 3000);
         }
-        this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
+        this.schemaFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
         this.query(); // kick off inital query to load the overlays
         this.opened = false;
         } else {
@@ -190,8 +196,14 @@ export class MainComponent implements OnInit, OnDestroy {
       this.opened = false;
     });
 
-    // Schema form group
-    this.schemaFormGroup = this._formBuilder.group({ geoColumn: [''] });
+    this.dataFormGroup.controls.shadingSchemesOptions.valueChanges.debounceTime(200).subscribe(() => {
+      const shadingSchemesOptions = this.dataFormGroup.controls.shadingSchemesOptions.value;
+      this.selectedShadingScheme = shadingSchemesOptions;
+      this.loadHeritageShadingScheme();
+      this.updateStyles('vhdplaceid');
+      this.showMessage(`Shading sites by ${this.selectedShadingScheme}`, 2000);
+    });
+
 
     // Style rules form group
     const stylesGroupMap = {};
@@ -264,7 +276,6 @@ export class MainComponent implements OnInit, OnDestroy {
     this.opened = false;
   }
 
-
   handleMapHeritageSiteHighlighted(event) {
     this.highlightedHeritageSiteInfo = event;
   }
@@ -290,7 +301,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   _dryRun() {
-    const { overlayId, projectID, sql, location } = this.dataFormGroup.getRawValue();
+    const { overlayId, projectID, shadingSchemesOptions, sql, location } = this.dataFormGroup.getRawValue();
     this.dataService.prequery(overlayId, projectID, sql, location)
       .then((bytesProcessed) => {
         this.bytesProcessed = bytesProcessed;
@@ -302,13 +313,31 @@ export class MainComponent implements OnInit, OnDestroy {
       });
   }
 
- 
+   getHeritageShadingFill() {
+    const heritageFill = this.selectedShadingScheme === 'Heritage Status'?
+          HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS :
+          HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE;
+    return heritageFill;
+   }
 
+
+   loadHeritageShadingScheme() {
+    const opaqueStyle = {isComputed: false, value: 0.3};
+    const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+    const heritageFill = this.getHeritageShadingFill();
+
+    this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
+    this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
+    this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
+    this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+  }
+  
   query(sqlparam: string = null) {
     if (this.pending) { return; }
     this.pending = true;
 
-    const { overlayId, projectID, sql, location } = this.dataFormGroup.getRawValue();
+    const { overlayId, mmbwMap, shadingSchemesOptions } = this.dataFormGroup.getRawValue();
+    const {  projectID, sql, location } = this.schemaFormGroup.getRawValue();
     const sqlarg = sqlparam ? sqlparam : sql;
     this.dataService.query(overlayId, projectID, sqlarg, location)
       .then(({ columns, columnNames, rows, stats }) => {
@@ -317,6 +346,9 @@ export class MainComponent implements OnInit, OnDestroy {
         this.rows = rows;
         this.stats = stats;
         this.data = new MatTableDataSource(rows.slice(0, MAX_RESULTS_PREVIEW));
+        const heritageFill = this.getHeritageShadingFill();
+        const opaqueStyle = {isComputed: false, value: 0.3};
+        const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
         if (this.columnNames.find(h => h === 'ZONE_CODE')) {
             this.handleQueryOverlaysResponse();
             // setup custom styling
@@ -331,19 +363,16 @@ export class MainComponent implements OnInit, OnDestroy {
             this.showMessage('Double Click an Overlay on the map for more details', 5000);
 
           } else if (this.columnNames.find(h => h === 'Application_Number')) {
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
-            this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
-            this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
+            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
+            this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
+            this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
             this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
             this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
             this.updateStyles('Application_Number');
             this.showMessage(`Showing Planning Applications within Overlay ${this.overlayProperties.Overlay}`, 5000);
 
           } else if (this.columnNames.find(h => h === 'vhdplaceid')) {
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
-            this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
-            this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
-            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+            this.loadHeritageShadingScheme();
             this.updateStyles('vhdplaceid');
             this.showMessage(`Showing Heritage properties within Overlay ${this.overlayProperties.Overlay}`, 5000);
           }
@@ -402,18 +431,21 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   onFillPreset() {
+    const heritageFill = this.getHeritageShadingFill();
     switch (this.stepIndex) {
       case Step.DATA:
-        this.dataFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
+        this.schemaFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
         break;
       case Step.SCHEMA:
         this.schemaFormGroup.patchValue({ geoColumn: 'WKT', latColumn: 'lat_avg', lngColumn: 'lng_avg' });
         break;
       case Step.STYLE:
-        this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, HERITAGE_SITE_FILL_COLOR.domain.length);
+        const opaqueStyle = {isComputed: false, value: 0.3};
+        const heritageOpacity = opaqueStyle;
+        this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
         this.setNumStops(<FormGroup>this.stylesFormGroup.controls.circleRadius, HERITAGE_SITE_CIRCLE_RADIUS.domain.length);
-        this.stylesFormGroup.controls.fillOpacity.patchValue(HERITAGE_SITE_FILL_OPACITY);
-        this.stylesFormGroup.controls.fillColor.patchValue(HERITAGE_SITE_FILL_COLOR);
+        this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
+        this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
         this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
         break;
       default:

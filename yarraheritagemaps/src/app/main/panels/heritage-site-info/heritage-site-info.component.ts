@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild, Input, Output, EventEmitter } from '@angular/core';
 import { NguCarouselConfig, NguCarousel } from '@ngu/carousel';
 import { SoSService } from '../../../../../src/app/services/sos.service';
 import { HeritageSiteInfo } from './heritage-site-info';
@@ -27,6 +27,8 @@ export class HeritageSiteInfoComponent {
     this._overlayProperties = overlayProperties;
     // this.carouselTileLoad();
   }
+
+  @Output() hideFeature$: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
 
   _heritageSiteInfo: HeritageSiteInfo = null;
   _overlayProperties: OverlayProperties = null;
@@ -143,5 +145,9 @@ export class HeritageSiteInfoComponent {
                     'max-height.px':${this.naturalHeight}}`;
     console.log(style);
     return style;
+  }
+
+  hideFeature(event) {
+    this.hideFeature$.emit(this._heritageSiteInfo);
   }
 }

@@ -8,13 +8,14 @@
   </span>
   <ng-template #showtitle>Yarra Heritage Maps</ng-template>
   <span class="flex-spacer"></span>
-  <button mat-mini-fab [matMenuTriggerFor]="profileMenu"  matTooltip="Profile" matTooltipPosition="after">
-    <ng-container *ngIf="isSignedIn; else showannon"><img src={{user}} alt="user" height="20px" width="20px"></ng-container>
+  <button mat-mini-fab [matMenuTriggerFor]="profileMenu" matTooltip="Profile" matTooltipPosition="after">
+    <ng-container *ngIf="isSignedIn; else showannon"><img src={{user}} alt="user" height="20px" width="20px">
+    </ng-container>
     <ng-template #showannon><i class="material-icons">account_circle</i></ng-template>
   </button>
   <mat-menu #profileMenu="matMenu" yPosition="below">
-      <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
-      <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
+    <button *ngIf="isSignedIn" mat-button (click)="signout()">Sign out</button>
+    <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
   </mat-menu>
   <a mat-button href="/terms" matTooltip="Send Feedback (TBD)" matTooltipPosition="after">!</a>
 </mat-toolbar>
@@ -44,8 +45,22 @@
             </mat-option>
           </mat-select>
         </mat-form-field>
+
+        <div class="wide sql-location">
+          <label class="" id="shadingscheme-radio-group-label">Shade by</label>
+          <mat-radio-group aria-labelledby="shadingscheme-radio-group-label"
+            class="shadingscheme-radio-group wide sql-location" 
+            [(ngModel)]="selectedShadingScheme"
+            formControlName="shadingSchemesOptions">
+            <mat-radio-button matInput class="shadingscheme-radio-button" *ngFor="let scheme of shadingSchemes" [value]="scheme">
+              {{scheme}}
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
       </form>
-      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Highlighted' context='fixed'></app-overlay-info>
+      <div>Shading by: {{selectedShadingScheme}}</div>
+      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Highlighted' context='fixed'>
+      </app-overlay-info>
       <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>
@@ -55,11 +70,10 @@
             Experimental
           </mat-panel-description>
         </mat-expansion-panel-header>
-        <p>This is the primary content of the panel.</p>
         <mat-vertical-stepper linear (selectionChange)="onStepperChange($event)" #stepper>
           <mat-step [stepControl]="dataFormGroup">
 
-            <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
+            <form *ngIf="isSignedIn" [formGroup]="schemaFormGroup">
               <mat-form-field class="sql-form-field">
                 <input type="text" placeholder="Project ID" matInput formControlName="projectID" ([ngModel])="model"
                   [matAutocomplete]="auto">
@@ -73,7 +87,7 @@
                 (change)="dryRun()" (query)="query()"></codemirror>
               <div>
                 <button mat-raised-button color="primary" (click)="query(stepper)"
-                  [disabled]="!dataFormGroup.valid || pending">Run</button>
+                  [disabled]="!schemaFormGroup.valid || pending">Run</button>
                 <button mat-raised-button color="primary" matStepperNext [disabled]="!rows.length || pending">See
                   results</button>
                 <span *ngIf="!pending">{{ rows.length }} results.</span>
@@ -153,25 +167,22 @@
   </mat-sidenav>
   <mat-sidenav-content>
     <div id="mapcontainer">
-    <app-map [rows]="rows" [geoColumn]="schemaFormGroup.controls.geoColumn.value" [styles]="styles"
-      [selectedLayersInfo]="selectedLayersInfo" [mmbwOverlay]="selectedMmbwMaps"
-      (overlayChanged)="handleMapOverlayHighlighted($event)" (overlaySelected)="handleMapOverlaySelected($event)"
-      (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
-      (heritageSiteSelected)="handleMapHeritageSiteSelected($event)">
-    </app-map>
-    <div class="floating">
+      <app-map [rows]="rows" [geoColumn]="schemaFormGroup.controls.geoColumn.value" [styles]="styles"
+        [selectedLayersInfo]="selectedLayersInfo" [mmbwOverlay]="selectedMmbwMaps"
+        (overlayChanged)="handleMapOverlayHighlighted($event)" (overlaySelected)="handleMapOverlaySelected($event)"
+        (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
+        (heritageSiteSelected)="handleMapHeritageSiteSelected($event)">
+      </app-map>
+      <div class="floating">
         <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4">
         </mat-progress-spinner>
       </div>
 
-    <div class="cardcontainer">
-        <app-heritage-site-info 
-        [heritageSiteInfo]='highlightedHeritageSiteInfo' 
-        [overlayProperties] = "selectedOverlayProperties" 
-        title='Selected' 
-        context='fixed'>
+      <div class="cardcontainer">
+        <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo'
+          [overlayProperties]="selectedOverlayProperties" title='Selected' context='fixed'>
         </app-heritage-site-info>
-    </div>  
+      </div>
     </div>
   </mat-sidenav-content>
 </mat-sidenav-container>

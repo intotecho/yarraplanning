@@ -574,24 +574,9 @@ export class MapComponent implements AfterViewInit {
         this.appRef.attachView(this.overlayInfoComponentRef.hostView);
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
 
-      } else if (properties.hasOwnProperty('vhdplaceid')) { 
-        // Create HeritageSiteInfoComponent
-        /*
-        if (this.heritageSiteInfoComponentRef) {
-          this.heritageSiteInfoComponentRef.destroy();
-        }
-        const compFactory = this.resolver.resolveComponentFactory(HeritageSiteInfoComponent);
-        this.heritageSiteInfoComponentRef = compFactory.create(this.injector);
-
-        this.highlightedHeritageSiteInfo = new HeritageSiteInfo(event);
-        this.heritageSiteInfoComponentRef.instance.heritageSiteInfo = this.highlightedHeritageSiteInfo;
-        this.selectedHeritageSiteInfo = this.highlightedHeritageSiteInfo;
-
-        this.heritageSiteInfoComponentRef.instance.title = 'Clicked ';
-        this.heritageSiteInfoComponentRef.instance.overlayProperties = this.seletedOverlay;
-        this.appRef.attachView(this.heritageSiteInfoComponentRef.hostView);
-        div.appendChild(this.heritageSiteInfoComponentRef.location.nativeElement);
-         */
+      } else if (properties.hasOwnProperty('vhdplaceid')) {
+        this._propertiesLayer.remove(feature);
+        console.log('Heritage Site Removed');
       } else if (properties.hasOwnProperty('Application_Number')) {
 
         const status = properties['HeritageStatus'];

@@ -59,7 +59,6 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   WHERE
   register.Overlay = @overlay
 `;
-//  SAFE.ST_GeogFromGeoJson(boundary) as bndry
 
 export const PLANNING_APPS_QUERY = `
     #standardsql
@@ -170,13 +169,22 @@ export const OVERLAY_STROKE_OPACITY = {
 export const HERITAGE_SITE_FILL_OPACITY = {isComputed: false, value: 0.3};
 export const HERITAGE_SITE_ZINDEX = 200; // higher than overlay
 
-export const HERITAGE_SITE_FILL_COLOR = {
+export const HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS = {
   isComputed: true,
   property: 'HeritageStatus',
   function: 'categorical',
   domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown', ''],
   range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA']
 };
+
+export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
+  isComputed: true,
+  property: 'earliest',
+  function: 'interval',
+  domain: [0,       1800,    1860,    1880,    1900, 1920, 1970, 2030],
+  range:  ['#ffffff', '#990000', '#d7301f', '#ef6548', '#fc8d59', '#fdbb84', '#fdd49e', '#fef0d9']
+};
+
 
 export const HERITAGE_SITE_CIRCLE_RADIUS = {
   isComputed: true,

@@ -126,7 +126,7 @@
       (click)="moveLeft()">chevron_left</i>
     <i NguCarouselNext class="scrollArrows rightRs material-icons" [style.opacity]="myCarousel.isLast ? 0.1:1"
       (click)="moveRight()">chevron_right</i>
-    <button mat-button>LIKE</button>
+    <button mat-button (click)="hideFeature($event)">HIDE</button>
     <span class="myPoint" NguCarouselPoint>
       <li *ngFor="let j of myCarousel.pointNumbers; let j = index" [class.active]="j==myCarousel.activePoint"
         (click)="myCarousel.moveTo(j)"></li>
