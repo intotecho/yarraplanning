@@ -49,6 +49,10 @@
     flex-grow: 1;
 }
 
+.small-description {
+    font-size:10px;
+}
+
 .drawer {
     /*max-width: 100%;
     width: 100%;
@@ -157,8 +161,50 @@ mat-progress-spinner {
     display: flex;
     flex-direction: column;
     margin: 15px 0;
-  }
-  
+    font-family: Roboto, Helvetica, sans-serif;
+}
+
+.shadingscheme-radio-title {
+    font-size: 12px;
+}
+
 .shadingscheme-radio-button {
     margin: 5px;
+}
+
+
+.legend {
+    font-family: Roboto, Helvetica, sans-serif;
+    bottom: -1.2em;
+    font-size: 1.0em;
+    color: #444;
+    text-align: center;
+}
+
+.legend-border {
+    border: 1px;
+    border-color: #AAA;
+    text-align: center;
+}
+
+.legend-title {
+    bottom: -1.2em;
+    font-size: 1.0em;
+    color: #444;
+    text-align: center;
+}
+
+.legend-caption {
+    bottom: -1.2em;
+    font-size: 0.8em;
+    color: #888;
+}
+
+.legend-swatch {
+    display: inline-block;
+    width: 100px;
+    height: 20px;
+    border-radius: 2px;
+    right: 1em;
+    top: 1em;
 }

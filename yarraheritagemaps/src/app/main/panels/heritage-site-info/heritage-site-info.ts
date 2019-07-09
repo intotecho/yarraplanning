@@ -40,7 +40,7 @@ export class HeritageSiteInfo {
     SosHash: String = '';
     earliest: Number = 0;
     heritageStatusClass: String = '';
-    // Boundary: String = '';
+    vhdList: String[];
 
     constructor(event) {
         if (event && event.feature) {
@@ -64,6 +64,7 @@ export class HeritageSiteInfo {
             this.href = event.feature.getProperty('href');
             this.SosHash = event.feature.getProperty('SosHash');
             this.earliest = event.feature.getProperty('earliest');
+            this.vhdList = this.StringToList(this.vhdPlacesId);
 
             switch (this.HeritageStatus.toLowerCase()) {
               case 'contributory':
@@ -85,13 +86,25 @@ export class HeritageSiteInfo {
       }
     }
 
+    /*Take a string formatted as "['asdasd','asd']" and return a list of strings
+     */
+
+    StringToList(input_str: String): String[] {
+      const a:string = input_str.replace(/'/g, '"');
+      return(JSON.parse(a));
+    }
+
     vhrLink() {
-        //const reformat = this.VHR.replace(/'/g, '"');
-        //const vhr = JSON.parse(reformat);
         return `${VHD_KEYWORD_SEARCH}${this.VHR}`;
-      }
+    }
 
     sosLink() {
         return `${GCS_BUCKET_SOS}${this.SosHash}.html`;
+    }
+
+    vhdLink(vhdIndex = 0) {
+      const url = this.href;
+      const removelastdir: String = url.substring(0, url.lastIndexOf('/'));
+      return removelastdir + '/' + vhdIndex;
     }
 }

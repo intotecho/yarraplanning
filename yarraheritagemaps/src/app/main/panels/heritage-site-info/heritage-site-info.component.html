@@ -27,7 +27,7 @@
         </ng-template>
       </ng-template>
       <ng-template #second>
-        <div class="details-tile">
+        <div class="details-tile">  
           <h4 *ngIf="_heritageSiteInfo['PropertyType']!=='null'">{{_heritageSiteInfo['PropertyType']}}</h4>
           <p>Estimated Date: {{_heritageSiteInfo['EstimatedDate']}}</p>
           <p>Established: {{_heritageSiteInfo['earliest']}}</p>
@@ -36,8 +36,13 @@
             VHR: <a target="_blank" [href]="vhrLink()">{{_heritageSiteInfo['VHR']}}</a><br />
           </div>
           <div class='vhd'>
-            VHD: <a target="_blank" [href]="vhdLink()">{{_heritageSiteInfo['vhdplaceid']}}</a><br />
-          </div>
+            Victorian Heritage Database Records
+              <ul class='vhd'>
+                <li *ngFor="let vhd of _heritageSiteInfo['vhdList'];">
+                  VHD Place Id: <a target="_blank" [href]="_heritageSiteInfo.vhdLink(vhd)">{{vhd}}</a>
+                </li>
+              </ul>
+              </div>
         </div>
       </ng-template>
       <ng-template #third>

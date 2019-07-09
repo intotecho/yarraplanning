@@ -173,7 +173,7 @@ export const HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS = {
   isComputed: true,
   property: 'HeritageStatus',
   function: 'categorical',
-  domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown', ''],
+  domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown'],
   range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA']
 };
 

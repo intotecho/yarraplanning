@@ -4,7 +4,8 @@
       </i></button></p>
   <span class="flex-spacer"></span>
   <span *ngIf="isSignedIn && overlayProperties!=null; else showtitle">
-    <span><i>{{overlayProperties.Overlay}} </i> </span>
+    <div><i>{{overlayProperties.Overlay}}</i></div>
+    <div class="small-description">{{overlayProperties.heritagePlaceName().substring(0, 70)}}</div>
   </span>
   <ng-template #showtitle>Yarra Heritage Maps</ng-template>
   <span class="flex-spacer"></span>
@@ -26,42 +27,49 @@
       <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
       <form *ngIf="isSignedIn" [formGroup]="dataFormGroup">
         <div class="wide sql-location">
-          <app-layer-select class="wide sql-location" (selectedLayersInfo)="handleSelectedLayersChanged($event)">
+          <app-layer-select (selectedLayersInfo)="handleSelectedLayersChanged($event)">
           </app-layer-select>
-        </div>
-        <mat-form-field class="wide sql-location">
-          <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="matchingOverlays"
-            matTooltip="Select Overlay to Map." matTooltipPosition="after">
-            <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.Overlay">
-              {{ overlay.Overlay }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field class="wide sql-location">
-          <mat-select ([ngModel])="mmbwMaps" placeholder="Select Historic Map" formControlName="selectedMMBWIds"
-            matTooltip="Select MMBW 1904 Map to Overlay." matTooltipPosition="after" multiple>
-            <mat-option *ngFor="let mmbwmap of mmbwMaps" [value]="mmbwmap.MMBWmapId">
-              {{ mmbwmap.MMBWmapId }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <div class="wide sql-location">
-          <label class="" id="shadingscheme-radio-group-label">Shade by</label>
-          <mat-radio-group aria-labelledby="shadingscheme-radio-group-label"
-            class="shadingscheme-radio-group wide sql-location" 
-            [(ngModel)]="selectedShadingScheme"
-            formControlName="shadingSchemesOptions">
-            <mat-radio-button matInput class="shadingscheme-radio-button" *ngFor="let scheme of shadingSchemes" [value]="scheme">
-              {{scheme}}
-            </mat-radio-button>
-          </mat-radio-group>
+          <mat-form-field>
+            <mat-select placeholder="Historic Maps" formControlName="selectedMMBWIds"
+              ([ngModel])="mmbwMaps" matTooltip="Select MMBW 1904 Map to Overlay." matTooltipPosition="after" multiple>
+              <mat-option *ngFor="let mmbwmap of mmbwMaps" [value]="mmbwmap.MMBWmapId">
+                {{ mmbwmap.MMBWmapId }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field >
+            <mat-select placeholder="Select Heritage Overlay" formControlName="overlayId" ([ngModel])="matchingOverlays"
+              matTooltip="Select Overlay to Map." matTooltipPosition="after">
+              <mat-option *ngFor="let overlay of matchingOverlays" [value]="overlay.Overlay">
+                {{ overlay.Overlay }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+            <mat-radio-group aria-labelledby="shadingscheme-radio-group-label"
+              class="shadingscheme-radio-group" [(ngModel)]="selectedShadingScheme"
+              formControlName="shadingSchemesOptions">
+              <label class="shadingscheme-radio-title" id="shadingscheme-radio-group-label">Shade by</label>
+              <mat-radio-button matInput class="shadingscheme-radio-button" *ngFor="let scheme of shadingSchemes"
+                [value]="scheme">
+                {{scheme}}
+              </mat-radio-button>
+            </mat-radio-group>
+          
         </div>
       </form>
-      <div>Shading by: {{selectedShadingScheme}}</div>
-      <app-overlay-info [overlayProperties]='selectedOverlayProperties' title='Highlighted' context='fixed'>
-      </app-overlay-info>
-      <mat-expansion-panel>
+      <ng-container *ngIf="isSignedIn">
+        <div class=legend-border>
+        <label class="legend legend-title">Legend</label>
+        <div class="legend legend-caption" *ngFor="let prop of getHeritageShadingFill().domain; let i = index">
+          <div>{{prop}}</div>
+          <div>
+            <span class="legend legend-swatch"
+              [ngStyle]="{'background': getHeritageShadingFill().range[i], opacity: getHeritageShadingFill().fillOpacity }"></span>
+          </div>
+        </div>
+      </div>
+      </ng-container>
+      <mat-expansion-panel  *ngIf="isSignedIn" >
         <mat-expansion-panel-header>
           <mat-panel-title>
             Advanced Controls

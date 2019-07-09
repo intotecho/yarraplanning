@@ -26,7 +26,7 @@ import 'rxjs/add/operator/map.js';
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
 import { LayerDescription } from '../services/layers-info-service';
-
+import {ColorPickerModule} from 'ngx-color-picker';
 import {
   Step,
   HERITAGE_SITE_QUERY,
@@ -314,7 +314,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
    getHeritageShadingFill() {
-    const heritageFill = this.selectedShadingScheme === 'Heritage Status'?
+    const heritageFill = this.selectedShadingScheme === 'Heritage Status' ?
           HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS :
           HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE;
     return heritageFill;
@@ -361,7 +361,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
             this.updateStyles('Overlays');
             this.showMessage('Double Click an Overlay on the map for more details', 5000);
-
+            // TODO Should defer persisting selectedOverlayProperties until load is successful
           } else if (this.columnNames.find(h => h === 'Application_Number')) {
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
             this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
@@ -375,6 +375,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.loadHeritageShadingScheme();
             this.updateStyles('vhdplaceid');
             this.showMessage(`Showing Heritage properties within Overlay ${this.overlayProperties.Overlay}`, 5000);
+            localStorage.setItem('selectedOverlay',  JSON.stringify(this.selectedOverlayProperties));
           }
       })
       .catch((e) => {
@@ -422,8 +423,6 @@ export class MainComponent implements OnInit, OnDestroy {
     styles.styleRules = this.stylesFormGroup.getRawValue();
     styles.layer = layer;
     this.styles = styles;
-    // defer setting it
-    localStorage.setItem('selectedOverlay',  JSON.stringify(this.selectedOverlayProperties));
   }
 
   getRowWidth() {

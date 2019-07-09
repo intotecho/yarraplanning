@@ -323,6 +323,7 @@ export class MapComponent implements AfterViewInit {
       }
     });
     layer.setMap(this.map);
+    console.log(`Added ${rows.length} Features`);
   }
 
   /**
@@ -364,10 +365,6 @@ export class MapComponent implements AfterViewInit {
           this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
         }
       });
-
-      //this._overlaysLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
-      //    google.maps.event.trigger(this._propertiesLayer, 'click', event);
-      //});
 
     } else if (isPlanningLayer) {
       this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
@@ -420,7 +417,9 @@ export class MapComponent implements AfterViewInit {
           this.zone.run(() => this.onMarkerClick(this._planningLayer, event));
         }
       });
+
     } else {  // Heritage Properties layer
+
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
       const bounds = new google.maps.LatLngBounds();
@@ -467,13 +466,11 @@ export class MapComponent implements AfterViewInit {
             });
         }
       });
-
       this._propertiesLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
         this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
         this.heritgeSiteSelected.emit(this.selectedHeritageSiteInfo);
         const feature = event ? event.feature : null;
         if (feature) {
-          // this.showInfoWindow(e, e.latLng);
           this.zone.run(() => this.onMarkerClick(this._propertiesLayer, event));
         }
       });
@@ -575,8 +572,24 @@ export class MapComponent implements AfterViewInit {
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
 
       } else if (properties.hasOwnProperty('vhdplaceid')) {
-        this._propertiesLayer.remove(feature);
-        console.log('Heritage Site Removed');
+          this._propertiesLayer.remove(feature);
+          console.log('Heritage Site Removed');
+
+          const status = properties['HeritageStatus'];
+          const htmlContentString = `
+          <b>Removed ${status} site in ${properties['Overlay']} at</b><br/>
+          Official Address: ${properties['EZI_ADD']}<br/>
+          Matched using: ${properties['Matched']}<br/>
+          Registered Address: ${properties['OriginalAddress']}<br/>
+          VHD Location : ${properties['vhdLocation']}<br/>
+          VHD placeId: ${properties['vhdPlacesId']}<br/>
+          Matched using: ${properties['VHDMatched']}<br/>
+          PROPERTY_PFI: ${properties['PROPERTY_PFI']}<br/>
+          EZI_ADDRESS: ${properties['EZI_ADD']}<br/>
+          `;
+          this.infoWindow.setContent(htmlContentString);
+          this.infoWindow.open(this.map);
+          this.infoWindow.setPosition(event.latLng);
       } else if (properties.hasOwnProperty('Application_Number')) {
 
         const status = properties['HeritageStatus'];
