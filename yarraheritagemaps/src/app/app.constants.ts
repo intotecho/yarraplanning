@@ -96,7 +96,7 @@ export const PLANNING_APPS_QUERY = `
     SELECT * from applications
     ORDER BY dist_meters ASC`;
 
-    export const OVERLAYS_QUERY = `
+export const OVERLAYS_QUERY = `
     #standardsql
     SELECT
     ZONE_DESC,
@@ -174,15 +174,17 @@ export const HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS = {
   property: 'HeritageStatus',
   function: 'categorical',
   domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown'],
-  range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA']
+  range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA'],
+  caption: ['Contributory', 'Not Contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown Status'],
 };
 
 export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
   isComputed: true,
   property: 'earliest',
   function: 'interval',
-  domain: [0,       1800,    1860,    1880,    1900, 1920, 1970, 2030],
-  range:  ['#ffffff', '#990000', '#d7301f', '#ef6548', '#fc8d59', '#fdbb84', '#fdd49e', '#fef0d9']
+  domain: [ 1840,           1860,        1880,        1900,        1920,        1940,        1960,        2030],
+  range:  [ '#242424',      '#990000',   '#d7301f',   '#ef6548',   '#fc8d59',   '#fdbb84',   '#fdd49e',   '#fed4ff'],
+  caption: ['Unknown Date', '1840-1859', '1860-1879', '1890-1899', '1900-1919', '1920-1939', '1940-1959', 'After 1960'],
 };
 
 
@@ -220,7 +222,4 @@ export const GCS_BUCKET_SOS: String = 'https://storage.googleapis.com/historic_m
 
 export const VHD_KEYWORD_SEARCH: String = 'https://vhd.heritagecouncil.vic.gov.au/search?kw=';
 
-export interface AppSettings {
-  loadSitesForPreviousOverlay: Boolean;
-  maxSitesToLoad: Number;
-}
+

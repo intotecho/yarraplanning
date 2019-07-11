@@ -15,7 +15,7 @@
  */
 import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
-import { MatTableDataSource, MatSnackBar } from '@angular/material';
+import { MatTableDataSource, MatSnackBar, MatSlideToggleChange } from '@angular/material';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
@@ -24,6 +24,7 @@ import 'rxjs/add/operator/map.js';
 
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
+import { AppSettings } from '../services/appsettings.service';
 import { LayerDescription } from '../services/layers-info-service';
 import {ColorPickerModule} from 'ngx-color-picker';
 import {
@@ -44,8 +45,8 @@ import {
   HERITAGE_SITE_STROKE_COLOR,
   PLANNING_APPS_QUERY,
   PLANNING_APP_STROKE_COLOR,
-  AppSettings,
 } from '../app.constants';
+
 
 import {
   OverlayProperties
@@ -65,7 +66,6 @@ const DEBOUNCE_MS = 1000;
   styleUrls: ['./main.component.css']
 })
 export class MainComponent implements OnInit, OnDestroy {
-  selectedShadingScheme: string = 'Heritage Status';
   shadingSchemes: string[] = ['Heritage Status', 'Established Date'];
 
   hidePropertySubject: Subject<any> = new Subject();
@@ -73,10 +73,12 @@ export class MainComponent implements OnInit, OnDestroy {
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
   events: string[] = [];
-  opened = true;
+  sidenavOpened = true;
 
   // GCP session data
   readonly dataService = new BigQueryService();
+  readonly appSettings: AppSettings = new AppSettings();
+
   isSignedIn: boolean;
   user: Object;
   matchingProjects: Array<Project> = [];
@@ -124,7 +126,8 @@ export class MainComponent implements OnInit, OnDestroy {
   };
   readonly cmDebouncer: Subject<string> = new Subject();
   cmDebouncerSub: Subscription;
-  appSettings: AppSettings;
+  
+  
   constructor(
     private _formBuilder: FormBuilder,
     private _renderer: Renderer2,
@@ -149,7 +152,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
-
+    this.sidenavOpened = this.appSettings.advancedControlsOpened; // init opened when advanced.
     // Data form group
     this.dataFormGroup = this._formBuilder.group({
       overlayId: ['HO0'],
@@ -180,13 +183,13 @@ export class MainComponent implements OnInit, OnDestroy {
       if (row) {
         if (this.selectedOverlayProperties) {
           this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 3000);
-        }
-        this.schemaFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
-        this.query(); // kick off inital query to load the overlays
-        this.opened = false;
+          this.schemaFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
+          this.query(); // kick off inital query to load the overlays
+          }
         } else {
         console.log('Overlay not found in form data!');
       }
+      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
     });
 
     this.dataFormGroup.controls.selectedMMBWIds.valueChanges.debounceTime(200).subscribe(() => {
@@ -194,15 +197,18 @@ export class MainComponent implements OnInit, OnDestroy {
          return  this.dataFormGroup.controls.selectedMMBWIds.value.includes(mmbwMap.MMBWmapId);
       });
       console.log(this.selectedMmbwMaps);
-      this.opened = false;
+      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
     });
 
     this.dataFormGroup.controls.shadingSchemesOptions.valueChanges.debounceTime(200).subscribe(() => {
       const shadingSchemesOptions = this.dataFormGroup.controls.shadingSchemesOptions.value;
-      this.selectedShadingScheme = shadingSchemesOptions;
-      this.loadHeritageShadingScheme();
-      this.updateStyles('vhdplaceid');
-      this.showMessage(`Shading sites by ${this.selectedShadingScheme}`, 2000);
+      if (shadingSchemesOptions) {
+        this.appSettings.selectedShadingScheme = shadingSchemesOptions;
+        this.loadHeritageShadingScheme();
+        this.updateStyles('vhdplaceid');
+        this.showMessage(`Shading sites by ${this.appSettings.selectedShadingScheme}`, 2000);
+        // this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened to show new legend.
+      }
     });
 
 
@@ -238,10 +244,6 @@ export class MainComponent implements OnInit, OnDestroy {
           this._changeDetectorRef.detectChanges();
         });
 
-      const appSettingsString = localStorage.getItem('appSettings');
-      if (appSettingsString) {
-        this.appSettings   = JSON.parse(appSettingsString);
-      }
       this.query(); // kick off inital query to load the overlays
     });
   }
@@ -256,8 +258,8 @@ export class MainComponent implements OnInit, OnDestroy {
 
   handleSelectedLayersChanged(event) {
     if (this.selectedLayersInfo !== event) {
-      this.opened = false;
-    } 
+      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
+    }
     this.selectedLayersInfo = event;
     this._changeDetectorRef.detectChanges();
     if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
@@ -274,7 +276,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.overlayProperties = event;
     this.selectedOverlayProperties = event;
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
-    this.opened = false;
+    this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
   }
 
   handleMapHeritageSiteHighlighted(event) {
@@ -288,12 +290,9 @@ export class MainComponent implements OnInit, OnDestroy {
     // this.dataFormGroup.patchValue({overlayId: this.overlayProperties.Overlay });
   }
 
-
-
   onStepperChange(e: StepperSelectionEvent) {
     this.stepIndex = e.selectedIndex;
     this.updateStyles('');
-
     gtag('event', 'step', { event_label: `step ${this.stepIndex}` });
   }
 
@@ -318,7 +317,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
    getHeritageShadingFill() {
-    const heritageFill = this.selectedShadingScheme === 'Heritage Status' ?
+    const heritageFill = this.appSettings.selectedShadingScheme === 'Heritage Status' ?
           HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS :
           HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE;
     return heritageFill;
@@ -335,7 +334,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
     this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
   }
-  
+
   query(sqlparam: string = null) {
     if (this.pending) { return; }
     this.pending = true;
@@ -364,7 +363,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
 
             this.updateStyles('Overlays');
-            this.showMessage('Double Click an Overlay on the map for more details', 5000);
+            this.showMessage('Click an Overlay on the map for more details', 5000);
             // TODO Should defer persisting selectedOverlayProperties until load is successful
           } else if (this.columnNames.find(h => h === 'Application_Number')) {
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
@@ -410,8 +409,8 @@ export class MainComponent implements OnInit, OnDestroy {
       const lastSelectedOverlay: OverlayProperties = JSON.parse(item);
       const selOverlay = lastSelectedOverlay.Overlay;
       const foundLastSelectedOverlay: OverlayProperties = this.matchingOverlays.find( o => o.Overlay === selOverlay);
-      if (foundLastSelectedOverlay) {
-        // Select this overlay
+      if (foundLastSelectedOverlay && this.appSettings.loadSitesForPreviousOverlay) {
+        // Automatically select it and fetch data for Selected overlay
         this.handleMapOverlaySelected(foundLastSelectedOverlay);
       }
     }
@@ -517,6 +516,15 @@ export class MainComponent implements OnInit, OnDestroy {
     this._ngZone.run(() => {
       this._snackbar.open(message, undefined, { duration: duration });
     });
+  }
+
+  openAccordion(state: boolean) {
+    this.appSettings.advancedControlsOpened = state;
+  }
+
+  loadSitesForPreviousOverlay(event: MatSlideToggleChange ) {
+      this.appSettings.loadSitesForPreviousOverlay = event.checked;
+      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
   }
 }
 

@@ -2,7 +2,7 @@
   [ngClass]="fullSize? 'expanded-heritage-site-card' : 'normal-heritage-site-card'">
   <mat-card-header [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
     <mat-card-title *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}</mat-card-title>
-    <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}}</mat-card-subtitle>
+    <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
     <ngu-carousel #myCarousel [inputs]="carouselConfig" (onMove)="onCarouselMove($event)"

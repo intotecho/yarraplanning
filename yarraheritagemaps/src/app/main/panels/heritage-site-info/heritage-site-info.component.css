@@ -48,9 +48,7 @@
 .mat-card {
     background-color: #fef7ebed;
     bottom: 0;
-    /*transition: all 1s linear;
-    display: block;
-    width: 90vh;*/
+    z-index: 10;
     position: absolute;
     align-self: center; 
     margin-left: auto;
@@ -81,6 +79,7 @@ mat-expansion-panel {
     overflow-y: scroll !important;
     background:transparent;
 }
+
 
 .expanded-mat-panel {
     max-height: 73vh;

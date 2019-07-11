@@ -13,7 +13,6 @@
     width: 95%;
     position: absolute;
     max-height: 30%;
-    z-index: 999;
     left: 10px;
     bottom: 2px;
     font-family: 'Roboto','sans-serif';
@@ -23,7 +22,7 @@
 
 .floating {
     position: fixed;
-    z-index: 999;
+    z-index: 99;
     float: right;
     position: absolute;
     left: 330px;
@@ -53,29 +52,32 @@
 }
 
 .drawer {
-    /*max-width: 100%;
-    width: 100%;
-    max-height: calc(100vh - 64px);
     min-width: 200px;
-    overflow: auto;
-    flex-shrink: 0;
-    margin: 10px;
-    */
-    min-width: 200px;
-    width: 50%;
     display: flex;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    width: 200px;
     overflow: hidden;
+    width: 200px;
 }
 
-.example-container {
+.wide-drawer {
+    min-width: 200px;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 700px;
+    max-width: 85%;
+}
+
+.sidenav-container {
     background-color : #fffff6;
     width: 100%;
     left: 0;
     overflow: hidden;
+    z-index:4;
 }
   
 .example-events {
@@ -94,7 +96,7 @@ mat-progress-spinner {
     bottom: 2em;
     left: 1em;
     background: #fbf7eb;
-    z-index: 10000;
+    z-index: 90;
 }
 
 .sql-form-field {
@@ -175,7 +177,7 @@ mat-progress-spinner {
 .legend {
     font-family: Roboto, Helvetica, sans-serif;
     bottom: -1.2em;
-    font-size: 1.0em;
+    font-size: 0.8em;
     color: #444;
     text-align: center;
 }
@@ -207,3 +209,20 @@ mat-progress-spinner {
     right: 1em;
     top: 1em;
 }
+
+
+.restore-slider-section {
+    display: flex;
+    align-content: center;
+    align-items: center;
+    height: 60px;
+  }
+  
+  .restore-slider-margin {
+    margin: 10px;
+  }
+
+  
+  .restore-slider-label {
+    margin: 10px;
+  }

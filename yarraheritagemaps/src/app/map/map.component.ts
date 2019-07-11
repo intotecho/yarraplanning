@@ -23,6 +23,7 @@ import {
 import { StyleProps, StylesService, LayerStyles } from '../services/styles.service';
 import * as parseWKT from 'wellknown';
 import { OverlayProperties } from '../main/panels/overlays-properties';
+import { AppSettings } from '../services/appsettings.service';
 
 declare var geoXML3: any;
 import '../../../third_party/geocodezip/geoxml3.js';
@@ -54,6 +55,7 @@ export class MapComponent implements AfterViewInit {
 
   // Maps API instance.
   map: google.maps.Map;
+  readonly appSettings: AppSettings = new AppSettings();
 
   // Info window for display over Maps API.
   infoWindow: google.maps.InfoWindow = null;
@@ -134,13 +136,20 @@ export class MapComponent implements AfterViewInit {
   /**
    * Constructs a Maps API instance after DOM has initialized.
    */
+
+
+  
   ngAfterViewInit() {
+
+    const mapCenter: google.maps.LatLng = this.appSettings.mapCenter;
+    const mapZoom: number = this.appSettings.mapZoom;
+
     Promise.all([ pendingMap, this.pendingStyles ])
       .then(([_, mapStyles]) => {
         this._geoColumn = 'bndry';
         const mapOptions =  {
-            center: {lat: -37.83433865, lng: 144.96147273999998},
-            zoom: 6,
+            center: mapCenter,
+            zoom: mapZoom,
             mapTypeControl: false, // hide the Map and Satellite options
             zoomControl: true,
             zoomControlOptions: {
@@ -155,10 +164,10 @@ export class MapComponent implements AfterViewInit {
         this.map = new google.maps.Map(this.mapEl.nativeElement, mapOptions);
         this.map.setOptions({styles: mapStyles});
 
-        const bounds = new google.maps.LatLngBounds();
-        bounds.extend(new google.maps.LatLng(-37.83433865, 144.96147273999998));
-        bounds.extend(new google.maps.LatLng(-37.775308171, 145.03859800099997));
-        this.map.fitBounds(bounds);
+        //const bounds = new google.maps.LatLngBounds();
+        //bounds.extend(new google.maps.LatLng(-37.83433865, 144.96147273999998));
+        //bounds.extend(new google.maps.LatLng(-37.775308171, 145.03859800099997));
+        //this.map.fitBounds(bounds);
 
         this._overlaysLayer = new google.maps.Data();
         this._propertiesLayer = new google.maps.Data();
@@ -184,9 +193,7 @@ export class MapComponent implements AfterViewInit {
   islayerSelected(layerInfo: Array<LayerDescription>, name: string): boolean {
     return layerInfo.find((layer) => {
       return layer.name === name;
-    }) ? 
-    true : 
-    false;
+    }) ? true : false;
   }
 
   updateSelectedLayersInfo(layerInfo: Array<LayerDescription>) {
@@ -326,7 +333,6 @@ export class MapComponent implements AfterViewInit {
     try {
       rows.forEach((row) => {
         const geometry = parseWKT(row[this._geoColumn]);
-        //['geom', 'bndry',  'Authority', 'NormalAddress' ].forEach(p => delete row[p]); no improvement
         const feature = {
           type: 'Feature',
           geometry,
@@ -349,6 +355,12 @@ export class MapComponent implements AfterViewInit {
    * Converts row objects into GeoJSON, then loads into Maps API.
    */
   updateGeoJSON() {
+    const map = this.map;
+    if (!map) {
+      return;
+    }
+    const bounds = new google.maps.LatLngBounds(); // = map.getBounds();
+
     if (!this._rows || !this._geoColumn) { return; }
 
     const isZonelayer =  ('ZONE_CODE' in this._rows[0]) ? true : false;
@@ -357,7 +369,6 @@ export class MapComponent implements AfterViewInit {
     if (isZonelayer) {
       // Update the Overlays Key Map
       this._overlay_rows = this._rows;
-      this.addResultsToLayer(this._overlaysLayer, this._rows, HERITAGE_OVERLAY_STYLE.zIndex);
       this._overlaysLayer.addListener('mouseover', (event) => {
 
           this.highlightedOverlay = new OverlayProperties(event);
@@ -385,16 +396,27 @@ export class MapComponent implements AfterViewInit {
         }
       });
 
+      if (this.appSettings.loadSitesForPreviousOverlay === false) {
+        // no need to do zoom to this unless a new detail map layer is not about to be loaded.
+        this._overlaysLayer.addListener('addfeature', function(e) {
+          recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
+          if (!bounds.isEmpty()) {
+            map.fitBounds(bounds);
+          }
+        });
+      }
+      this.addResultsToLayer(this._overlaysLayer, this._rows, HERITAGE_OVERLAY_STYLE.zIndex);
+      if (this.appSettings.loadSitesForPreviousOverlay === false) {
+        this.appSettings.mapCenter = this.map.getCenter();
+        this.appSettings.mapZoom = this.map.getZoom();
+      }
     } else if (isPlanningLayer) {
       this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
       this._planningLayer.setMap(null);
-      const bounds = new google.maps.LatLngBounds();
 
       if (this.seletedOverlay.Overlay === '') {
         this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
       }
-
-      const map = this.map;
 
       this._planningLayer.addListener('addfeature', function(e) {
         recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
@@ -403,7 +425,6 @@ export class MapComponent implements AfterViewInit {
         }
       });
       this.addResultsToLayer(this._planningLayer, this._rows, HERITAGE_SITE_ZINDEX + 1);
-
 
       this._planningLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
 
@@ -453,7 +474,6 @@ export class MapComponent implements AfterViewInit {
               { clickable: false, strokeWeight: 3},
               { clickable: true, strokeWeight: 1}
       );
-      const map = this.map;
 
       this._propertiesLayer.addListener('addfeature', function(e) {
         recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
@@ -462,7 +482,8 @@ export class MapComponent implements AfterViewInit {
         }
       });
       this.addResultsToLayer(this._propertiesLayer, this._rows, HERITAGE_SITE_ZINDEX);
-
+      this.appSettings.mapCenter = this.map.getCenter();
+      this.appSettings.mapZoom = this.map.getZoom();
 
       this._propertiesLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
 
