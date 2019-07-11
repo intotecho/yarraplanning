@@ -34,6 +34,7 @@ import { GCS_BUCKET_SOS, HERITAGE_SITE_ZINDEX, HERITAGE_OVERLAY_STYLE } from '..
 import { HeritageSiteInfo } from '../main/panels/heritage-site-info/heritage-site-info';
 import { HeritageSiteInfoComponent } from '../main/panels/heritage-site-info/heritage-site-info.component';
 import { LayerDescription } from '../services/layers-info-service';
+import { Subject } from 'rxjs';
 
 interface IFeature {
   setMap(map: google.maps.Map|null): void;
@@ -53,7 +54,7 @@ export class MapComponent implements AfterViewInit {
 
   // Maps API instance.
   map: google.maps.Map;
-  
+
   // Info window for display over Maps API.
   infoWindow: google.maps.InfoWindow = null;
   overlayInfoComponentRef: ComponentRef<OverlayInfoComponent>;
@@ -117,6 +118,9 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
+  @Input()
+  hidePropertySubject: Subject<any>;
+
   constructor (
     private injector: Injector,
     private resolver: ComponentFactoryResolver,
@@ -163,8 +167,19 @@ export class MapComponent implements AfterViewInit {
         this.map.addListener('click', (event: google.maps.MouseEvent) => {
             console.log(`click lat:${event.latLng.lat}, lng:${event.latLng.lng}`);
         });
+        this.hidePropertySubject.subscribe(event => {
+          if (event !== null) {
+            this.removeMatchingFeaturesFromLayer(this._propertiesLayer, 'row_num', event.row_num);
+            console.log('Heritage Site Removed from Map', event);
+          }
+        });
       });
   }
+
+  findFeatureRow(row_num: Number) {
+    return this.rows.find(row => row['row_num'] === row_num);
+  }
+
 
   islayerSelected(layerInfo: Array<LayerDescription>, name: string): boolean {
     return layerInfo.find((layer) => {
@@ -209,16 +224,19 @@ export class MapComponent implements AfterViewInit {
     }
   }
 
-  removeFeaturesFromLayer(layer) {
+  removeFeaturesFromLayer(layer): boolean {
     layer.forEach((feature) => {
       if (Array.isArray(feature)) {
         feature.forEach((f) => {
           layer.remove(f);
+          return true;
         });
       } else {
         layer.remove(feature);
+        return true;
       }
     });
+    return false;
   }
 
   removeMatchingFeaturesFromLayer(layer, key, value) {
@@ -304,26 +322,27 @@ export class MapComponent implements AfterViewInit {
   }
 
   addResultsToLayer(layer, rows, zIndex) {
-    console.log(`Adding ${rows.length} Features`);
-    rows.forEach((row) => {
-      try {
+    console.time(`Adding ${rows.length} Features`);
+    try {
+      rows.forEach((row) => {
         const geometry = parseWKT(row[this._geoColumn]);
-        //delete row.locn; // make feature a bit smaller
-        //delete row.bndry;
-        const feature = {type: 'Feature', geometry, properties: row, zIndex: zIndex};
-
+        //['geom', 'bndry',  'Authority', 'NormalAddress' ].forEach(p => delete row[p]); no improvement
+        const feature = {
+          type: 'Feature',
+          geometry,
+          properties: row};
         layer.addGeoJson(feature);
         layer.overrideStyle(feature, {
-          zIndex: zIndex
+                    zIndex: zIndex
         });
+      });
+    } catch (e) {
+      // Parsing can fail (e.g. invalid WKT); just stop and log the error.
+      console.error(e);
+    }
 
-      } catch (e) {
-        // Parsing can fail (e.g. invalid WKT); just log the error.
-        console.error(e);
-      }
-    });
     layer.setMap(this.map);
-    console.log(`Added ${rows.length} Features`);
+    console.timeEnd(`Adding ${rows.length} Features`);
   }
 
   /**
@@ -503,11 +522,13 @@ export class MapComponent implements AfterViewInit {
         });
     } else if (styles.layer === 'vhdplaceid') {
       this.styler.uncache();
+      console.time("styling");
       this._propertiesLayer.forEach((feature) => {
         const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
         feature['zIndex'] = HERITAGE_SITE_ZINDEX;
         this._propertiesLayer.overrideStyle(feature, featureStyles);
         });
+      console.timeEnd("styling");
     }
   }
 
@@ -572,9 +593,7 @@ export class MapComponent implements AfterViewInit {
         div.appendChild(this.overlayInfoComponentRef.location.nativeElement);
 
       } else if (properties.hasOwnProperty('vhdplaceid')) {
-          this._propertiesLayer.remove(feature);
-          console.log('Heritage Site Removed');
-
+        /*
           const status = properties['HeritageStatus'];
           const htmlContentString = `
           <b>Removed ${status} site in ${properties['Overlay']} at</b><br/>
@@ -590,6 +609,7 @@ export class MapComponent implements AfterViewInit {
           this.infoWindow.setContent(htmlContentString);
           this.infoWindow.open(this.map);
           this.infoWindow.setPosition(event.latLng);
+          */
       } else if (properties.hasOwnProperty('Application_Number')) {
 
         const status = properties['HeritageStatus'];
@@ -631,7 +651,7 @@ export class MapComponent implements AfterViewInit {
       if (properties.hasOwnProperty('vhdplaceid')) {
         const status = properties['HeritageStatus'];
         let htmlContentString = `
-        <b>${properties['NormalAddress']}</b><br/>
+        <b>${properties['OriginalAddress']}</b><br/>
         <p data-status=${status} class="heritageStatusColor">${status}</p>
         In Heritage Overlay ${properties['Overlay']}
         <p>VHR ${properties['VHR']}</p>
@@ -691,3 +711,4 @@ function truncateWKT(text: string): string {
   text = String(text);
   return text.length <= 500 ? text : text.substr(0, 500) + '…';
 }
+

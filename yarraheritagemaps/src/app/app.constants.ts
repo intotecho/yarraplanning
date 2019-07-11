@@ -33,6 +33,7 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   export const HERITAGE_SITE_QUERY = `
   #standardsql
   SELECT
+  ROW_NUMBER() OVER () AS row_num,
   EZI_ADD,
   HeritageStatus,
   Overlay,
@@ -44,7 +45,6 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   PropertyType,
   PropertyId,
   EstimatedDate,
-  NormalAddress,
   OriginalAddress,
   vhdLocation,
   Matched,

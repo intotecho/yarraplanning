@@ -179,16 +179,19 @@
         [selectedLayersInfo]="selectedLayersInfo" [mmbwOverlay]="selectedMmbwMaps"
         (overlayChanged)="handleMapOverlayHighlighted($event)" (overlaySelected)="handleMapOverlaySelected($event)"
         (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
-        (heritageSiteSelected)="handleMapHeritageSiteSelected($event)">
+        (heritageSiteSelected)="handleMapHeritageSiteSelected($event)"
+        [hidePropertySubject]="hidePropertySubject">
       </app-map>
       <div class="floating">
         <mat-progress-spinner *ngIf="pending" mode="indeterminate" [diameter]="24" [strokeWidth]="4">
         </mat-progress-spinner>
       </div>
-
       <div class="cardcontainer">
-        <app-heritage-site-info [heritageSiteInfo]='highlightedHeritageSiteInfo'
-          [overlayProperties]="selectedOverlayProperties" title='Selected' context='fixed'>
+        <app-heritage-site-info 
+          [heritageSiteInfo]="highlightedHeritageSiteInfo"
+          [overlayProperties]="selectedOverlayProperties"
+          title="Selected" context="fixed"
+          (hideFeature$)="featureHideRequest($event)">          
         </app-heritage-site-info>
       </div>
     </div>

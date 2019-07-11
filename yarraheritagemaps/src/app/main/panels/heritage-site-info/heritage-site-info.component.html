@@ -1,7 +1,7 @@
-<mat-card *ngIf="_heritageSiteInfo.NormalAddress"
+<mat-card *ngIf="_heritageSiteInfo.OriginalAddress"
   [ngClass]="fullSize? 'expanded-heritage-site-card' : 'normal-heritage-site-card'">
   <mat-card-header [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
-    <mat-card-title *ngIf="_heritageSiteInfo.NormalAddress">{{_heritageSiteInfo['NormalAddress']}}</mat-card-title>
+    <mat-card-title *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}</mat-card-title>
     <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>

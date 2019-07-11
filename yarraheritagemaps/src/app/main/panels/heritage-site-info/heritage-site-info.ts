@@ -19,6 +19,7 @@ import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../../app.constants';
     PROPERTY_PFI
  */
 export class HeritageSiteInfo {
+    row_num: Number = 0;
     EZI_ADD: String = '';
     HeritageStatus: String = '';
     Overlay: String ;
@@ -30,7 +31,6 @@ export class HeritageSiteInfo {
     PropertyType: String = '';
     PropertyId: String = '';
     EstimatedDate: String = '';
-    NormalAddress: String = '';
     OriginalAddress: String = '';
     vhdLocation: String = '';
     Matched: String = '';
@@ -44,6 +44,7 @@ export class HeritageSiteInfo {
 
     constructor(event) {
         if (event && event.feature) {
+            this.row_num = event.feature.getProperty('row_num');
             this.EZI_ADD = event.feature.getProperty('EZI_ADD');
             this.HeritageStatus = event.feature.getProperty('HeritageStatus');
             this.Overlay = event.feature.getProperty('Overlay');
@@ -55,7 +56,6 @@ export class HeritageSiteInfo {
             this.PropertyType = event.feature.getProperty('PropertyType');
             this.PropertyId = event.feature.getProperty('PropertyId');
             this.EstimatedDate = event.feature.getProperty('EstimatedDate');
-            this.NormalAddress = event.feature.getProperty('NormalAddress');
             this.OriginalAddress = event.feature.getProperty('OriginalAddress');
             this.vhdLocation = event.feature.getProperty('vhdLocation');
             this.Matched = event.feature.getProperty('Matched');

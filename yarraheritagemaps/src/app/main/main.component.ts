@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
 import { MatTableDataSource, MatSnackBar } from '@angular/material';
@@ -57,6 +56,7 @@ import {
 } from '../services/select-MMBWOverlay';
 
 import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
+import { MapComponent } from '../map/map.component';
 const DEBOUNCE_MS = 1000;
 
 @Component({
@@ -67,6 +67,8 @@ const DEBOUNCE_MS = 1000;
 export class MainComponent implements OnInit, OnDestroy {
   selectedShadingScheme: string = 'Heritage Status';
   shadingSchemes: string[] = ['Heritage Status', 'Established Date'];
+
+  hidePropertySubject: Subject<any> = new Subject();
 
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
@@ -88,7 +90,6 @@ export class MainComponent implements OnInit, OnDestroy {
 
   selectedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   highlightedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
-
 
   mmbwMaps: Array<SelectMMBWOverlay> = MMBWMapsLibrary;
   selectedMmbwMaps: Array<SelectMMBWOverlay> = [];
@@ -301,7 +302,10 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   _dryRun() {
-    const { overlayId, projectID, shadingSchemesOptions, sql, location } = this.dataFormGroup.getRawValue();
+
+    const { overlayId, mmbwMap, shadingSchemesOptions } = this.dataFormGroup.getRawValue();
+    const { projectID, sql, location } = this.schemaFormGroup.getRawValue();
+
     this.dataService.prequery(overlayId, projectID, sql, location)
       .then((bytesProcessed) => {
         this.bytesProcessed = bytesProcessed;
@@ -487,6 +491,16 @@ export class MainComponent implements OnInit, OnDestroy {
     return 'none';
   }
 
+  featureHideRequest(event): void {
+      const status = event['HeritageStatus'];
+      const htmlContentString = `
+          Removed ${status} site in ${event['Overlay']} at
+          ${event['EZI_ADD']}
+          `;
+      this.showMessage(htmlContentString);
+      this.hidePropertySubject.next(event);
+  }
+
   getPropStats(propName: string): ColumnStat {
     const group = <FormGroup>this.stylesFormGroup.controls[propName];
     const rawValue = group.value;
@@ -513,3 +527,4 @@ function parseErrorMessage (e, defaultMessage = 'Something went wrong') {
   }
   return defaultMessage;
 }
+

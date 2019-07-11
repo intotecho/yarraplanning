@@ -30,7 +30,6 @@
     top: 130px;
 }
 
-
 .view {
     display: flex;
     flex-direction: row-reverse;
@@ -77,13 +76,13 @@
     width: 100%;
     left: 0;
     overflow: hidden;
-  }
+}
   
-  .example-events {
+.example-events {
     width: 100%;
     overflow: none;
     border: 1px solid #555;
-  }
+}
 
 mat-progress-spinner {
     display: inline-block;
