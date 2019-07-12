@@ -13,11 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 import { environment } from '../../environments/environment';
 import { MAX_RESULTS, TIMEOUT_MS } from '../app.constants';
 import { OverlayProperties } from '../main/panels/overlays-properties';
-
 export const ColumnType = {
   STRING: 'string',
   NUMBER: 'number',
@@ -27,6 +25,7 @@ export const ColumnType = {
   DATE: 'date',
   ID: 'id'
 };
+
 
 export interface ColumnStat {
   min: number;

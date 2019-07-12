@@ -55,8 +55,7 @@ export class MapComponent implements AfterViewInit {
 
   // Maps API instance.
   map: google.maps.Map;
-  readonly appSettings: AppSettings = new AppSettings();
-
+  
   // Info window for display over Maps API.
   infoWindow: google.maps.InfoWindow = null;
   overlayInfoComponentRef: ComponentRef<OverlayInfoComponent>;
@@ -69,7 +68,7 @@ export class MapComponent implements AfterViewInit {
 
   private _rows: Array<Object>;
   private _overlay_rows: Array<Object>;
-  private _geoColumn: string;
+  private _geoColumn = 'bndry';
   private _overlaysLayer: google.maps.Data;
   private _propertiesLayer: google.maps.Data;
   private _planningLayer: google.maps.Data;
@@ -87,14 +86,21 @@ export class MapComponent implements AfterViewInit {
 
   @Input()
   set rows(rows: Array<Object>) {
-    this._rows = rows;
-    this.updateGeoJSON();
+    if (rows.length) {
+      this._rows = rows;
+      this.updateGeoJSON();
+    }
   }
 
   @Input()
   set geoColumn(geoColumn: string) {
-    this._geoColumn = geoColumn;
-    this.updateGeoJSON();
+    const tmp = this._geoColumn;
+    if (geoColumn) {
+      this._geoColumn = geoColumn;
+      if (geoColumn !== tmp) {
+        this.updateGeoJSON();
+      }
+    }
   }
 
   @Input()
@@ -136,39 +142,30 @@ export class MapComponent implements AfterViewInit {
   /**
    * Constructs a Maps API instance after DOM has initialized.
    */
-
-
-  
   ngAfterViewInit() {
 
-    const mapCenter: google.maps.LatLng = this.appSettings.mapCenter;
-    const mapZoom: number = this.appSettings.mapZoom;
 
     Promise.all([ pendingMap, this.pendingStyles ])
       .then(([_, mapStyles]) => {
-        this._geoColumn = 'bndry';
-        const mapOptions =  {
-            center: mapCenter,
-            zoom: mapZoom,
-            mapTypeControl: false, // hide the Map and Satellite options
-            zoomControl: true,
-            zoomControlOptions: {
-                position: google.maps.ControlPosition.TOP_RIGHT
-            },
-            scaleControl: true,
-            streetViewControl: true,
-            streetViewControlOptions: {
-                position: google.maps.ControlPosition.TOP_RIGHT
-            }
+          const appSettings: AppSettings = new AppSettings(); // get copy of current values
+          const mapCenter: google.maps.LatLng = appSettings.mapCenter;
+          const mapZoom: number = appSettings.mapZoom;
+          const mapOptions =  {
+          center: mapCenter,
+          zoom: mapZoom,
+          mapTypeControl: false, // hide the Map and Satellite options
+          zoomControl: true,
+          zoomControlOptions: {
+              position: google.maps.ControlPosition.TOP_RIGHT
+          },
+          scaleControl: true,
+          streetViewControl: true,
+          streetViewControlOptions: {
+              position: google.maps.ControlPosition.TOP_RIGHT
+          }
         };
         this.map = new google.maps.Map(this.mapEl.nativeElement, mapOptions);
         this.map.setOptions({styles: mapStyles});
-
-        //const bounds = new google.maps.LatLngBounds();
-        //bounds.extend(new google.maps.LatLng(-37.83433865, 144.96147273999998));
-        //bounds.extend(new google.maps.LatLng(-37.775308171, 145.03859800099997));
-        //this.map.fitBounds(bounds);
-
         this._overlaysLayer = new google.maps.Data();
         this._propertiesLayer = new google.maps.Data();
         this._planningLayer = new google.maps.Data();
@@ -176,12 +173,14 @@ export class MapComponent implements AfterViewInit {
         this.map.addListener('click', (event: google.maps.MouseEvent) => {
             console.log(`click lat:${event.latLng.lat}, lng:${event.latLng.lng}`);
         });
+
         this.hidePropertySubject.subscribe(event => {
           if (event !== null) {
             this.removeMatchingFeaturesFromLayer(this._propertiesLayer, 'row_num', event.row_num);
             console.log('Heritage Site Removed from Map', event);
           }
         });
+
       });
   }
 
@@ -199,18 +198,18 @@ export class MapComponent implements AfterViewInit {
   updateSelectedLayersInfo(layerInfo: Array<LayerDescription>) {
 
     if (this._overlaysLayer) {
-      this._overlaysLayer.setMap(this.islayerSelected(layerInfo, 'Overlays') ? 
-      this.map : 
+      this._overlaysLayer.setMap(this.islayerSelected(layerInfo, 'Overlays') ?
+      this.map :
       null);
     }
     if (this._propertiesLayer) {
-      this._propertiesLayer.setMap(this.islayerSelected(layerInfo, 'Sites') ? 
-      this.map : 
+      this._propertiesLayer.setMap(this.islayerSelected(layerInfo, 'Sites') ?
+      this.map :
       null);
     }
     if (this._planningLayer) {
-      this._planningLayer.setMap(this.islayerSelected(layerInfo, 'Planning') ? 
-      this.map : 
+      this._planningLayer.setMap(this.islayerSelected(layerInfo, 'Planning') ?
+      this.map :
       null);
     }
     // this._mmbwOverlay.setMap(this.islayerSelected('Heritage Maps') ? this.map : null);
@@ -356,12 +355,11 @@ export class MapComponent implements AfterViewInit {
    */
   updateGeoJSON() {
     const map = this.map;
+    if (!this._rows || !this._geoColumn) { return; }
     if (!map) {
       return;
     }
     const bounds = new google.maps.LatLngBounds(); // = map.getBounds();
-
-    if (!this._rows || !this._geoColumn) { return; }
 
     const isZonelayer =  ('ZONE_CODE' in this._rows[0]) ? true : false;
     const isPlanningLayer =  ('Estimated_Cost' in this._rows[0]) ? true : false;
@@ -395,8 +393,8 @@ export class MapComponent implements AfterViewInit {
           this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
         }
       });
-
-      if (this.appSettings.loadSitesForPreviousOverlay === false) {
+      const appSettings: AppSettings = new AppSettings(); // get copy of current values
+      if (appSettings.loadSitesForPreviousOverlay === false) {
         // no need to do zoom to this unless a new detail map layer is not about to be loaded.
         this._overlaysLayer.addListener('addfeature', function(e) {
           recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);
@@ -406,9 +404,10 @@ export class MapComponent implements AfterViewInit {
         });
       }
       this.addResultsToLayer(this._overlaysLayer, this._rows, HERITAGE_OVERLAY_STYLE.zIndex);
-      if (this.appSettings.loadSitesForPreviousOverlay === false) {
-        this.appSettings.mapCenter = this.map.getCenter();
-        this.appSettings.mapZoom = this.map.getZoom();
+
+      if (appSettings.loadSitesForPreviousOverlay === false || appSettings.previousSelectedOverlay === '') {
+        appSettings.mapCenter = this.map.getCenter();
+        appSettings.mapZoom = this.map.getZoom();
       }
     } else if (isPlanningLayer) {
       this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
@@ -462,7 +461,7 @@ export class MapComponent implements AfterViewInit {
 
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
-      const bounds = new google.maps.LatLngBounds();
+      // const bounds = new google.maps.LatLngBounds();
       if (this.seletedOverlay.Overlay === '') {
         this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
       }
@@ -482,8 +481,9 @@ export class MapComponent implements AfterViewInit {
         }
       });
       this.addResultsToLayer(this._propertiesLayer, this._rows, HERITAGE_SITE_ZINDEX);
-      this.appSettings.mapCenter = this.map.getCenter();
-      this.appSettings.mapZoom = this.map.getZoom();
+      const appSettings: AppSettings = new AppSettings(); // get copy of current values
+      appSettings.mapCenter = this.map.getCenter();
+      appSettings.mapZoom = this.map.getZoom();
 
       this._propertiesLayer.addListener('mouseover', (event: google.maps.Data.MouseEvent) => {
 
@@ -543,13 +543,13 @@ export class MapComponent implements AfterViewInit {
         });
     } else if (styles.layer === 'vhdplaceid') {
       this.styler.uncache();
-      console.time("styling");
+      // console.time('styling');
       this._propertiesLayer.forEach((feature) => {
         const featureStyles = this.getStylesForFeature(feature, styles.styleRules);
         feature['zIndex'] = HERITAGE_SITE_ZINDEX;
         this._propertiesLayer.overrideStyle(feature, featureStyles);
         });
-      console.timeEnd("styling");
+      // console.timeEnd('styling');
     }
   }
 
@@ -583,7 +583,7 @@ export class MapComponent implements AfterViewInit {
   /**
    * Displays info window for overlay. This is a dynamically created component.
    */
-  onMarkerClick(marker, event: google.maps.Data.MouseEvent) {
+  onMarkerClick(_layer, event: google.maps.Data.MouseEvent) {
 
     const feature: google.maps.Data.Feature = event ? event.feature : null;
 
@@ -599,7 +599,8 @@ export class MapComponent implements AfterViewInit {
         properties[key] = key === this._geoColumn ? truncateWKT(value) : value;
       });
 
-      if (properties.hasOwnProperty('ZONE_CODE')) { // Create OverlayInfoComponent
+      if (properties.hasOwnProperty('ZONE_CODE')) {
+        // Clicked on Overlay
         if (this.overlayInfoComponentRef) {
           this.overlayInfoComponentRef.destroy();
         }
@@ -645,10 +646,10 @@ export class MapComponent implements AfterViewInit {
         <p data-status=${status} class="heritageStatusColor">${status}</p>
         `;
         this.infoWindow.setContent(htmlContentString);
+        this.infoWindow.open(this.map, _layer);
+        this.infoWindow.setPosition(event.latLng);
       }
-      //this.infoWindow.open(this.map, marker);
-      //this.infoWindow.setPosition(event.latLng);
-      }
+    }
     // componentRef.instance.someObservableOrEventEmitter.subscribe(data => this.prop = data);
   }
 
@@ -703,8 +704,8 @@ export class MapComponent implements AfterViewInit {
         this.infoWindow.setContent(htmlContentString);
 
       } else {
-        //this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);
-        this.infoWindow.setContent(`<app-overlay-info [overlayProperties]='overlayProperties'></app-overlay-info>`);
+        // this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);
+        // this.infoWindow.setContent(`<app-overlay-info [overlayProperties]='overlayProperties'></app-overlay-info>`);
         // We need to run dynamic component  in angular2 zone
         this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
       }

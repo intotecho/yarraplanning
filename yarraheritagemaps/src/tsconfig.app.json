@@ -3,7 +3,13 @@
   "compilerOptions": {
     "allowJs": true,
     "outDir": "../out-tsc/app",
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "types": [
+      "jasmine",
+      "node",
+      "gapi",
+      "googlemaps"
+    ]
 },
   "exclude": [
     "test.ts",

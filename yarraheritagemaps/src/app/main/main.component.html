@@ -21,7 +21,7 @@
   <a mat-button href="/terms" matTooltip="Send Feedback (TBD)" matTooltipPosition="after">!</a>
 </mat-toolbar>
 <mat-sidenav-container class="sidenav-container" [hasBackdrop]="false">
-  <mat-sidenav #sidenav mode="over" [(opened)]="sidenavOpened" (opened)="events.push('open!')" [ngClass]="appSettings.advancedControlsOpened ? 'wide-drawer' : 'drawer'"
+  <mat-sidenav #sidenav mode="over" [(opened)]="sidenavOpened" (opened)="events.push('open!')" [ngClass]="advancedControlsOpened ? 'wide-drawer' : 'drawer'"
     (closed)="events.push('close!')">
     <section>
       <button *ngIf="!isSignedIn" mat-raised-button color="primary" (click)="signin()">Sign in</button>
@@ -53,7 +53,7 @@
           <section class="restore-slider-section">
               <mat-slide-toggle
                   [color]="primary"
-                  [checked]="appSettings.loadSitesForPreviousOverlay"
+                  [checked]="_loadSitesForPreviousOverlay"
                   (change)="loadSitesForPreviousOverlay($event)">
                 <span class="legend">Restore on Reload</span>
               </mat-slide-toggle>
@@ -82,7 +82,7 @@
         </div>
       </div>
       </ng-container>
-      <mat-expansion-panel id='advanced-controls' *ngIf="isSignedIn"  [expanded]="appSettings.advancedControlsOpened" 
+      <mat-expansion-panel id='advanced-controls' *ngIf="isSignedIn"  [expanded]="advancedControlsOpened" 
         (opened)="openAccordion(true)"
         (closed)="openAccordion(false)"
         >
@@ -190,9 +190,13 @@
   </mat-sidenav>
   <mat-sidenav-content>
     <div id="mapcontainer">
-      <app-map [rows]="rows" [geoColumn]="schemaFormGroup.controls.geoColumn.value" [styles]="styles"
+      <app-map 
+        [rows]="rows" 
+        [geoColumn]="bndry"
         [selectedLayersInfo]="selectedLayersInfo" [mmbwOverlay]="selectedMmbwMaps"
-        (overlayChanged)="handleMapOverlayHighlighted($event)" (overlaySelected)="handleMapOverlaySelected($event)"
+        [styles]="styles"
+        (overlayChanged)="handleMapOverlayHighlighted($event)" 
+        (overlaySelected)="handleMapOverlaySelected($event)"
         (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
         (heritageSiteSelected)="handleMapHeritageSiteSelected($event)"
         [hidePropertySubject]="hidePropertySubject">

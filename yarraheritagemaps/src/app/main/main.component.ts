@@ -74,11 +74,11 @@ export class MainComponent implements OnInit, OnDestroy {
   readonly StyleProps = StyleProps;
   events: string[] = [];
   sidenavOpened = true;
-
+  advancedControlsOpened: boolean;
+  _loadSitesForPreviousOverlay: boolean;
   // GCP session data
   readonly dataService = new BigQueryService();
-  readonly appSettings: AppSettings = new AppSettings();
-
+  
   isSignedIn: boolean;
   user: Object;
   matchingProjects: Array<Project> = [];
@@ -126,8 +126,7 @@ export class MainComponent implements OnInit, OnDestroy {
   };
   readonly cmDebouncer: Subject<string> = new Subject();
   cmDebouncerSub: Subscription;
-  
-  
+
   constructor(
     private _formBuilder: FormBuilder,
     private _renderer: Renderer2,
@@ -152,8 +151,12 @@ export class MainComponent implements OnInit, OnDestroy {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
-    this.sidenavOpened = this.appSettings.advancedControlsOpened; // init opened when advanced.
     // Data form group
+    const appSettings: AppSettings = new AppSettings();
+    this.sidenavOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
+    this.advancedControlsOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
+    this._loadSitesForPreviousOverlay = appSettings.loadSitesForPreviousOverlay;
+
     this.dataFormGroup = this._formBuilder.group({
       overlayId: ['HO0'],
       selectedMMBWIds: [],
@@ -189,7 +192,7 @@ export class MainComponent implements OnInit, OnDestroy {
         } else {
         console.log('Overlay not found in form data!');
       }
-      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
+      this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
     });
 
     this.dataFormGroup.controls.selectedMMBWIds.valueChanges.debounceTime(200).subscribe(() => {
@@ -197,20 +200,20 @@ export class MainComponent implements OnInit, OnDestroy {
          return  this.dataFormGroup.controls.selectedMMBWIds.value.includes(mmbwMap.MMBWmapId);
       });
       console.log(this.selectedMmbwMaps);
-      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
+      this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
     });
 
     this.dataFormGroup.controls.shadingSchemesOptions.valueChanges.debounceTime(200).subscribe(() => {
       const shadingSchemesOptions = this.dataFormGroup.controls.shadingSchemesOptions.value;
       if (shadingSchemesOptions) {
-        this.appSettings.selectedShadingScheme = shadingSchemesOptions;
+        const appSettings: AppSettings = new AppSettings();
+        appSettings.selectedShadingScheme = shadingSchemesOptions;
         this.loadHeritageShadingScheme();
         this.updateStyles('vhdplaceid');
-        this.showMessage(`Shading sites by ${this.appSettings.selectedShadingScheme}`, 2000);
-        // this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened to show new legend.
+        this.showMessage(`Shading sites by ${appSettings.selectedShadingScheme}`, 2000);
+        // this.sidenavOpened = this.advancedControlsOpened; // leave opened to show new legend.
       }
     });
-
 
     // Style rules form group
     const stylesGroupMap = {};
@@ -257,8 +260,9 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   handleSelectedLayersChanged(event) {
+    const appSettings: AppSettings = new AppSettings(); 
     if (this.selectedLayersInfo !== event) {
-      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
+      this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
     }
     this.selectedLayersInfo = event;
     this._changeDetectorRef.detectChanges();
@@ -276,7 +280,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.overlayProperties = event;
     this.selectedOverlayProperties = event;
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
-    this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
+    this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
   }
 
   handleMapHeritageSiteHighlighted(event) {
@@ -317,7 +321,8 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
    getHeritageShadingFill() {
-    const heritageFill = this.appSettings.selectedShadingScheme === 'Heritage Status' ?
+    const appSettings: AppSettings = new AppSettings();
+    const heritageFill = appSettings.selectedShadingScheme === 'Heritage Status' ?
           HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS :
           HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE;
     return heritageFill;
@@ -352,6 +357,8 @@ export class MainComponent implements OnInit, OnDestroy {
         const heritageFill = this.getHeritageShadingFill();
         const opaqueStyle = {isComputed: false, value: 0.3};
         const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+        const appSettings: AppSettings = new AppSettings();
+
         if (this.columnNames.find(h => h === 'ZONE_CODE')) {
             this.handleQueryOverlaysResponse();
             // setup custom styling
@@ -363,8 +370,9 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
 
             this.updateStyles('Overlays');
-            this.showMessage('Click an Overlay on the map for more details', 5000);
-            // TODO Should defer persisting selectedOverlayProperties until load is successful
+            if (this._loadSitesForPreviousOverlay === false) {
+              this.showMessage('Click an Overlay on the map for more details', 5000);
+            }
           } else if (this.columnNames.find(h => h === 'Application_Number')) {
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
             this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
@@ -377,12 +385,13 @@ export class MainComponent implements OnInit, OnDestroy {
           } else if (this.columnNames.find(h => h === 'vhdplaceid')) {
             this.loadHeritageShadingScheme();
             this.updateStyles('vhdplaceid');
-            this.showMessage(`Showing Heritage properties within Overlay ${this.overlayProperties.Overlay}`, 5000);
-            localStorage.setItem('selectedOverlay',  JSON.stringify(this.selectedOverlayProperties));
+            this.showMessage(`Showing Heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+            // TODO Should defer persisting selectedOverlayProperties until load is successful
+            appSettings.previousSelectedOverlay = this.selectedOverlayProperties.Overlay as string;
           }
       })
       .catch((e) => {
-        this.showMessage(parseErrorMessage(e));
+        this.showMessage(parseErrorMessage('Error handling query: ', e));
       })
       .then(() => {
         this.pending = false;
@@ -393,29 +402,35 @@ export class MainComponent implements OnInit, OnDestroy {
    /* convert row to overlays in form drop down.
    * Optionally if the selectedOverlay is included in the data, request details of it.
    */
-  handleQueryOverlaysResponse() {
-    const queriedHeritageOverlays: Array<OverlayProperties> = [];
-    const rows = this.rows;
-    rows.forEach(row => {
-      const ovl: OverlayProperties = new OverlayProperties(null);
-      ovl.setOverlayFromRows(row);
-      queriedHeritageOverlays.push(ovl);
-    });
-    this.matchingOverlays = queriedHeritageOverlays;
 
+  getPreviousOverlay(appSettings: AppSettings): OverlayProperties {
     // Get selection from previous session to initialise.
-    const item = localStorage.getItem('selectedOverlay');
-    if (item !== 'undefined') {
-      const lastSelectedOverlay: OverlayProperties = JSON.parse(item);
-      const selOverlay = lastSelectedOverlay.Overlay;
-      const foundLastSelectedOverlay: OverlayProperties = this.matchingOverlays.find( o => o.Overlay === selOverlay);
-      if (foundLastSelectedOverlay && this.appSettings.loadSitesForPreviousOverlay) {
-        // Automatically select it and fetch data for Selected overlay
-        this.handleMapOverlaySelected(foundLastSelectedOverlay);
-      }
+    const previousOverlay = appSettings.previousSelectedOverlay;
+    if (previousOverlay) {
+      const foundLastSelectedOverlay: OverlayProperties = this.matchingOverlays.find( o => o.Overlay === previousOverlay);
+      return foundLastSelectedOverlay;
     }
+    return null;
+  }
 
-}
+  handleQueryOverlaysResponse() {
+      const queriedHeritageOverlays: Array<OverlayProperties> = [];
+      const rows = this.rows;
+      rows.forEach(row => {
+        const ovl: OverlayProperties = new OverlayProperties(null);
+        ovl.setOverlayFromRows(row);
+        queriedHeritageOverlays.push(ovl);
+      });
+      this.matchingOverlays = queriedHeritageOverlays;
+
+      // Get selection from previous session to initialise.
+      const appSettings: AppSettings = new AppSettings();
+      const lastSelectedOverlay = this.getPreviousOverlay(appSettings);
+      if (lastSelectedOverlay !== null && this._loadSitesForPreviousOverlay) {
+        // Automatically select it and fetch data for Selected overlay only if loadSitesForPreviousOverlay is set.
+        this.handleMapOverlaySelected(lastSelectedOverlay);
+      }
+  }
 
   updateStyles(layer: String) {
     if (this.stylesFormGroup.invalid) {
@@ -519,12 +534,16 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   openAccordion(state: boolean) {
-    this.appSettings.advancedControlsOpened = state;
+    const appSettings: AppSettings = new AppSettings();
+    this.advancedControlsOpened = state;
+    appSettings.advancedControlsOpened = state;
   }
 
   loadSitesForPreviousOverlay(event: MatSlideToggleChange ) {
-      this.appSettings.loadSitesForPreviousOverlay = event.checked;
-      this.sidenavOpened = this.appSettings.advancedControlsOpened; // leave opened when advanced.
+      const appSettings: AppSettings = new AppSettings();
+      this._loadSitesForPreviousOverlay = event.checked;
+      appSettings.loadSitesForPreviousOverlay = event.checked;
+      this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
   }
 }
 

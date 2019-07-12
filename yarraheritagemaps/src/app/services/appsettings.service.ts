@@ -25,6 +25,13 @@ export class AppSettings {
     this.saveAppSettings();
   }
 
+  private _previousSelectedOverlay: string;
+  public get previousSelectedOverlay() { return this._previousSelectedOverlay; }
+  public set previousSelectedOverlay(newValue: string) {
+    this._previousSelectedOverlay = newValue;
+    this.saveAppSettings();
+  }
+
   private _mapCenter: google.maps.LatLng;
   public get mapCenter() { return this._mapCenter; }
   public set mapCenter(newValue) {
@@ -48,14 +55,15 @@ export class AppSettings {
 
   readAppSettings() {
     const appSettingsString = localStorage.getItem('appSettings');
-    if (appSettingsString) {
-      const object: any =  JSON.parse(appSettingsString);
-      this._advancedControlsOpened   = object['_advancedControlsOpened'];
-      this._selectedShadingScheme = object['_selectedShadingScheme'] || 'Heritage Status';
-      this._loadSitesForPreviousOverlay = object['_loadSitesForPreviousOverlay'] ? true : false;
-      this._mapCenter = object['_mapCenter'] || new google.maps.LatLng(-37.83433865, 144.96147273999998);
-      this._mapZoom = object['_mapZoom'] || 6;
-    }
+    const object: any =  JSON.parse(appSettingsString) || {};
+    this._advancedControlsOpened   = object['_advancedControlsOpened'] ? true : false;
+    this._selectedShadingScheme = object['_selectedShadingScheme'] || 'Heritage Status';
+    this._previousSelectedOverlay = object['_previousSelectedOverlay'] || '';
+    this._loadSitesForPreviousOverlay = object.hasOwnProperty('_loadSitesForPreviousOverlay') ?
+        object['_loadSitesForPreviousOverlay'] : true;
+    this._mapCenter = object['_mapCenter'] || {'lat': -37.83433865, 'lng': 144.96147273999998};
+    // if (google) { this._mapCenter = new google.maps.LatLng(-37.83433865, 144.96147273999998);} but google not defined yet!
+    this._mapZoom = object['_mapZoom'] || 6;
     this._isInit = true;
   }
 

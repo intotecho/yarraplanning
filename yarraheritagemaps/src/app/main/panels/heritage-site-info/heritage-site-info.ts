@@ -90,7 +90,7 @@ export class HeritageSiteInfo {
      */
 
     StringToList(input_str: String): String[] {
-      const a:string = input_str.replace(/'/g, '"');
+      const a: string = input_str.replace(/'/g, '"');
       return(JSON.parse(a));
     }
 

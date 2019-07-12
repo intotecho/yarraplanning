@@ -3,21 +3,21 @@ import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { DebugElement } from '@angular/core';
 
-import { LayerControl.componentComponent } from './layer-control.component.component';
+import { LayerSelectComponent } from './layer-control.component.component';
 
 describe('LayerControl.componentComponent', () => {
-  let component: LayerControl.componentComponent;
-  let fixture: ComponentFixture<LayerControl.componentComponent>;
+  let component: LayerSelectComponent;
+  let fixture: ComponentFixture<LayerSelectComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ LayerControl.componentComponent ]
+      declarations: [ LayerSelectComponent]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(LayerControl.componentComponent);
+    fixture = TestBed.createComponent(LayerSelectComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

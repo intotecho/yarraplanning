@@ -42,7 +42,7 @@ export class LayerSelectComponent implements OnInit {
       this._selectedLayersInfo = this.availableLayersInfo.filter((layer) => {
          return  this.layersForm.value.includes(layer.name);
       });
-      console.log(this._selectedLayersInfo);
+      // console.log(this._selectedLayersInfo);
       this.selectedLayersInfo.emit(this._selectedLayersInfo);
     });
 

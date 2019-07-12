@@ -1,10 +1,12 @@
 <mat-card *ngIf="_heritageSiteInfo.OriginalAddress"
-  [ngClass]="fullSize? 'expanded-heritage-site-card' : 'normal-heritage-site-card'">
+  [ngClass]="panelHeight=='expanded-mat-panel' ? 'expanded-heritage-site-card' : 'normal-heritage-site-card'">
   <mat-card-header [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
-    <mat-card-title *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}</mat-card-title>
+    <mat-card-title *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}
+    </mat-card-title>
     <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</mat-card-subtitle>
   </mat-card-header>
-  <mat-card-content>
+  <ng-container *ngIf="panelHeight!='mini-mat-panel'">
+  <mat-card-content >
     <ngu-carousel #myCarousel [inputs]="carouselConfig" (onMove)="onCarouselMove($event)"
       (carouselLoad)="carouselTileLoad()" [dataSource]="[first, second, third, fourth]">
       <div *nguCarouselDef="let item;" class="item">
@@ -13,7 +15,7 @@
         </div>
       </div>
       <ng-template #first>
-        <div *ngIf="fullSize; else normalimage">
+        <div *ngIf="panelHeight=='expanded-mat-panel' ; else normalimage">
           <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
             <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
               alt="Large Photo of Heritage Site from VHD Database">
@@ -46,7 +48,7 @@
         </div>
       </ng-template>
       <ng-template #third>
-        <mat-expansion-panel [ngClass]="fullSize? 'expanded-mat-panel' : 'normal-mat-panel'"
+        <mat-expansion-panel [ngClass]="panelHeight"
           (opened)="getDetails($event)" [(expanded)]="sosExpanded">
           <mat-expansion-panel-header>
             <mat-panel-title>
@@ -136,6 +138,6 @@
       <li *ngFor="let j of myCarousel.pointNumbers; let j = index" [class.active]="j==myCarousel.activePoint"
         (click)="myCarousel.moveTo(j)"></li>
     </span>
-    <button mat-button>SHARE</button>
   </mat-card-actions>
+</ng-container>
 </mat-card>

@@ -27,7 +27,7 @@ export const HERITAGE_SITE_DATACENTER = 'australia-southeast1';
 export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
 
 
-  /* 
+  /*
    * Changing these fields must algin with HeritageSiteInfo
    */
   export const HERITAGE_SITE_QUERY = `

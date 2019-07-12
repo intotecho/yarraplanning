@@ -35,7 +35,7 @@ export class HeritageSiteInfoComponent {
   _sosDetails: String = 'SOS Placeholder';
   sosDetails$: Observable<String>;
   sosExpanded = false;
-  fullSize = false;
+  panelHeight = 'normal-mat-panel';
   portrait =  false;
   naturalWidth = 320;
   naturalHeight = 220;
@@ -113,7 +113,17 @@ export class HeritageSiteInfoComponent {
   }
 
   handleCardTitleClick() {
-    this.fullSize = !this.fullSize;
+    switch (this.panelHeight) {
+      case 'expanded-mat-panel':
+        this.panelHeight = 'mini-mat-panel';
+        break;
+      case 'normal-mat-panel':
+          this.panelHeight = 'expanded-mat-panel';
+          break;
+      case 'mini-mat-panel':
+            this.panelHeight = 'normal-mat-panel';
+            break;
+        }
   }
 
   heritageStatusClass() {
@@ -143,11 +153,11 @@ export class HeritageSiteInfoComponent {
     };
     const unusedstyle2 = `{'max-width.px': ${this.naturalWidth},
                     'max-height.px':${this.naturalHeight}}`;
-    console.log(style);
     return style;
   }
 
   hideFeature(event) {
     this.hideFeature$.emit(this._heritageSiteInfo);
   }
+
 }

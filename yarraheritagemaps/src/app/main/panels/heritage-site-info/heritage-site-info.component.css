@@ -89,6 +89,10 @@ mat-expansion-panel {
     max-height: 27vh;
 }
 
+.mini-mat-panel {
+    max-height: 1vh;
+}
+
 mat-expansion-panel-content {
     overflow-y: scroll !important;
     /*max-height: 27vh;
