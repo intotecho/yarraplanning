@@ -56,7 +56,7 @@ import { NguCarouselModule } from '@ngu/carousel';
 
 import { SoSService } from './services/sos.service';
 import { LayersInfoService } from './services/layers-info-service';
-import { LayerSelectComponent} from './map/layer-control.component/layer-control.component.component';
+import { LayerSelectComponent} from './map/layer-control/layer-control.component';
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
 

@@ -1,0 +1,9 @@
+<mat-form-field>
+  <mat-select placeholder="Layers to Display" 
+      [formControl]="layersForm" 
+      matTooltip="Select Layers to Display."
+      matTooltipPosition="after" 
+      multiple>
+    <mat-option *ngFor="let layer of formLayersInfo" [value]="layer">{{layer}}</mat-option>
+  </mat-select>
+</mat-form-field>

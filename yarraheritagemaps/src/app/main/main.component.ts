@@ -157,10 +157,12 @@ export class MainComponent implements OnInit, OnDestroy {
     this.advancedControlsOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
     this._loadSitesForPreviousOverlay = appSettings.loadSitesForPreviousOverlay;
 
+    const shadingSchemesOptions = appSettings.selectedShadingScheme;
+
     this.dataFormGroup = this._formBuilder.group({
       overlayId: ['HO0'],
       selectedMMBWIds: [],
-      shadingSchemesOptions: []
+      shadingSchemesOptions: [shadingSchemesOptions]
     });
 
     // Schema form group
@@ -204,13 +206,15 @@ export class MainComponent implements OnInit, OnDestroy {
     });
 
     this.dataFormGroup.controls.shadingSchemesOptions.valueChanges.debounceTime(200).subscribe(() => {
-      const shadingSchemesOptions = this.dataFormGroup.controls.shadingSchemesOptions.value;
-      if (shadingSchemesOptions) {
-        const appSettings: AppSettings = new AppSettings();
-        appSettings.selectedShadingScheme = shadingSchemesOptions;
+      const currentShadingSchemesOptions = this.dataFormGroup.controls.shadingSchemesOptions.value;
+      if (currentShadingSchemesOptions) {
+        const currentAppSettings: AppSettings = new AppSettings();
+        currentAppSettings.selectedShadingScheme = currentShadingSchemesOptions;
         this.loadHeritageShadingScheme();
         this.updateStyles('vhdplaceid');
-        this.showMessage(`Shading sites by ${appSettings.selectedShadingScheme}`, 2000);
+        this.showMessage(`Shading sites by ${currentAppSettings.selectedShadingScheme}`, 2000);
+        gtag('event', 'overlay', { event_label: `shading ${currentShadingSchemesOptions}` });
+
         // this.sidenavOpened = this.advancedControlsOpened; // leave opened to show new legend.
       }
     });
@@ -281,6 +285,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.selectedOverlayProperties = event;
     this.dataFormGroup.patchValue({overlayId: this.selectedOverlayProperties.Overlay });
     this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
+    gtag('event', 'overlay', { event_label: `select ${this.selectedOverlayProperties.Overlay}` });
   }
 
   handleMapHeritageSiteHighlighted(event) {

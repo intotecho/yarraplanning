@@ -4,16 +4,16 @@
 
 
 import { Component, OnInit, Output, EventEmitter, Input } from '@angular/core';
-import { LayerDescription, LayersInfoService } from '../../../../src/app/services/layers-info-service';
+import { LayerDescription, LayersInfoService } from '../../services/layers-info-service';
 import {FormControl} from '@angular/forms';
 
 @Component({
   selector: 'app-layer-select',
-  templateUrl: './layer-control.component.component.html',
-  styleUrls: ['./layer-control.component.component.css']
+  templateUrl: './layer-control.component.html',
+  styleUrls: ['./layer-control.component.css']
 })
 export class LayerSelectComponent implements OnInit {
-  layersForm = new FormControl();
+  layersForm: FormControl;
   availableLayersInfo: Array<LayerDescription>;
   initalSelectionLayersInfo: Array<string>;
   formLayersInfo: Array<string>;
@@ -37,6 +37,7 @@ export class LayerSelectComponent implements OnInit {
     this.initalSelectionLayersInfo = this.formLayersInfo.slice().filter((layer) => {
         return  layer !== 'Planning';
     });
+    this.layersForm = new FormControl(this.initalSelectionLayersInfo);
     // this.layersForm.setValue(this.initalSelectionLayersInfo);
     this.layersForm.valueChanges.debounceTime(200).subscribe(() => {
       this._selectedLayersInfo = this.availableLayersInfo.filter((layer) => {

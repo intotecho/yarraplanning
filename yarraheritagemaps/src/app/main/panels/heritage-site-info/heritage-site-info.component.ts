@@ -4,6 +4,8 @@ import { SoSService } from '../../../../../src/app/services/sos.service';
 import { HeritageSiteInfo } from './heritage-site-info';
 import { Observable } from 'rxjs';
 import { OverlayProperties } from '../overlays-properties';
+//import { MatPanel } from  '@qangular/material'
+
 const SOS_SLIDE = 2;
 
 @Component({
@@ -20,6 +22,7 @@ export class HeritageSiteInfoComponent {
   set heritageSiteInfo(heritageSiteInfo: HeritageSiteInfo) {
     this._heritageSiteInfo = heritageSiteInfo;
     this.carouselTileLoad();
+    gtag('event', 'site', { event_label: `siteinfo ${heritageSiteInfo.OriginalAddress}` });
   }
 
   @Input()
@@ -30,7 +33,7 @@ export class HeritageSiteInfoComponent {
 
   @Output() hideFeature$: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
 
-  _heritageSiteInfo: HeritageSiteInfo = null;
+  _heritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   _overlayProperties: OverlayProperties = null;
   _sosDetails: String = 'SOS Placeholder';
   sosDetails$: Observable<String>;
@@ -60,6 +63,7 @@ export class HeritageSiteInfoComponent {
   ) { }
 
   onCarouselMove() {
+    gtag('event', 'site', { event_label: `moveto ${this.currentSlide}` });
     this.sosExpanded = (this.currentSlide === SOS_SLIDE) ? true : false;
   }
 
@@ -112,16 +116,22 @@ export class HeritageSiteInfoComponent {
     return this._heritageSiteInfo.href;
   }
 
+  /* 
+   * minimize, maximize and restore the card by clicking on its title bar.
+   */
   handleCardTitleClick() {
     switch (this.panelHeight) {
       case 'expanded-mat-panel':
         this.panelHeight = 'mini-mat-panel';
+        gtag('event', 'site', { event_label: `panelsize expanded` });
         break;
       case 'normal-mat-panel':
           this.panelHeight = 'expanded-mat-panel';
+          gtag('event', 'site', { event_label: `panelsize normal` });
           break;
       case 'mini-mat-panel':
-            this.panelHeight = 'normal-mat-panel';
+            this.panelHeight = 'normal-mat-panel'; // @todo The panel is actually hidden.
+            gtag('event', 'site', { event_label: `panelsize mini` });
             break;
         }
   }

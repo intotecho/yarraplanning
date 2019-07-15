@@ -1,7 +1,8 @@
 <mat-card *ngIf="_heritageSiteInfo.OriginalAddress"
   [ngClass]="panelHeight=='expanded-mat-panel' ? 'expanded-heritage-site-card' : 'normal-heritage-site-card'">
   <mat-card-header [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
-    <mat-card-title *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}
+    <mat-card-title>
+      <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}</ng-container>
     </mat-card-title>
     <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</mat-card-subtitle>
   </mat-card-header>
