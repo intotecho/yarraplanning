@@ -1,4 +1,6 @@
 steps:
+
+# Remove HERITAGE_PROPS_VIEW
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -6,7 +8,9 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_DATASET}.CloudTest'
+  - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
+
+# Create HERITAGE_PROPS_VIEW from QUERY
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -85,7 +89,9 @@ steps:
       prop_pfi1, prop_pfi2, prop_pfi3,
       originalPROPNUM2, thirdPFI)
     FROM allmatches
-  - '${_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY'
+  - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
+
 substitutions:
     _DATASET: YarraPlanning
     _PROJECT_ID: yarrascrape
+    _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
