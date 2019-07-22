@@ -87,4 +87,4 @@ steps:
           propnum1,propnum2, propnum3,
           prop_pfi1, prop_pfi2, prop_pfi3,
           originalPROPNUM2, thirdPFI)
-        FROM allmatches'
+        FROM allmatches
