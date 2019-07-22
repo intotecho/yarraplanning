@@ -15,7 +15,6 @@ steps:
   - '--project_id=yarrascrape'
   - '--expiration=0'
   - '--description="Cloudbuild View of Overlays"'
-  - 'YarraPlanning.CloudTest'
   - |
     --view=
     # VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
@@ -86,3 +85,4 @@ steps:
       prop_pfi1, prop_pfi2, prop_pfi3,
       originalPROPNUM2, thirdPFI)
     FROM allmatches
+  - 'YarraPlanning.CloudTest'
