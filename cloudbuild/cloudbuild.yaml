@@ -51,10 +51,8 @@ steps:
     FROM`yarrascrape.YarraPlanning.HERITAGE_REGISTER_C191_WITHVHD` r
     LEFT JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
     ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
-    #WHERE properties.PROPNUM IS NULL
     )
     SELECT 
-    #REGEXP_EXTRACT(missingprops.PropertyId, r"[\d]*") as originalPROPNUM,
     properties.PROPNUM as propnum2,
     properties.prop_pfi as prop_pfi2,
     properties.geom as boundary2,
@@ -63,7 +61,7 @@ steps:
     LEFT JOIN
       `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
     ON
-      REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r"\[\'(\d{3,12})\'.*\]") = CAST(properties.PROP_PFI AS STRING)
+      REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') = CAST(properties.PROP_PFI AS STRING)
     )
     SELECT 
     REGEXP_EXTRACT(firsmatchfailed.PropertyId, r"[\d]*") as originalPROPNUM2,
