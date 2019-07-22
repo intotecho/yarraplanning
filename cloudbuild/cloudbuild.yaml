@@ -18,7 +18,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:cloudbuild.yaml'
+  - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -117,7 +117,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:cloudbuild.yaml'
+  - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -165,7 +165,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:cloudbuild.yaml'
+  - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -231,7 +231,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:cloudbuild.yaml'
+  - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
