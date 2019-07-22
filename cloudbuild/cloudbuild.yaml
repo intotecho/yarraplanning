@@ -137,9 +137,9 @@ steps:
     CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
     CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
     FROM
-      `_PROJECT_ID.${_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
+      `${_PROJECT_ID}.${_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
     LEFT JOIN
-      `_PROJECT_ID.${_DATASET}.OVERLAY_SCHEDULE` AS ovl
+      `${_PROJECT_ID}.${_DATASET}.OVERLAY_SCHEDULE` AS ovl
     ON
       ovl.Overlay = register.Overlay
     WHERE
@@ -149,6 +149,7 @@ steps:
   - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
 
 # Remove ${_OVERLAYS_VIEW}
+- name: 'BUILD OVERLAY VIEW'
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
