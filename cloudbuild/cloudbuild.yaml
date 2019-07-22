@@ -1,9 +1,5 @@
 steps:
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bq'
-  args:
-  - query
-  - 'SELECT 1'
+
   # Don't get hung up on this just about running BigQuery commands.
   # Because you're working with containers here, you can run *anything*
   # you darn well please. It doesn't even have to be part of the GCP
