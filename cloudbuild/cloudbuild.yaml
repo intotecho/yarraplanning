@@ -1,9 +1,12 @@
 steps:
-
-  # Don't get hung up on this just about running BigQuery commands.
-  # Because you're working with containers here, you can run *anything*
-  # you darn well please. It doesn't even have to be part of the GCP
-  # ecosystem. Want to run some FORTRAN? Sure, go for it.
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=yarrascrape'
+  - 'YarraPlanning.CloudTest'
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -19,7 +22,6 @@ steps:
         # For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
         # The output includes the matching PROPNUM, where one exists.
         # Where the second match fails, then matchingPROPNUM is null.
-
         # Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. This leaves only 68 non-matching addresses.
         WITH allmatches as (
         WITH firsmatchfailed as (
