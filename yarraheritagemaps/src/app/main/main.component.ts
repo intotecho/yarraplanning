@@ -78,7 +78,6 @@ export class MainComponent implements OnInit, OnDestroy {
   _loadSitesForPreviousOverlay: boolean;
   // GCP session data
   readonly dataService = new BigQueryService();
-  
   isSignedIn: boolean;
   user: Object;
   matchingProjects: Array<Project> = [];
@@ -86,7 +85,7 @@ export class MainComponent implements OnInit, OnDestroy {
   // private _layersInfo: Array<LayerDescription>;
   selectedLayersInfo: Array<LayerDescription> = [];
 
-  overlayProperties: OverlayProperties = new OverlayProperties(null);
+  overlayProperties: OverlayProperties = new OverlayProperties(null); // hover on overlay - for desktop
   selectedOverlayProperties: OverlayProperties = new OverlayProperties(null);
   matchingOverlays: Array<OverlayProperties> = [];
 
@@ -104,7 +103,7 @@ export class MainComponent implements OnInit, OnDestroy {
   columns: Array<Object>;
   columnNames: Array<string>;
   bytesProcessed: Number = 0;
-  lintMessage: String = '';
+  lintMessage = '';
   pending = false;
   rows: Array<Object>;
   data: MatTableDataSource<Object>;
@@ -143,7 +142,7 @@ export class MainComponent implements OnInit, OnDestroy {
     this.dataService.onSigninChange(() => this.onSigninChange());
     this.dataService.init()
       .catch((e) => this.showMessage(
-        parseErrorMessage(e)
+        parseErrorMessage(e, 'Init Error')
         ));
   }
 
@@ -264,7 +263,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   handleSelectedLayersChanged(event) {
-    const appSettings: AppSettings = new AppSettings(); 
+    const appSettings: AppSettings = new AppSettings();
     if (this.selectedLayersInfo !== event) {
       this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
     }
@@ -272,7 +271,11 @@ export class MainComponent implements OnInit, OnDestroy {
     this._changeDetectorRef.detectChanges();
     if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
         this.query(PLANNING_APPS_QUERY);
-        this.showMessage(`Loading Planning Applications for Overlay ${this.overlayProperties.Overlay}`, 5000);
+        if (this.selectedOverlayProperties.Overlay.length > 0 ) {
+          this.showMessage(`Loading Planning Applications for Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+        } else {
+          this.showMessage(`Fist Select an Overlay`, 5000);
+        }
       }
   }
 
@@ -290,6 +293,9 @@ export class MainComponent implements OnInit, OnDestroy {
 
   handleMapHeritageSiteHighlighted(event) {
     this.highlightedHeritageSiteInfo = event;
+    if (event) {
+      this.overlayProperties = this.selectedOverlayProperties;
+    }
   }
 
   handleMapHeritageSiteSelected(event) {
@@ -321,7 +327,13 @@ export class MainComponent implements OnInit, OnDestroy {
       })
       .catch((e) => {
         this.bytesProcessed = -1;
-        this.lintMessage = parseErrorMessage(e);
+        this.lintMessage = parseErrorMessage(e, 'Prequery Error: ');
+        this.showMessage(this.lintMessage);
+        gtag('event', 'exception', {
+          event_category: `prequery`,
+          event_label: `${overlayId}`,
+          value: `sql: ${sql}, error: ${this.lintMessage}`
+        });
       });
   }
 
@@ -379,6 +391,7 @@ export class MainComponent implements OnInit, OnDestroy {
               this.showMessage('Click an Overlay on the map for more details', 5000);
             }
           } else if (this.columnNames.find(h => h === 'Application_Number')) {
+            this.loadHeritageShadingScheme();
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
             this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
             this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
@@ -396,7 +409,14 @@ export class MainComponent implements OnInit, OnDestroy {
           }
       })
       .catch((e) => {
-        this.showMessage(parseErrorMessage('Error handling query: ', e));
+        this.lintMessage = parseErrorMessage('Error handling query: ', e);
+        this.showMessage(this.lintMessage);
+        gtag('event', 'exception', {
+          event_category: `query`,
+          event_label: `${overlayId}`,
+          value: `sql: ${sql}, error: ${this.lintMessage}`
+        });
+
       })
       .then(() => {
         this.pending = false;
@@ -552,7 +572,7 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 }
 
-function parseErrorMessage (e, defaultMessage = 'Something went wrong') {
+function parseErrorMessage (e, defaultMessage = 'Something went wrong'): string {
   if (e.message) { return e.message; }
   if (e.result && e.result.error && e.result.error.message) {
     return e.result.error.message;

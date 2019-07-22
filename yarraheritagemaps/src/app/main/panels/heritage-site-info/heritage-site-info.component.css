@@ -51,11 +51,11 @@
     z-index: 10;
     position: absolute;
     align-self: center; 
-    margin-left: auto;
-    margin-right: auto;  
+    margin-right: 20px;  
     vertical-align: middle;
-    max-width: 91vw;
-    padding: 8px;
+    max-width: calc(100vw - 40px);
+    width: calc(100vw - 40px);
+    padding-right: 20px;
 }
 
 .mat-card-content {
@@ -123,21 +123,19 @@ h3 a {
 .center-image {
     display: block;
     text-align: center;
-    /*max-width: 330px;
-    max-height:220px;*/
-    max-width: 91vw;
+    max-width: calc(100vw - 40px);
     max-height:80vh;
 }
 
 .expanded-image{
-    max-width: 91vw;
+    max-width: calc(100vw - 40px);
     max-height:80vh;
 }
 
 mat-card img{
     overflow:hidden;
     object-fit: cover; /*this makes de image in src fit to the size of specified below*/
-    max-width: 91vw; /* Here you can use wherever you want to specify the width and also the height of the <img>*/
+    max-width: calc(100vw - 40px); 
     max-height: 90vh;
     margin-left:auto;
     margin-right:auto;  

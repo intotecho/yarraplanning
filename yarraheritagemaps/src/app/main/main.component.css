@@ -6,17 +6,6 @@
 .cardcontainer {
     margin: 0 auto;
     width: 95%;
-    /*background: #888888ff;
-    border-radius: 2px;
-    height: 30%;
-    margin: 1rem;
-    width: 95%;
-    position: absolute;
-    max-height: 30%;
-    left: 10px;
-    bottom: 2px;
-    font-family: 'Roboto','sans-serif';
-    */
 }
 
 
@@ -41,6 +30,7 @@
 .header-logo {
     height: 32px;
     margin-right: 0.5em;
+    line-height: 20px;
 }
 
 .flex-spacer {
@@ -49,6 +39,7 @@
 
 .small-description {
     font-size:10px;
+    line-height: 12px;
 }
 
 .drawer {

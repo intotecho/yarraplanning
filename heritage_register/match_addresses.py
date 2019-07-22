@@ -12,7 +12,7 @@ import math
 import column_defs as cd
 import numpy as np
 import time
-
+ 
 logger = logging.getLogger("root")
 logger.setLevel(logging.INFO)
 # create console handler

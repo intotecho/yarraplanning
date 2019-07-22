@@ -182,6 +182,7 @@ export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
   isComputed: true,
   property: 'earliest',
   function: 'interval',
+  value: '#202020',
   domain: [ 1840,           1860,        1880,        1900,        1920,        1940,        1960,        2030],
   range:  [ '#242424',      '#990000',   '#d7301f',   '#ef6548',   '#fc8d59',   '#fdbb84',   '#fdd49e',   '#fed4ff'],
   caption: ['Unknown Date', '1840-1859', '1860-1879', '1890-1899', '1900-1919', '1920-1939', '1940-1959', 'After 1960'],

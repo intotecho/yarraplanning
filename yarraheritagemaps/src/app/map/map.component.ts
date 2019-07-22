@@ -491,10 +491,13 @@ export class MapComponent implements AfterViewInit {
         this.heritageSiteChanged.emit(this.highlightedHeritageSiteInfo);
 
         if (event.feature) {
+          // console.log(this.highlightedHeritageSiteInfo.OriginalAddress);
           this._propertiesLayer.overrideStyle(event.feature, {
             strokeWeight: 3,
             zIndex: HERITAGE_SITE_ZINDEX
           });
+        } else {
+         //  console.log('mouse over no feautre');
         }
       });
 

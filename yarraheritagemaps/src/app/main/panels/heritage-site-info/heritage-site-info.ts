@@ -1,7 +1,7 @@
 import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../../app.constants';
 
 /*
- *  Fields based on table YARRAHERITAGEMAPS_PROPERTIES. These must align with the Query.
+ *  Fields based on tab. These must align with the Query.
     EZI_ADD,
     HeritageStatus,
     Overlay,
