@@ -1,6 +1,6 @@
 steps:
 
-# Remove HERITAGE_PROPS_VIEW
+# REMOVE VIEW  _HERITAGE_PROPS_VIEW
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -10,10 +10,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# Create View HERITAGE_PROPS_VIEW from QUERY
-# From tables 
-#     HERITAGE_REGISTER_C191_WITHVHD
-#    
+# CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -21,15 +18,23 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--description="Cloudbuild View of Overlays"'
+  - '--label=build:cloudbuild.yaml'
+  - '--label=heritage-maps:required'
+  - |
+    --description=
+    QUERY FOR VIEW ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
+    First Filter the Register to properties where PropertyId does not match any row in YARRA_PROPERTIES.
+    For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
+    The output includes the matching PROPNUM, where one exists.
+    Where the second match fails, then matchingPROPNUM is null.
+    Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. 
+    This leaves around 250 non-matching addresses.
+    USES TABLES 
+      - HERITAGE_REGISTER_C191_WITHVHD
+      - YARRA_PROPERTIES
   - |
     --view=
-    # VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
-    # First Filter the Register to properties where PropertyId does not match any row in YARRA_PROPERTIES.
-    # For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
-    # The output includes the matching PROPNUM, where one exists.
-    # Where the second match fails, then matchingPROPNUM is null.
-    # Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. This leaves only 68 non-matching addresses.
+    #  QUERY FOR VIEW ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
     WITH allmatches as (
     WITH firsmatchfailed as (
     WITH missingprops as (
@@ -94,7 +99,7 @@ steps:
     FROM allmatches
   - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# Remove _OVERLAYS_AVG_DATE
+# REMOVE VIEW _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -104,11 +109,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# Create View _OVERLAYS_AVG_DATE from QUERY
-# From tables 
-#     YARRA_OVERLAYS
-#     HERITAGEMAPS_PROPERTIES
-#    
+# CREATE VIEW  _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -116,20 +117,18 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
+  - '--label=build:cloudbuild.yaml'
+  - '--label=heritage-maps:required'
   - |
     --description=
-    Cloudbuild VIEW
+    QUERY FOR VIEW ${_OVERLAYS_AVG_DATE} BUILT WITH CLOUD BUILD
     Extract Details of the dates of all properties in each overlay
     Based on tables
       YARRAHERITAGEMAPS_PROPERTIES
       OVERLAY_SCHEDULE
   - |
     --view=
-    #Cloudbuild VIEW
-    #Extract Details of the dates of all properties in each overlay
-    #Based on tables
-    #  YARRAHERITAGEMAPS_PROPERTIES
-    #  OVERLAY_SCHEDULE
+    # QUERY FOR VIEW ${_OVERLAYS_AVG_DATE} BUILT WITH CLOUD BUILD
     SELECT
     ovl.Overlay,
     HeritagePlace,
@@ -166,9 +165,11 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
+  - '--label=build:cloudbuild.yaml'
+  - '--label=heritage-maps:required'
   - |
     --description=
-    Cloudbuild VIEW
+    QUERY FOR VIEW ${_OVERLAYS_VIEW} BUILT WITH CLOUD BUILD
     Merge the Boundary Geometry from YARRA_OVERLAYS with the OVERLAY_SCHEDULE and OVERLAY_AVG_DATE
     Filter out not Yarra LGA overlays and no HO zone types
     Merge in the Average, Min and Max Established dates for each overlay.
@@ -178,7 +179,7 @@ steps:
       OVERLAYS_AVG_ESTABLISHED_DATE
   - |
     --view=
-    # Cloudbuild VIEW. See View Description
+    # QUERY FOR VIEW ${_OVERLAYS_VIEW} BUILT WITH CLOUD BUILD
     WITH
       schedulewithboundary AS (
       SELECT
@@ -212,9 +213,82 @@ steps:
       schedulewithboundary.ZONE_CODE = dates.Overlay
   - '${_DATASET}.${_OVERLAYS_VIEW}'
 
+# Remove _YARRAHERITAGEMAPS_PROPERTIES
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
+
+# Create View _YARRAHERITAGEMAPS_PROPERTIES from QUERY
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'mk'
+  - '--use_legacy_sql=false'
+  - '--project_id=${_PROJECT_ID}'
+  - '--expiration=0'
+  - '--label=build:cloudbuild.yaml'
+  - '--label=heritage-maps:required'
+  - |
+    --description=
+    QUERY FOR VIEW ${YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
+    Merge all the VHD Properties with  ${_HERITAGE_PROPS_VIEW} 
+    Select props needed for application to run.
+    Convert to ST_GeoJson
+    Based on tables
+      ${_HERITAGE_PROPS_VIEW}
+      VHD
+      OVERLAYS_AVG_ESTABLISHED_DATE
+  - |
+    --view=
+    # QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
+    SELECT
+      register.EZI_ADD,
+      register.HeritageStatus,
+      register.Overlay,
+      vhd.Name,
+      vhd.vhdplaceid,
+      register.vhdplaceid AS vhdPlacesId,
+      vhd.Image,
+      vhd.Authority,
+      register.PropertyType,
+      register.PropertyId,
+      register.EstimatedDate,
+      register.NormalAddress,
+      register.OriginalAddress,
+      vhd.Location AS vhdLocation,
+      register.Matched,
+      register.PROPERTY_PFI,
+      vhd.VHR,
+      vhd.href,
+      vhd.SoSHash,
+      register.earliest,
+      register.boundary,
+      register.latest,
+      register.sec_earliest,
+      register.sec_latest,
+      register.geom,
+      register.prop_pfi,
+      register.propnum,
+      #SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom,
+      SAFE.ST_GeogFromGeoJson(IFNULL(register.boundary,
+            register.geom)) AS bndry
+    FROM
+      `${_PROJECT_ID}.${_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY` AS register
+    LEFT JOIN
+      `${_PROJECT_ID}.${_DATASET}.VHD` AS vhd
+    ON
+      REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
+  - '${_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
+
 substitutions:
     _DATASET: YarraPlanning
     _PROJECT_ID: yarrascrape
     _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
     _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
     _OVERLAYS_VIEW: OVERLAYS
+    _YARRAHERITAGEMAPS_PROPERTIES: YARRAHERITAGEMAPS_PROPERTIES
