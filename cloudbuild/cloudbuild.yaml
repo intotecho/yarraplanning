@@ -10,7 +10,10 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# Create HERITAGE_PROPS_VIEW from QUERY
+# Create View HERITAGE_PROPS_VIEW from QUERY
+# From tables 
+#     HERITAGE_REGISTER_C191_WITHVHD
+#    
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -91,7 +94,127 @@ steps:
     FROM allmatches
   - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
+# Remove _OVERLAYS_AVG_DATE
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
+
+# Create View _OVERLAYS_AVG_DATE from QUERY
+# From tables 
+#     YARRA_OVERLAYS
+#     HERITAGEMAPS_PROPERTIES
+#    
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'mk'
+  - '--use_legacy_sql=false'
+  - '--project_id=${_PROJECT_ID}'
+  - '--expiration=0'
+  - |
+    --description=
+    Cloudbuild VIEW
+    Extract Details of the dates of all properties in each overlay
+    Based on tables
+      YARRAHERITAGEMAPS_PROPERTIES
+      OVERLAY_SCHEDULE
+  - |
+    --view=
+    #Cloudbuild VIEW
+    #Extract Details of the dates of all properties in each overlay
+    #Based on tables
+    #  YARRAHERITAGEMAPS_PROPERTIES
+    #  OVERLAY_SCHEDULE
+    SELECT
+    ovl.Overlay,
+    HeritagePlace,
+    CAST(FLOOR(AVG(earliest)) AS INT64)  as Avg_EstablishedDate,
+    CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
+    CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
+    FROM
+      `_PROJECT_ID.${_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
+    LEFT JOIN
+      `_PROJECT_ID.${_DATASET}.OVERLAY_SCHEDULE` AS ovl
+    ON
+      ovl.Overlay = register.Overlay
+    WHERE
+      earliest > 1800
+    GROUP BY
+      Overlay, HeritagePlace
+  - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
+
+# Remove ${_OVERLAYS_VIEW}
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_DATASET}.${_OVERLAYS_VIEW}'
+
+# Create View ${_OVERLAYS_VIEW} from QUERY
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'mk'
+  - '--use_legacy_sql=false'
+  - '--project_id=${_PROJECT_ID}'
+  - '--expiration=0'
+  - |
+    --description=
+    Cloudbuild VIEW
+    Merge the Boundary Geometry from YARRA_OVERLAYS with the OVERLAY_SCHEDULE and OVERLAY_AVG_DATE
+    Filter out not Yarra LGA overlays and no HO zone types
+    Merge in the Average, Min and Max Established dates for each overlay.
+    Based on tables
+      OVERLAY_SCHEDULE
+      YARRA_OVERLAYS
+      OVERLAYS_AVG_ESTABLISHED_DATE
+  - |
+    --view=
+    # Cloudbuild VIEW. See View Description
+    WITH
+      schedulewithboundary AS (
+      SELECT
+        * EXCEPT(geom,
+          LGA_CODE,
+          ZONESTATUS,
+          PFI,
+          ZONE_NUM,
+          PFI_CR,
+          UFI_CR,
+          UFI),
+        SAFE.ST_GeogFromGeoJson(geom) AS OverlayBoundary
+      FROM
+        `${_PROJECT_ID}.${_DATASET}.YARRA_OVERLAYS` AS zones
+      LEFT JOIN
+        `${_PROJECT_ID}.${_DATASET}.OVERLAY_SCHEDULE` AS schedule
+      ON
+        zones.ZONE_CODE= schedule.Overlay
+      WHERE
+        LGA='YARRA'
+        AND SCHEMECODE='HO' )
+    SELECT
+      schedulewithboundary.*,
+      dates.* EXCEPT(Overlay,
+        HeritagePlace)
+    FROM
+      schedulewithboundary
+    LEFT JOIN
+      `${_PROJECT_ID}.${_DATASET}.OVERLAYS_AVG_ESTABLISHED_DATE` AS dates
+    ON
+      schedulewithboundary.ZONE_CODE = dates.Overlay
+  - '${_DATASET}.${_OVERLAYS_VIEW}'
+
 substitutions:
     _DATASET: YarraPlanning
     _PROJECT_ID: yarrascrape
     _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
+    _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
+    _OVERLAYS_VIEW: OVERLAYS
