@@ -16,7 +16,7 @@ steps:
   - '--expiration=0'
   - '--description="Cloudbuild View of Overlays"'
   - 'YarraPlanning.CloudTest'
-  - '--view:
+  - '--view=
         # VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
         # First Filter the Register to properties where PropertyId does not match any row in YARRA_PROPERTIES.
         # For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
