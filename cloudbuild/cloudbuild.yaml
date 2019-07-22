@@ -235,14 +235,14 @@ steps:
   - '--label=heritage-maps:required'
   - |
     --description=
-    QUERY FOR VIEW ${YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
+    QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
     Merge all the VHD Properties with  ${_HERITAGE_PROPS_VIEW} 
     Select props needed for application to run.
     Convert to ST_GeoJson
     Based on tables
       ${_HERITAGE_PROPS_VIEW}
+      ${_OVERLAYS_AVG_DATE}
       VHD
-      OVERLAYS_AVG_ESTABLISHED_DATE
   - |
     --view=
     # QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
