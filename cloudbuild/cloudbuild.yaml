@@ -149,8 +149,8 @@ steps:
   - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
 
 # Remove ${_OVERLAYS_VIEW}
-- name: 'BUILD OVERLAY VIEW'
 - name: 'gcr.io/cloud-builders/gcloud'
+- name: 'BUILD OVERLAY VIEW'
   entrypoint: 'bq'
   args: 
   - 'rm'
