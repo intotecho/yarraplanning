@@ -150,7 +150,6 @@ steps:
 
 # Remove ${_OVERLAYS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
-- name: 'BUILD OVERLAY VIEW'
   entrypoint: 'bq'
   args: 
   - 'rm'
