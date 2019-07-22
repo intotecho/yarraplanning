@@ -271,12 +271,11 @@ steps:
       register.latest,
       register.sec_earliest,
       register.sec_latest,
-      register.geom,
+      register.geom, # ezi_address location
       register.prop_pfi,
       register.propnum,
       #SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom,
-      SAFE.ST_GeogFromGeoJson(IFNULL(register.boundary,
-            register.geom)) AS bndry
+      SAFE.ST_GeogFromGeoJson(register.boundary) AS bndry
     FROM
       `${_PROJECT_ID}.${_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY` AS register
     LEFT JOIN
