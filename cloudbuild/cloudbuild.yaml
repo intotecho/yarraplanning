@@ -6,4 +6,82 @@ steps:
   # ecosystem. Want to run some FORTRAN? Sure, go for it.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: ['mk', '--use_legacy_sql=false', '--view=SELECT 2', '--project_id=yarrascrape', '--expiration=0', '--description="Cloudbuild View of Overlays"', 'YarraPlanning.CloudTest']
+  args: 
+  - 'mk'
+  - '--use_legacy_sql=false'
+  - '--project_id=yarrascrape'
+  - '--expiration=0'
+  - '--description="Cloudbuild View of Overlays"'
+  - 'YarraPlanning.CloudTest'
+  - '--view:
+        # VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
+        # First Filter the Register to properties where PropertyId does not match any row in YARRA_PROPERTIES.
+        # For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
+        # The output includes the matching PROPNUM, where one exists.
+        # Where the second match fails, then matchingPROPNUM is null.
+
+        # Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. This leaves only 68 non-matching addresses.
+        WITH allmatches as (
+        WITH firsmatchfailed as (
+        WITH missingprops as (
+        SELECT 
+        r.* EXCEPT( Type,
+            Number,
+            Suburb,
+            AddressName,
+            number_last_suffix,
+            state,
+            postcode,
+            number_first,
+            street_type,
+            number_last,
+            locality_name,
+            building_name,
+            street_name,
+            flat_number,
+            number_first_suffix,
+            flat_number_suffix),
+        properties.LGA_CODE,
+        properties.geom AS boundary1,
+        properties.prop_pfi as prop_pfi1,
+        properties.propnum as propnum1
+        FROM`yarrascrape.YarraPlanning.HERITAGE_REGISTER_C191_WITHVHD` r
+        LEFT JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
+        ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
+        #WHERE properties.PROPNUM IS NULL
+        )
+        SELECT 
+        #REGEXP_EXTRACT(missingprops.PropertyId, r"[\d]*") as originalPROPNUM,
+        properties.PROPNUM as propnum2,
+        properties.prop_pfi as prop_pfi2,
+        properties.geom as boundary2,
+        missingprops.*
+        from missingprops
+        LEFT JOIN
+          `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
+        ON
+          REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r"\[\''(\d{3,12})\''.*\]") = CAST(properties.PROP_PFI AS STRING)
+        )
+        SELECT 
+        REGEXP_EXTRACT(firsmatchfailed.PropertyId, r"[\d]*") as originalPROPNUM2,
+        REGEXP_EXTRACT(PROPERTY_PFI, r''\[\''\d*\'', \''\d*\'', \''(\d{3,12})\''.*\]'') as thirdPFI,
+        properties.PROPNUM as propnum3,
+        properties.prop_pfi as prop_pfi3,
+        properties.geom as boundary3,
+        firsmatchfailed.*
+        from firsmatchfailed 
+        LEFT JOIN
+          `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
+        ON 
+          REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r''\[\''\d*\'', \''\d*\'', \''(\d{3,12})\''.*\]'')  = CAST(properties.PROP_PFI AS STRING)
+          )
+        SELECT 
+          IFNULL(boundary1, IFNULL(boundary2, boundary3)) as boundary,
+          IFNULL(prop_pfi1, IFNULL(prop_pfi2, prop_pfi3)) as prop_pfi,
+          IFNULL(propnum1, IFNULL(propnum2, propnum3)) as propnum,
+          allmatches.* except(
+          boundary1, boundary2, boundary3, 
+          propnum1,propnum2, propnum3,
+          prop_pfi1, prop_pfi2, prop_pfi3,
+          originalPROPNUM2, thirdPFI)
+        FROM allmatches'
