@@ -5,14 +5,14 @@ steps:
   - 'rm'
   - '-f'
   - '-t'
-  - '--project_id=yarrascrape'
-  - 'YarraPlanning.CloudTest'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_DATASET}.CloudTest'
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
   - 'mk'
   - '--use_legacy_sql=false'
-  - '--project_id=yarrascrape'
+  - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
   - '--description="Cloudbuild View of Overlays"'
   - |
@@ -47,8 +47,8 @@ steps:
     properties.geom AS boundary1,
     properties.prop_pfi as prop_pfi1,
     properties.propnum as propnum1
-    FROM`yarrascrape.YarraPlanning.HERITAGE_REGISTER_C191_WITHVHD` r
-    LEFT JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
+    FROM`${_PROJECT_ID}.${_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
+    LEFT JOIN `${_PROJECT_ID}.${_DATASET}.YARRA_PROPERTIES` AS properties
     ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
     )
     SELECT 
@@ -58,7 +58,7 @@ steps:
     missingprops.*
     from missingprops
     LEFT JOIN
-      `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
+      `${_PROJECT_ID}.${_DATASET}.YARRA_PROPERTIES` AS properties
     ON
       REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') = CAST(properties.PROP_PFI AS STRING)
     )
@@ -71,7 +71,7 @@ steps:
     firsmatchfailed.*
     from firsmatchfailed 
     LEFT JOIN
-      `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
+      `${_PROJECT_ID}.${_DATASET}.YARRA_PROPERTIES` AS properties
     ON 
       REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]')  = CAST(properties.PROP_PFI AS STRING)
       )
@@ -85,4 +85,7 @@ steps:
       prop_pfi1, prop_pfi2, prop_pfi3,
       originalPROPNUM2, thirdPFI)
     FROM allmatches
-  - 'YarraPlanning.CloudTest'
+  - '${_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY'
+substitutions:
+    _DATASET: YarraPlanning
+    _PROJECT_ID: yarrascrape
