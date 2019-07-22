@@ -6,4 +6,4 @@ steps:
   # ecosystem. Want to run some FORTRAN? Sure, go for it.
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: ['mk', '--use_legacy_sql=false', '--view=`SELECT 2`', '--project_id yarrascrape', 'YarraPlanning.CloudTest', '--expiration 0', '--description "Cloudbuild View of Overlays"']
+  args: ['mk', '--use_legacy_sql=false', '--view=`SELECT 2`', '--project_id yarrascrape', '--expiration 0', '--description "Cloudbuild View of Overlays"', 'YarraPlanning.CloudTest']
