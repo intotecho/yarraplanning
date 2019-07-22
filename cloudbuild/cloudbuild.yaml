@@ -16,7 +16,8 @@ steps:
   - '--expiration=0'
   - '--description="Cloudbuild View of Overlays"'
   - 'YarraPlanning.CloudTest'
-  - '--view=
+  - |
+        --view=
         # VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
         # First Filter the Register to properties where PropertyId does not match any row in YARRA_PROPERTIES.
         # For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
@@ -62,11 +63,11 @@ steps:
         LEFT JOIN
           `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
         ON
-          REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r"\[\''(\d{3,12})\''.*\]") = CAST(properties.PROP_PFI AS STRING)
+          REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r"\[\'(\d{3,12})\'.*\]") = CAST(properties.PROP_PFI AS STRING)
         )
         SELECT 
         REGEXP_EXTRACT(firsmatchfailed.PropertyId, r"[\d]*") as originalPROPNUM2,
-        REGEXP_EXTRACT(PROPERTY_PFI, r''\[\''\d*\'', \''\d*\'', \''(\d{3,12})\''.*\]'') as thirdPFI,
+        REGEXP_EXTRACT(PROPERTY_PFI, r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]') as thirdPFI,
         properties.PROPNUM as propnum3,
         properties.prop_pfi as prop_pfi3,
         properties.geom as boundary3,
@@ -75,7 +76,7 @@ steps:
         LEFT JOIN
           `yarrascrape.YarraPlanning.YARRA_PROPERTIES` AS properties
         ON 
-          REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r''\[\''\d*\'', \''\d*\'', \''(\d{3,12})\''.*\]'')  = CAST(properties.PROP_PFI AS STRING)
+          REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]')  = CAST(properties.PROP_PFI AS STRING)
           )
         SELECT 
           IFNULL(boundary1, IFNULL(boundary2, boundary3)) as boundary,
