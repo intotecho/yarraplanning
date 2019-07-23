@@ -170,8 +170,7 @@ steps:
         AND SCHEMECODE='HO' )
     SELECT
       schedulewithboundary.*,
-      dates.* EXCEPT(Overlay,
-        HeritagePlace)
+      dates.* EXCEPT(Overlay)
     FROM
       schedulewithboundary
     LEFT JOIN
