@@ -218,9 +218,8 @@ steps:
     properties.PROP_PFI as matchingPROP_PFI,
     properties.PROPNUM as matchingPROPNUM,
     SAFE.ST_GeogFromGeoJSON(properties.geom) AS bndry
-    FROM`yarrascrape.YarraPlanning.HERITAGE_REGISTER_VHD_GEOM` r
     FROM
-      `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}` AS register
+      `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}` AS r
     JOIN `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
     ON ( 
       r.PROPNUM = properties.PROPNUM
