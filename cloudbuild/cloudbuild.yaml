@@ -30,7 +30,7 @@ steps:
     Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. 
     This leaves around 250 non-matching addresses.
     USES TABLES 
-      - HERITAGE_REGISTER_C191_WITHVHD from ${_SRC_DATASET}
+      - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
   - |
     --view=
@@ -59,7 +59,7 @@ steps:
     properties.geom AS boundary1,
     properties.prop_pfi as prop_pfi1,
     properties.propnum as propnum1
-    FROM`${_PROJECT_ID}.${_SRC_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
+    FROM`${_PROJECT_ID}.${_SRC_DATASET}.${_HERITAGE_REGISTER}` r
     LEFT JOIN `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
     ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
     )
@@ -99,7 +99,7 @@ steps:
     FROM allmatches
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# REMOVE VIEW: _OVERLAYS_AVG_DATE
+# 3 REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -109,7 +109,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# CREATE VIEW  _OVERLAYS_AVG_DATE
+# 4 CREATE VIEW  _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -130,21 +130,16 @@ steps:
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     SELECT
-    ovl.Overlay,
-    HeritagePlace,
+    Overlay,
     CAST(FLOOR(AVG(earliest)) AS INT64)  as Avg_EstablishedDate,
     CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
     CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
     FROM
-      `${_PROJECT_ID}.${_TARGET_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
-    LEFT JOIN
-      `${_PROJECT_ID}.${_SRC_DATASET}.OVERLAY_SCHEDULE` AS ovl
-    ON
-      ovl.Overlay = register.Overlay
+      `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_REGISTER}` AS register
     WHERE
       earliest > 1800
     GROUP BY
-      Overlay, HeritagePlace
+      Overlay
   - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
 # Remove ${_OVERLAYS_VIEW}
@@ -292,3 +287,4 @@ substitutions:
   _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
   _OVERLAYS_VIEW: OVERLAYS
   _YARRAHERITAGEMAPS_PROPERTIES: YARRAHERITAGEMAPS_PROPERTIES
+  _HERITAGE_REGISTER: HERITAGE_REGISTER_C191_WITHVHD
