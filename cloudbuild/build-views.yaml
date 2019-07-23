@@ -271,7 +271,7 @@ steps:
       #SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom,
       SAFE.ST_GeogFromGeoJson(register.boundary) AS bndry
     FROM
-      `${_PROJECT_ID}.${_TARGET_DATASET}.{_HERITAGE_PROPS_VIEW}` AS register
+      `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}` AS register
     LEFT JOIN
       `${_PROJECT_ID}.${_SRC_DATASET}.VHD` AS vhd
     ON
