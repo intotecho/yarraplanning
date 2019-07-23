@@ -220,7 +220,7 @@ steps:
     SAFE.ST_GeogFromGeoJSON(properties.geom) AS bndry
     FROM
       `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}` AS r
-    JOIN `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
+    JOIN `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
     ON ( 
       r.PROPNUM = properties.PROPNUM
       OR 
