@@ -1,6 +1,6 @@
 steps:
 
-# 1 REMOVE VIEW  _HERITAGE_PROPS_VIEW
+# 1a REMOVE VIEW  _HERITAGE_PROPS_VIEW
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -10,7 +10,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# 2 CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
+# 2a CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -23,81 +23,53 @@ steps:
   - |
     --description=
     QUERY FOR VIEW ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
-    First Filter the Register to properties where PropertyId does not match any row in YARRA_PROPERTIES.
-    For those rows only, extract the PROP_PFI from the first matching YARRA_ADDRESS and use this to lookup a matching row in YARRA_PROPERTIES.
-    The output includes the matching PROPNUM, where one exists.
-    Where the second match fails, then matchingPROPNUM is null.
-    Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. 
-    This leaves around 250 non-matching addresses.
+    Enrich HERITAGE_REGISTER with VHD peroperties
+    and perform preprocessing to suit the join with YARRA_PROPERTIES.
+    Extracts the first three PROP_PFIs for matching.
     USES TABLES 
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
   - |
     --view=
     #  QUERY FOR VIEW: ${_HERITAGE_PROPS_VIEW} - BUILT WITH CLOUD BUILD
-    WITH allmatches as (
-    WITH firsmatchfailed as (
-    WITH missingprops as (
-    SELECT 
-    r.* EXCEPT( Type,
-        Number,
-        Suburb,
-        AddressName,
-        number_last_suffix,
-        state,
-        postcode,
-        number_first,
-        street_type,
-        number_last,
-        locality_name,
-        building_name,
-        street_name,
-        flat_number,
-        number_first_suffix,
-        flat_number_suffix),
-    properties.LGA_CODE,
-    properties.geom AS boundary1,
-    properties.prop_pfi as prop_pfi1,
-    properties.propnum as propnum1
-    FROM`${_PROJECT_ID}.${_SRC_DATASET}.${_HERITAGE_REGISTER}` r
-    LEFT JOIN `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
-    ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
-    )
-    SELECT 
-    properties.PROPNUM as propnum2,
-    properties.prop_pfi as prop_pfi2,
-    properties.geom as boundary2,
-    missingprops.*
-    from missingprops
+    SELECT
+      register.EZI_ADD,
+      register.HeritageStatus,
+      register.Overlay,
+      vhd.Name,
+      vhd.vhdplaceid,
+      register.vhdplaceid AS vhdPlacesId,
+      vhd.Image,
+      vhd.Authority,
+      register.PropertyType,
+      register.EstimatedDate,
+      register.NormalAddress,
+      register.OriginalAddress,
+      vhd.Location AS vhdLocation,
+      register.Matched,
+      vhd.VHR,
+      vhd.href,
+      vhd.SoSHash,
+      register.earliest,
+      register.latest,
+      register.sec_earliest,
+      register.sec_latest,
+      register.PropertyId,                                             
+      REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
+      register.PROPERTY_PFI,
+      CAST(REGEXP_EXTRACT(register.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') AS INT64) as prop_pfi1,
+      CAST(REGEXP_EXTRACT(register.PROPERTY_PFI, r'\[\'\d*\', \'(\d{3,12})\'.*\]') AS INT64) as prop_pfi2,
+      CAST(REGEXP_EXTRACT(register.PROPERTY_PFI, r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]') AS INT64) as prop_pfi3,       
+      register.geom, # ezi_address location might not be used.
+      SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom
+    FROM
+      `yarrascrape.${_SRC_DATASET}.${_HERITAGE_REGISTER}` AS register
     LEFT JOIN
-      `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
+      `yarrascrape.${_SRC_DATASET}.VHD` AS vhd
     ON
-      REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') = CAST(properties.PROP_PFI AS STRING)
-    )
-    SELECT 
-    REGEXP_EXTRACT(firsmatchfailed.PropertyId, r"[\d]*") as originalPROPNUM2,
-    REGEXP_EXTRACT(PROPERTY_PFI, r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]') as thirdPFI,
-    properties.PROPNUM as propnum3,
-    properties.prop_pfi as prop_pfi3,
-    properties.geom as boundary3,
-    firsmatchfailed.*
-    from firsmatchfailed 
-    LEFT JOIN
-      `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
-    ON 
-      REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]')  = CAST(properties.PROP_PFI AS STRING)
-      )
-    SELECT 
-      IFNULL(boundary1, IFNULL(boundary2, boundary3)) as boundary,
-      IFNULL(prop_pfi1, IFNULL(prop_pfi2, prop_pfi3)) as prop_pfi,
-      IFNULL(propnum1, IFNULL(propnum2, propnum3)) as propnum,
-      allmatches.* except(
-      boundary1, boundary2, boundary3, 
-      propnum1,propnum2, propnum3,
-      prop_pfi1, prop_pfi2, prop_pfi3,
-      originalPROPNUM2, thirdPFI)
-    FROM allmatches
+      REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
+
 
 # 3 REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -130,10 +102,10 @@ steps:
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     SELECT
-    Overlay,
-    CAST(FLOOR(AVG(earliest)) AS INT64)  as Avg_EstablishedDate,
-    CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
-    CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
+      Overlay,
+      CAST(FLOOR(AVG(earliest)) AS INT64)  as Avg_EstablishedDate,
+      CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
+      CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
     FROM
       `${_PROJECT_ID}.${_SRC_DATASET}.${_HERITAGE_REGISTER}` AS register
     WHERE
@@ -187,10 +159,10 @@ steps:
           UFI_CR,
           UFI),
         SAFE.ST_GeogFromGeoJson(geom) AS OverlayBoundary
-      FROM
-        `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_OVERLAYS` AS zones
-      LEFT JOIN
-        `${_PROJECT_ID}.${_SRC_DATASET}.OVERLAY_SCHEDULE` AS schedule
+        FROM
+          `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_OVERLAYS` AS zones
+        LEFT JOIN
+          `${_PROJECT_ID}.${_SRC_DATASET}.OVERLAY_SCHEDULE` AS schedule
       ON
         zones.ZONE_CODE= schedule.Overlay
       WHERE
@@ -198,7 +170,8 @@ steps:
         AND SCHEMECODE='HO' )
     SELECT
       schedulewithboundary.*,
-      dates.* EXCEPT(Overlay)
+      dates.* EXCEPT(Overlay,
+        HeritagePlace)
     FROM
       schedulewithboundary
     LEFT JOIN
@@ -240,49 +213,33 @@ steps:
   - |
     --view=
     # QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
-    SELECT
-      register.EZI_ADD,
-      register.HeritageStatus,
-      register.Overlay,
-      vhd.Name,
-      vhd.vhdplaceid,
-      register.vhdplaceid AS vhdPlacesId,
-      vhd.Image,
-      vhd.Authority,
-      register.PropertyType,
-      register.PropertyId,
-      register.EstimatedDate,
-      register.NormalAddress,
-      register.OriginalAddress,
-      vhd.Location AS vhdLocation,
-      register.Matched,
-      register.PROPERTY_PFI,
-      vhd.VHR,
-      vhd.href,
-      vhd.SoSHash,
-      register.earliest,
-      register.boundary,
-      register.latest,
-      register.sec_earliest,
-      register.sec_latest,
-      register.geom, # ezi_address location
-      register.prop_pfi,
-      register.propnum,
-      #SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom,
-      SAFE.ST_GeogFromGeoJson(register.boundary) AS bndry
+    SELECT 
+    r.*,
+    properties.LGA_CODE,
+    properties.PROP_PFI as matchingPROP_PFI,
+    properties.PROPNUM as matchingPROPNUM,
+    SAFE.ST_GeogFromGeoJSON(properties.geom) AS bndry
+    FROM`yarrascrape.YarraPlanning.HERITAGE_REGISTER_VHD_GEOM` r
     FROM
       `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}` AS register
-    LEFT JOIN
-      `${_PROJECT_ID}.${_SRC_DATASET}.VHD` AS vhd
-    ON
-      REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
+    JOIN `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
+    ON ( 
+      r.PROPNUM = properties.PROPNUM
+      OR 
+      r.prop_pfi1 = properties.PROP_PFI
+      OR
+      r.prop_pfi2 = properties.PROP_PFI
+      OR
+      r.prop_pfi3 = properties.PROP_PFI
+    )
+    WHERE ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(properties.geom), r.vhdGeom) = TRUE
   - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
 
 substitutions:
   _PROJECT_ID: yarrascrape
   _SRC_DATASET: YarraPlanning
   _TARGET_DATASET: PROD_DATASET
-  _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
+  _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_VHD_GEOM
   _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
   _OVERLAYS_VIEW: OVERLAYS
   _YARRAHERITAGEMAPS_PROPERTIES: YARRAHERITAGEMAPS_PROPERTIES
