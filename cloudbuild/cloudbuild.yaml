@@ -30,8 +30,8 @@ steps:
     Outer filter takes the nulls from the matchingPROPNUM and tries to match on the second PFI in PROP_PFI array. 
     This leaves around 250 non-matching addresses.
     USES TABLES 
-      - HERITAGE_REGISTER_C191_WITHVHD
-      - YARRA_PROPERTIES
+      - HERITAGE_REGISTER_C191_WITHVHD from ${_SRC_DATASET}
+      - YARRA_PROPERTIES from ${_SRC_DATASET}
   - |
     --view=
     #  QUERY FOR VIEW ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
@@ -60,7 +60,7 @@ steps:
     properties.prop_pfi as prop_pfi1,
     properties.propnum as propnum1
     FROM`${_PROJECT_ID}.${_TARGET_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
-    LEFT JOIN `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
+    LEFT JOIN `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
     ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
     )
     SELECT 
@@ -70,7 +70,7 @@ steps:
     missingprops.*
     from missingprops
     LEFT JOIN
-      `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
+      `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
     ON
       REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') = CAST(properties.PROP_PFI AS STRING)
     )
@@ -83,7 +83,7 @@ steps:
     firsmatchfailed.*
     from firsmatchfailed 
     LEFT JOIN
-      `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
+      `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
     ON 
       REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]')  = CAST(properties.PROP_PFI AS STRING)
       )
@@ -138,7 +138,7 @@ steps:
     FROM
       `${_PROJECT_ID}.${_TARGET_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
     LEFT JOIN
-      `${_PROJECT_ID}.${_TARGET_DATASET}.OVERLAY_SCHEDULE` AS ovl
+      `${_PROJECT_ID}.${_SRC_DATASET}.OVERLAY_SCHEDULE` AS ovl
     ON
       ovl.Overlay = register.Overlay
     WHERE
@@ -174,9 +174,9 @@ steps:
     Filter out not Yarra LGA overlays and no HO zone types
     Merge in the Average, Min and Max Established dates for each overlay.
     Based on tables
-      OVERLAY_SCHEDULE
-      YARRA_OVERLAYS
-      OVERLAYS_AVG_ESTABLISHED_DATE
+      OVERLAY_SCHEDULE  from ${_SRC_DATASET}
+      YARRA_OVERLAYS  from ${_SRC_DATASET}
+      ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}
   - |
     --view=
     # QUERY FOR VIEW ${_OVERLAYS_VIEW} BUILT WITH CLOUD BUILD
@@ -208,12 +208,12 @@ steps:
     FROM
       schedulewithboundary
     LEFT JOIN
-      `${_PROJECT_ID}.${_TARGET_DATASET}.OVERLAYS_AVG_ESTABLISHED_DATE` AS dates
+      `${_PROJECT_ID}.${_SRC_DATASET}.${_OVERLAYS_AVG_DATE}` AS dates
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
-# Remove _YARRAHERITAGEMAPS_PROPERTIES
+# Remove View _YARRAHERITAGEMAPS_PROPERTIES
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -239,10 +239,10 @@ steps:
     Merge all the VHD Properties with  ${_HERITAGE_PROPS_VIEW} 
     Select props needed for application to run.
     Convert to ST_GeoJson
-    Based on tables
-      ${_HERITAGE_PROPS_VIEW}
-      ${_OVERLAYS_AVG_DATE}
-      VHD
+    Based on views 
+      ${_HERITAGE_PROPS_VIEW} view from ${_TARGET_DATASET}
+      ${_OVERLAYS_AVG_DATE} view from ${_TARGET_DATASET}
+      VHD table from  ${_SRC_DATASET}
   - |
     --view=
     # QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
@@ -277,7 +277,7 @@ steps:
       #SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom,
       SAFE.ST_GeogFromGeoJson(register.boundary) AS bndry
     FROM
-      `${_PROJECT_ID}.${_TARGET_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY` AS register
+      `${_PROJECT_ID}.${_TARGET_DATASET}.{_HERITAGE_PROPS_VIEW}` AS register
     LEFT JOIN
       `${_PROJECT_ID}.${_TARGET_DATASET}.VHD` AS vhd
     ON
