@@ -34,7 +34,7 @@ steps:
       - YARRA_PROPERTIES from ${_SRC_DATASET}
   - |
     --view=
-    #  QUERY FOR VIEW ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
+    #  QUERY FOR VIEW: ${_HERITAGE_PROPS_VIEW} - BUILT WITH CLOUD BUILD
     WITH allmatches as (
     WITH firsmatchfailed as (
     WITH missingprops as (
@@ -99,7 +99,7 @@ steps:
     FROM allmatches
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# REMOVE VIEW _OVERLAYS_AVG_DATE
+# REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -121,14 +121,14 @@ steps:
   - '--label=heritage-maps:required'
   - |
     --description=
-    QUERY FOR VIEW ${_OVERLAYS_AVG_DATE} BUILT WITH CLOUD BUILD
+    QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD.
     Extract Details of the dates of all properties in each overlay
     Based on tables
       YARRAHERITAGEMAPS_PROPERTIES
       OVERLAY_SCHEDULE
   - |
     --view=
-    # QUERY FOR VIEW ${_OVERLAYS_AVG_DATE} BUILT WITH CLOUD BUILD
+    # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     SELECT
     ovl.Overlay,
     HeritagePlace,
@@ -285,9 +285,9 @@ steps:
   - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
 
 substitutions:
+    _PROJECT_ID: yarrascrape
     _SRC_DATASET: YarraPlanning
     _TARGET_DATASET: PROD_DATASET
-    _PROJECT_ID: yarrascrape
     _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
     _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
     _OVERLAYS_VIEW: OVERLAYS
