@@ -1,6 +1,6 @@
 steps:
 
-# REMOVE VIEW  _HERITAGE_PROPS_VIEW
+# 1 REMOVE VIEW  _HERITAGE_PROPS_VIEW
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -10,7 +10,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
-# CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
+# 2 CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -59,7 +59,7 @@ steps:
     properties.geom AS boundary1,
     properties.prop_pfi as prop_pfi1,
     properties.propnum as propnum1
-    FROM`${_PROJECT_ID}.${_TARGET_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
+    FROM`${_PROJECT_ID}.${_SRC_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
     LEFT JOIN `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
     ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
     )
