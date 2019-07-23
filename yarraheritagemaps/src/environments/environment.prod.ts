@@ -17,5 +17,7 @@
 export const environment = {
   production: true,
   authClientID: '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com',
-  authScope: 'https://www.googleapis.com/auth/bigquery'
+  authScope: 'https://www.googleapis.com/auth/bigquery',
+  projectId: 'yarrascrape',
+  _DATASET: 'PROD_DATASET'
 };

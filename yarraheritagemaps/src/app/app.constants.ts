@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+import { environment } from '../environments/environment';
 import * as colorbrewer from 'colorbrewer';
 
 export const Step = {
@@ -26,6 +26,7 @@ export const HERITAGE_SITE_DATACENTER = 'australia-southeast1';
 
 export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
 
+environment._DATASET;
 
   /*
    * Changing these fields must algin with HeritageSiteInfo
@@ -55,7 +56,7 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   earliest,
   bndry
   FROM
-  \`yarrascrape.YarraPlanning.YARRAHERITAGEMAPS_PROPERTIES\` as register
+  \`yarrascrape.${environment._DATASET}.YARRAHERITAGEMAPS_PROPERTIES\` as register
   WHERE
   register.Overlay = @overlay
 `;
@@ -68,7 +69,7 @@ export const PLANNING_APPS_QUERY = `
     ),
     overlay AS (
       SELECT ST_GeogFromGeoJson(geom) AS polygon
-      FROM  \`yarrascrape.YarraPlanning.YARRA_OVERLAYS\`, params
+      FROM  \`yarrascrape.${environment._DATASET}.YARRA_OVERLAYS\`, params
       WHERE ZONE_CODE = @overlay
     ),
     applications AS (
@@ -88,7 +89,7 @@ export const PLANNING_APPS_QUERY = `
         ST_GeogPoint(longitude, latitude) AS bndry,
         ST_Distance(ST_GeogPoint(longitude, latitude), overlay.polygon) AS dist_meters
       FROM
-      \`yarrascrape.YarraPlanning.YARRA_APPLICATIONS_WITH_HERITAGE\`,
+      \`yarrascrape.${environment._DATASET}.YARRA_APPLICATIONS_WITH_HERITAGE\`,
         params,
         overlay
       WHERE ST_DWithin(ST_GeogPoint(longitude, latitude), overlay.polygon,  params.maxdist_km*1000)
@@ -115,7 +116,7 @@ export const OVERLAYS_QUERY = `
     Expiry,
     OverlayBoundary as bndry
     FROM
-    \`yarrascrape.YarraPlanning.OVERLAYS\` as overlays`;
+    \`yarrascrape.${environment._DATASET}.OVERLAYS\` as overlays`;
   /*
     WHERE Overlay LIKE '%HO88%'
     OR Overlay LIKE '%HO91%'
