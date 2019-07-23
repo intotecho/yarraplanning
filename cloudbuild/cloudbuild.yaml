@@ -188,9 +188,9 @@ steps:
           UFI),
         SAFE.ST_GeogFromGeoJson(geom) AS OverlayBoundary
       FROM
-        `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_OVERLAYS` AS zones
+        `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_OVERLAYS` AS zones
       LEFT JOIN
-        `${_PROJECT_ID}.${_TARGET_DATASET}.OVERLAY_SCHEDULE` AS schedule
+        `${_PROJECT_ID}.${_SRC_DATASET}.OVERLAY_SCHEDULE` AS schedule
       ON
         zones.ZONE_CODE= schedule.Overlay
       WHERE
@@ -203,7 +203,7 @@ steps:
     FROM
       schedulewithboundary
     LEFT JOIN
-      `${_PROJECT_ID}.${_SRC_DATASET}.${_OVERLAYS_AVG_DATE}` AS dates
+      `${_PROJECT_ID}.${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}` AS dates
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
@@ -274,7 +274,7 @@ steps:
     FROM
       `${_PROJECT_ID}.${_TARGET_DATASET}.{_HERITAGE_PROPS_VIEW}` AS register
     LEFT JOIN
-      `${_PROJECT_ID}.${_TARGET_DATASET}.VHD` AS vhd
+      `${_PROJECT_ID}.${_SRC_DATASET}.VHD` AS vhd
     ON
       REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
   - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
