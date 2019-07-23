@@ -174,7 +174,7 @@ steps:
       ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}
   - |
     --view=
-    # QUERY FOR VIEW ${_OVERLAYS_VIEW} BUILT WITH CLOUD BUILD
+    # QUERY FOR VIEW: ${_OVERLAYS_VIEW} - BUILT WITH CLOUD BUILD
     WITH
       schedulewithboundary AS (
       SELECT
@@ -198,8 +198,7 @@ steps:
         AND SCHEMECODE='HO' )
     SELECT
       schedulewithboundary.*,
-      dates.* EXCEPT(Overlay,
-        HeritagePlace)
+      dates.* EXCEPT(Overlay)
     FROM
       schedulewithboundary
     LEFT JOIN
