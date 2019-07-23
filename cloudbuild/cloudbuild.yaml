@@ -8,7 +8,7 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
 # CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -59,8 +59,8 @@ steps:
     properties.geom AS boundary1,
     properties.prop_pfi as prop_pfi1,
     properties.propnum as propnum1
-    FROM`${_PROJECT_ID}.${_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
-    LEFT JOIN `${_PROJECT_ID}.${_DATASET}.YARRA_PROPERTIES` AS properties
+    FROM`${_PROJECT_ID}.${_TARGET_DATASET}.HERITAGE_REGISTER_C191_WITHVHD` r
+    LEFT JOIN `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
     ON REGEXP_EXTRACT(r.PropertyId, r"[\d]*") = properties.PROPNUM
     )
     SELECT 
@@ -70,7 +70,7 @@ steps:
     missingprops.*
     from missingprops
     LEFT JOIN
-      `${_PROJECT_ID}.${_DATASET}.YARRA_PROPERTIES` AS properties
+      `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
     ON
       REGEXP_EXTRACT(missingprops.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') = CAST(properties.PROP_PFI AS STRING)
     )
@@ -83,7 +83,7 @@ steps:
     firsmatchfailed.*
     from firsmatchfailed 
     LEFT JOIN
-      `${_PROJECT_ID}.${_DATASET}.YARRA_PROPERTIES` AS properties
+      `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_PROPERTIES` AS properties
     ON 
       REGEXP_EXTRACT(firsmatchfailed.PROPERTY_PFI,  r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]')  = CAST(properties.PROP_PFI AS STRING)
       )
@@ -97,7 +97,7 @@ steps:
       prop_pfi1, prop_pfi2, prop_pfi3,
       originalPROPNUM2, thirdPFI)
     FROM allmatches
-  - '${_DATASET}.${_HERITAGE_PROPS_VIEW}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
 
 # REMOVE VIEW _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -107,7 +107,7 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
+  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
 # CREATE VIEW  _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -136,16 +136,16 @@ steps:
     CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
     CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
     FROM
-      `${_PROJECT_ID}.${_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
+      `${_PROJECT_ID}.${_TARGET_DATASET}.YARRAHERITAGEMAPS_PROPERTIES` AS register
     LEFT JOIN
-      `${_PROJECT_ID}.${_DATASET}.OVERLAY_SCHEDULE` AS ovl
+      `${_PROJECT_ID}.${_TARGET_DATASET}.OVERLAY_SCHEDULE` AS ovl
     ON
       ovl.Overlay = register.Overlay
     WHERE
       earliest > 1800
     GROUP BY
       Overlay, HeritagePlace
-  - '${_DATASET}.${_OVERLAYS_AVG_DATE}'
+  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
 # Remove ${_OVERLAYS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -155,7 +155,7 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_DATASET}.${_OVERLAYS_VIEW}'
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
 # Create View ${_OVERLAYS_VIEW} from QUERY
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -193,9 +193,9 @@ steps:
           UFI),
         SAFE.ST_GeogFromGeoJson(geom) AS OverlayBoundary
       FROM
-        `${_PROJECT_ID}.${_DATASET}.YARRA_OVERLAYS` AS zones
+        `${_PROJECT_ID}.${_TARGET_DATASET}.YARRA_OVERLAYS` AS zones
       LEFT JOIN
-        `${_PROJECT_ID}.${_DATASET}.OVERLAY_SCHEDULE` AS schedule
+        `${_PROJECT_ID}.${_TARGET_DATASET}.OVERLAY_SCHEDULE` AS schedule
       ON
         zones.ZONE_CODE= schedule.Overlay
       WHERE
@@ -208,10 +208,10 @@ steps:
     FROM
       schedulewithboundary
     LEFT JOIN
-      `${_PROJECT_ID}.${_DATASET}.OVERLAYS_AVG_ESTABLISHED_DATE` AS dates
+      `${_PROJECT_ID}.${_TARGET_DATASET}.OVERLAYS_AVG_ESTABLISHED_DATE` AS dates
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
-  - '${_DATASET}.${_OVERLAYS_VIEW}'
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
 # Remove _YARRAHERITAGEMAPS_PROPERTIES
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -221,7 +221,7 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
+  - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
 
 # Create View _YARRAHERITAGEMAPS_PROPERTIES from QUERY
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -277,15 +277,16 @@ steps:
       #SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom,
       SAFE.ST_GeogFromGeoJson(register.boundary) AS bndry
     FROM
-      `${_PROJECT_ID}.${_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY` AS register
+      `${_PROJECT_ID}.${_TARGET_DATASET}.HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY` AS register
     LEFT JOIN
-      `${_PROJECT_ID}.${_DATASET}.VHD` AS vhd
+      `${_PROJECT_ID}.${_TARGET_DATASET}.VHD` AS vhd
     ON
       REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
-  - '${_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
+  - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
 
 substitutions:
-    _DATASET: YarraPlanning
+    _SRC_DATASET: YarraPlanning
+    _TARGET_DATASET: PROD_DATASET
     _PROJECT_ID: yarrascrape
     _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_WITH_ADDR_AND_PROPERTY
     _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
