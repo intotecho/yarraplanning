@@ -17,7 +17,6 @@ steps:
   - 'query'
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
-  - '--expiration=0'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - '--destination_table=${_PROJECT_ID}:${_TARGETS_DATASET}.[_HERITAGE_PROPS_TABLE]'
@@ -116,7 +115,7 @@ steps:
         AND ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(props2.geom), pfiboundaries.vhdPoint) 
       )
       SELECT 
-        propnumboundaries.*,
+        propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry # used by the app to draw features
         FROM propnumboundaries
 
