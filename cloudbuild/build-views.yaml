@@ -17,7 +17,6 @@ steps:
   - 'query'
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
-  - '--expiration=0'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - |
@@ -114,6 +113,7 @@ steps:
   - 'update'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
+  - '--expiration=0'
   - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 
