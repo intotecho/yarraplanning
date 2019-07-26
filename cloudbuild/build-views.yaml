@@ -38,7 +38,8 @@ steps:
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
       - VHD from VHD
-  - >
+  - |
+    --table=
     # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
     WITH propnumboundaries AS (
       WITH pfiboundaries AS (
