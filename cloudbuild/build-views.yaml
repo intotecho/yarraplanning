@@ -112,7 +112,6 @@ steps:
   entrypoint: 'bq'
   args: 
   - 'update'
-  - '--expiration=0'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
