@@ -17,6 +17,8 @@ steps:
   - 'query'
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
+  - '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  - '--replace=true'
   - |
     # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
 
@@ -103,8 +105,6 @@ steps:
         propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry
         FROM propnumboundaries
-  - '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
-  - '--replace'
 
 # 2 UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
 - name: 'gcr.io/cloud-builders/gcloud'
