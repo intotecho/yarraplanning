@@ -20,7 +20,6 @@ steps:
   - '--expiration=0'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
-  - '--destination_table=${_PROJECT_ID}:${_TARGETS_DATASET}.[_HERITAGE_PROPS_TABLE]'
   - |
     --description=
     QUERY TO CREATE TABLE FOR ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
