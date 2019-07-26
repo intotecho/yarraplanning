@@ -111,8 +111,8 @@ steps:
   entrypoint: 'bq'
   args: 
   - 'update'
-  - '--label=build:coudbuild-yaml'
-  - '--label=heritage-maps:required'
+  - '--set_label=build:coudbuild-yaml'
+  - '--set_label=heritage-maps:required'
   - '--expiration=0'
   - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
