@@ -17,8 +17,6 @@ steps:
   - 'query'
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
-  - '--label=build:coudbuild-yaml'
-  - '--label=heritage-maps:required'
   - |
     # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
     WITH propnumboundaries AS (
@@ -102,8 +100,9 @@ steps:
       )
       SELECT 
         propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
-        COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry # used by the app to draw features
+        COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry
         FROM propnumboundaries
+
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 
 # 2 UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
