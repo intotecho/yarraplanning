@@ -120,7 +120,7 @@ steps:
         propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry # used by the app to draw features
         FROM propnumboundaries
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 # 3 REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'

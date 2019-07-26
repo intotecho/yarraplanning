@@ -12,7 +12,7 @@ import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../../app.constants';
     VHR,
     SosHash,
     PropertyType,
-    PropertyId,
+    PROPNUM,
     NormalAddress,
     EstimatedDate,
     Matched,
@@ -29,7 +29,7 @@ export class HeritageSiteInfo {
     Image: String = '';
     Authority: String = '';
     PropertyType: String = '';
-    PropertyId: String = '';
+    PROPNUM: String = '';
     EstimatedDate: String = '';
     OriginalAddress: String = '';
     vhdLocation: String = '';
@@ -54,7 +54,7 @@ export class HeritageSiteInfo {
             this.Image = event.feature.getProperty('Image');
             this.Authority = event.feature.getProperty('Authority');
             this.PropertyType = event.feature.getProperty('PropertyType');
-            this.PropertyId = event.feature.getProperty('PropertyId');
+            this.PROPNUM = event.feature.getProperty('PROPNUM');
             this.EstimatedDate = event.feature.getProperty('EstimatedDate');
             this.OriginalAddress = event.feature.getProperty('OriginalAddress');
             this.vhdLocation = event.feature.getProperty('vhdLocation');

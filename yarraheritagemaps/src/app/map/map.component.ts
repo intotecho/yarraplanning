@@ -331,6 +331,10 @@ export class MapComponent implements AfterViewInit {
     console.time(`Adding ${rows.length} Features`);
     try {
       rows.forEach((row) => {
+        const g = row[this._geoColumn];
+        if (g.startsWith('POINT')) {
+            console.log(g);
+        }
         const geometry = parseWKT(row[this._geoColumn]);
         const feature = {
           type: 'Feature',

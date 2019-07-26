@@ -26,8 +26,6 @@ export const HERITAGE_SITE_DATACENTER = 'australia-southeast1';
 
 export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
 
-environment._DATASET;
-
   /*
    * Changing these fields must algin with HeritageSiteInfo
    */
@@ -44,7 +42,7 @@ environment._DATASET;
   Image,
   Authority,
   PropertyType,
-  PropertyId,
+  PROPNUM,
   EstimatedDate,
   OriginalAddress,
   vhdLocation,
@@ -89,7 +87,7 @@ export const PLANNING_APPS_QUERY = `
         ST_GeogPoint(longitude, latitude) AS bndry,
         ST_Distance(ST_GeogPoint(longitude, latitude), overlay.polygon) AS dist_meters
       FROM
-      \`yarrascrape.${environment._DATASET}.YARRA_APPLICATIONS_WITH_HERITAGE\`,
+      \`yarrascrape.${environment._DATASET}.YARRAHERITAGEMAPS_PROPERTIES\`,
         params,
         overlay
       WHERE ST_DWithin(ST_GeogPoint(longitude, latitude), overlay.polygon,  params.maxdist_km*1000)
@@ -141,7 +139,8 @@ export const HIGHLIGHTED_HERITAGE_OVERLAY_STYLE = {
   strokeWeight: 3,
   strokeOpacity: 0.8,
   fillColor: '#F09090',
-  fillOpacity: 0.6
+  fillOpacity: 0.6,
+  circleRadius: 14
 };
 
 export const OVERLAY_FILL_COLOR = {
@@ -177,6 +176,7 @@ export const HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS = {
   domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown'],
   range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA'],
   caption: ['Contributory', 'Not Contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown Status'],
+  circleRadius: 10
 };
 
 export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
@@ -187,6 +187,7 @@ export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
   domain: [ 1840,           1860,        1880,        1900,        1920,        1940,        1960,        2030],
   range:  [ '#242424',      '#990000',   '#d7301f',   '#ef6548',   '#fc8d59',   '#fdbb84',   '#fdd49e',   '#fed4ff'],
   caption: ['Unknown Date', '1840-1859', '1860-1879', '1890-1899', '1900-1919', '1920-1939', '1940-1959', 'After 1960'],
+  circleRadius: 10
 };
 
 
@@ -195,7 +196,8 @@ export const HERITAGE_SITE_CIRCLE_RADIUS = {
   property: 'Estimated_Cost',
   function: 'linear',
   domain: [1, 5000000],
-  range: [4, 20]
+  range: [4, 20],
+  circleRadius: 10
 };
 
 export const HERITAGE_SITE_STROKE_COLOR = {
