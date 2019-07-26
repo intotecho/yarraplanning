@@ -111,8 +111,8 @@ steps:
             JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES` as props1
             ON CAST(pfi AS INT64) = props1.PROP_PFI
             AND geom is not null and 
-            (vhdPlaceId is not null and ST_CONTAINS(geojson, deduplicatedvhd.vhdPoint) or 
-            (vhdPlaceId is null and ST_CONTAINS(geojson, deduplicatedvhd.eziAddressPoint)))
+            (vhdPlaceId is not null and ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(geom), deduplicatedvhd.vhdPoint) or 
+            (vhdPlaceId is null and ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(geom), deduplicatedvhd.eziAddressPoint)))
           ) AS pfibndry_arr 
         FROM deduplicatedvhd
       )
