@@ -14,9 +14,10 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
-  - 'query'
+  - 'mk'
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
+  - '--expiration=0'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
   - '--destination_table=${_PROJECT_ID}:${_TARGETS_DATASET}.[_HERITAGE_PROPS_TABLE]'
@@ -29,7 +30,9 @@ steps:
     USES TABLES 
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
-  - >
+  - |
+    --view=
+    # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     #  QUERY FOR VIEW: ${_HERITAGE_PROPS_VIEW} - BUILT WITH CLOUD BUILD
     # First Remove Around 970 duplicates from VHD 
     # Then join to herigage register.
@@ -227,59 +230,7 @@ steps:
       schedulewithboundary.ZONE_CODE = dates.Overlay
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
-# 7 Remove View _YARRAHERITAGEMAPS_PROPERTIES
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bq'
-  args: 
-  - 'rm'
-  - '-f'
-  - '-t'
-  - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
 
-# 8 Create View _YARRAHERITAGEMAPS_PROPERTIES from QUERY
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bq'
-  args: 
-  - 'mk'
-  - '--use_legacy_sql=false'
-  - '--project_id=${_PROJECT_ID}'
-  - '--expiration=0'
-  - '--label=build:coudbuild-yaml'
-  - '--label=heritage-maps:required'
-  - |
-    --description=
-    QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
-    Merge all the VHD Properties with  ${_HERITAGE_PROPS_VIEW} 
-    Select props needed for application to run.
-    Convert to ST_GeoJson
-    Based on views 
-      ${_HERITAGE_PROPS_VIEW} view from ${_TARGET_DATASET}
-      ${_OVERLAYS_AVG_DATE} view from ${_TARGET_DATASET}
-      VHD table from  ${_SRC_DATASET}
-  - |
-    --view=
-    # QUERY FOR VIEW ${_YARRAHERITAGEMAPS_PROPERTIES} BUILT WITH CLOUD BUILD
-    SELECT 
-    r.*,
-    properties.LGA_CODE,
-    properties.PROP_PFI as matchingPROP_PFI,
-    properties.PROPNUM as matchingPROPNUM,
-    SAFE.ST_GeogFromGeoJSON(properties.geom) AS bndry
-    FROM
-      `${_PROJECT_ID}.${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}` AS r
-    JOIN `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_PROPERTIES` AS properties
-    ON ( 
-      r.PROPNUM = properties.PROPNUM
-      OR 
-      r.prop_pfi1 = properties.PROP_PFI
-      OR
-      r.prop_pfi2 = properties.PROP_PFI
-      OR
-      r.prop_pfi3 = properties.PROP_PFI
-    )
-    WHERE ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(properties.geom), r.vhdGeom) = TRUE
-  - '${_TARGET_DATASET}.${_YARRAHERITAGEMAPS_PROPERTIES}'
 
 substitutions:
   _PROJECT_ID: yarrascrape
