@@ -1,6 +1,6 @@
 steps:
 
-# 1a REMOVE VIEW  _HERITAGE_PROPS_VIEW
+# 1a REMOVE TABLE  _HERITAGE_PROPS_TABLE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -8,68 +8,117 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 
-# 2a CREATE VIEW: ${_HERITAGE_PROPS_VIEW}
+# 2a CREATE TABLE: ${_HERITAGE_PROPS_TABLE}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
-  - 'mk'
+  - 'query'
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
   - '--label=build:coudbuild-yaml'
   - '--label=heritage-maps:required'
+  - '--destination_table=${_PROJECT_ID}:${_TARGETS_DATASET}.[_HERITAGE_PROPS_TABLE]'
   - |
     --description=
-    QUERY FOR VIEW ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
+    QUERY TO CREATE TABLE FOR ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
     Enrich HERITAGE_REGISTER with VHD peroperties
     and perform preprocessing to suit the join with YARRA_PROPERTIES.
     Extracts the first three PROP_PFIs for matching.
     USES TABLES 
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
-  - |
-    --view=
+  - >
     #  QUERY FOR VIEW: ${_HERITAGE_PROPS_VIEW} - BUILT WITH CLOUD BUILD
-    SELECT
-      register.EZI_ADD,
-      register.HeritageStatus,
-      register.Overlay,
-      vhd.Name,
-      vhd.vhdplaceid,
-      register.vhdplaceid AS vhdPlacesId,
-      vhd.Image,
-      vhd.Authority,
-      register.PropertyType,
-      register.EstimatedDate,
-      register.NormalAddress,
-      register.OriginalAddress,
-      vhd.Location AS vhdLocation,
-      register.Matched,
-      vhd.VHR,
-      vhd.href,
-      vhd.SoSHash,
-      register.earliest,
-      register.latest,
-      register.sec_earliest,
-      register.sec_latest,
-      register.PropertyId,                                             
-      REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
-      register.PROPERTY_PFI,
-      CAST(REGEXP_EXTRACT(register.PROPERTY_PFI, r'\[\'(\d{3,12})\'.*\]') AS INT64) as prop_pfi1,
-      CAST(REGEXP_EXTRACT(register.PROPERTY_PFI, r'\[\'\d*\', \'(\d{3,12})\'.*\]') AS INT64) as prop_pfi2,
-      CAST(REGEXP_EXTRACT(register.PROPERTY_PFI, r'\[\'\d*\', \'\d*\', \'(\d{3,12})\'.*\]') AS INT64) as prop_pfi3,       
-      register.geom, # ezi_address location might not be used.
-      SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdGeom
-    FROM
-      `yarrascrape.${_SRC_DATASET}.${_HERITAGE_REGISTER}` AS register
-    LEFT JOIN
-      `yarrascrape.${_SRC_DATASET}.VHD` AS vhd
-    ON
-      REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_VIEW}'
+    # First Remove Around 970 duplicates from VHD 
+    # Then join to herigage register.
+    # Perform preprocessing to get columns for PROP_PFI and PROPNUM cast to same type as YARRA_PROPERTIES.
+    # CREATE OR REPLACE TABLE    `yarrascrape.YarraPlanning.YARRAHERITAGEMAPS_PROPERTIES` AS 
+    WITH propnumboundaries AS (
+      WITH pfiboundaries AS (
+        WITH deduplicatedvhd AS (
 
+          WITH mergedRegister AS (
+            WITH vhdDeduplicated AS ( # remove duplicate rows in VHD
+            SELECT k.*
+              FROM (
+                SELECT ARRAY_AGG(x LIMIT 1)[OFFSET(0)] k 
+                FROM `yarrascrape.YarraPlanning.VHD` x 
+                GROUP BY vhdPlaceId
+              )
+            )
+            SELECT
+              register.EZI_ADD,
+              register.HeritageStatus,
+              register.Overlay,
+              vhd.Name,
+              vhd.vhdplaceid,
+              register.vhdplaceid AS vhdPlacesId,
+              vhd.Image,
+              vhd.Authority,
+              register.PropertyType,
+              register.EstimatedDate,
+              register.NormalAddress,
+              register.OriginalAddress,
+              vhd.Location AS vhdLocation,
+              register.Matched,
+              REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
+              REGEXP_REPLACE(register.PROPERTY_PFI, r'\'', '') AS PROPERTY_PFI,
+              vhd.VHR,
+              vhd.href,
+              vhd.SoSHash,
+              register.earliest,
+              register.latest,
+              register.sec_earliest,
+              register.sec_latest,
+              SAFE.ST_GeogFromGeoJSON(register.geom) as eziAddressPoint,
+              SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdPoint
+            FROM
+              `yarrascrape.YarraPlanning.HERITAGE_REGISTER_C191_WITHVHD` AS register
+            LEFT OUTER JOIN
+              vhdDeduplicated AS vhd
+            ON
+              REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
+          )
+          SELECT k.* # remove duplicate rows in result
+              FROM (
+                SELECT ARRAY_AGG(x LIMIT 1)[OFFSET(0)] k 
+                FROM mergedRegister x 
+                GROUP BY vhdPlaceId
+              )
+        )
+        SELECT # Convert PROPERTY_PFI string array into separate rows.
+          deduplicatedvhd.*,
+          ARRAY( 
+            SELECT DISTINCT geom 
+            FROM UNNEST(
+              SPLIT(
+                SUBSTR(PROPERTY_PFI, 2 , LENGTH(PROPERTY_PFI) - 2)
+              )
+            ) AS pfi
+            JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES_GEOJSON` as props1
+            ON CAST(pfi AS INT64) = props1.PROP_PFI
+            AND geom is not null and 
+            (vhdPlaceId is not null and ST_CONTAINS(geojson, deduplicatedvhd.vhdPoint) or 
+            (vhdPlaceId is null and ST_CONTAINS(geojson, deduplicatedvhd.eziAddressPoint)))
+          ) AS pfibndry_arr 
+        FROM deduplicatedvhd
+      )
+      SELECT 
+        pfiboundaries.*,
+        ST_ASTEXT(SAFE.ST_GeogFromGeoJSON(pfibndry_arr[SAFE_OFFSET(0)])) as pfibndry,
+        ST_ASTEXT(SAFE.ST_GeogFromGeoJSON(props2.geom)) as propnumbndry
+        FROM pfiboundaries
+        LEFT OUTER JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES_GEOJSON` as props2
+        ON  pfiboundaries.PROPNUM = props2.PROPNUM
+        AND ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(props2.geom), pfiboundaries.vhdPoint) 
+      )
+      SELECT 
+        propnumboundaries.*,
+        COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry # used by the app to draw features
+        FROM propnumboundaries
 
 # 3 REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
@@ -238,6 +287,7 @@ substitutions:
   _SRC_DATASET: YarraPlanning
   _TARGET_DATASET: PROD_DATASET
   _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_VHD_GEOM
+  _HERITAGE_PROPS_TABLE: YARRAHERITAGEMAPS_PROPERTIES_TEST
   _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
   _OVERLAYS_VIEW: OVERLAYS
   _YARRAHERITAGEMAPS_PROPERTIES: YARRAHERITAGEMAPS_PROPERTIES
