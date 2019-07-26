@@ -22,13 +22,22 @@ steps:
   - '--label=heritage-maps:required'
   - |
     --description=
-    QUERY TO CREATE TABLE FOR ${_HERITAGE_PROPS_VIEW} BUILT WITH CLOUD BUILD
-    Enrich HERITAGE_REGISTER with VHD peroperties
-    and perform preprocessing to suit the join with YARRA_PROPERTIES.
-    Extracts the first three PROP_PFIs for matching.
+    TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
+    cloudbuild/build-views.yaml. 
+    JOINS TABLES 
+      - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
+      - YARRA_PROPERTIES from ${_SRC_DATASET}
+      - VHD from VHD
+    ${HERITAGE_REGISTER} has been matched to PFIs and vhdplacesId. 
+    The query to create this table merges data from VHD peroperties and deduplicates.
+    It then merges boundary geometry from YARRA_PROPERTIES checking each of the PROPERTY_PFI rows for a geometry that contains the VHDLocation.
+    It then merges boundary geometry from YARRA_PROPERTIES matching  PROPNUM if its geometry contains the VHDLocation.
+    If no boundary is found, then the vhdPoint is set as the bndry.
+
     USES TABLES 
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
+      - VHD from VHD
   - |
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
@@ -77,7 +86,7 @@ steps:
               SAFE.ST_GeogFromGeoJSON(register.geom) as eziAddressPoint,
               SAFE.ST_GEOGPOINT(vhd.VHRlng,vhd.VHRlat) as vhdPoint
             FROM
-              `yarrascrape.YarraPlanning.HERITAGE_REGISTER_C191_WITHVHD` AS register
+              `yarrascrape.YarraPlanning.${_HERITAGE_REGISTER}` AS register
             LEFT OUTER JOIN
               vhdDeduplicated AS vhd
             ON
@@ -99,7 +108,7 @@ steps:
                 SUBSTR(PROPERTY_PFI, 2 , LENGTH(PROPERTY_PFI) - 2)
               )
             ) AS pfi
-            JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES_GEOJSON` as props1
+            JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES` as props1
             ON CAST(pfi AS INT64) = props1.PROP_PFI
             AND geom is not null and 
             (vhdPlaceId is not null and ST_CONTAINS(geojson, deduplicatedvhd.vhdPoint) or 
@@ -112,7 +121,7 @@ steps:
         ST_ASTEXT(SAFE.ST_GeogFromGeoJSON(pfibndry_arr[SAFE_OFFSET(0)])) as pfibndry,
         ST_ASTEXT(SAFE.ST_GeogFromGeoJSON(props2.geom)) as propnumbndry
         FROM pfiboundaries
-        LEFT OUTER JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES_GEOJSON` as props2
+        LEFT OUTER JOIN `yarrascrape.YarraPlanning.YARRA_PROPERTIES` as props2
         ON  pfiboundaries.PROPNUM = props2.PROPNUM
         AND ST_CONTAINS(SAFE.ST_GeogFromGeoJSON(props2.geom), pfiboundaries.vhdPoint) 
       )
@@ -230,12 +239,11 @@ steps:
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
 
-
 substitutions:
   _PROJECT_ID: yarrascrape
   _SRC_DATASET: YarraPlanning
   _TARGET_DATASET: PROD_DATASET
-  _HERITAGE_PROPS_VIEW: HERITAGE_OVERLAY_VHD_GEOM
+
   _HERITAGE_PROPS_TABLE: YARRAHERITAGEMAPS_PROPERTIES_TEST
   _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
   _OVERLAYS_VIEW: OVERLAYS
