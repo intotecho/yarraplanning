@@ -55,7 +55,7 @@ export class MapComponent implements AfterViewInit {
 
   // Maps API instance.
   map: google.maps.Map;
-  
+
   // Info window for display over Maps API.
   infoWindow: google.maps.InfoWindow = null;
   overlayInfoComponentRef: ComponentRef<OverlayInfoComponent>;
@@ -74,6 +74,8 @@ export class MapComponent implements AfterViewInit {
   private _planningLayer: google.maps.Data;
   private _mmbwOverlay: Array<Object>;
   private _geoXml: any = null;
+  mapheight = '{height:"40px"}';
+
   @Output() overlayChanged: EventEmitter<OverlayProperties> =   new EventEmitter();
   @Output() overlaySelected: EventEmitter<OverlayProperties> =   new EventEmitter();
   private highlightedOverlay: OverlayProperties = new OverlayProperties(null);
@@ -129,6 +131,9 @@ export class MapComponent implements AfterViewInit {
   @Input()
   hidePropertySubject: Subject<any>;
 
+  @Input()
+  mapHeightSubject: Subject<any>;
+
   constructor (
     private injector: Injector,
     private resolver: ComponentFactoryResolver,
@@ -144,6 +149,7 @@ export class MapComponent implements AfterViewInit {
    */
   ngAfterViewInit() {
 
+    this.mapEl.nativeElement.style.height = '100' + '%';
 
     Promise.all([ pendingMap, this.pendingStyles ])
       .then(([_, mapStyles]) => {
@@ -178,6 +184,17 @@ export class MapComponent implements AfterViewInit {
           if (event !== null) {
             this.removeMatchingFeaturesFromLayer(this._propertiesLayer, 'row_num', event.row_num);
             console.log('Heritage Site Removed from Map', event);
+          }
+        });
+
+        this.mapHeightSubject.subscribe(event => {
+          if (event !== null) {
+            //this.map.setOptions({styles: mapStyles});
+            if(this.mapEl) {
+              console.log(this.mapEl.nativeElement.style.height);
+              //this.mapEl.nativeElement.style.height = event + '%';
+              google.maps.event.trigger(this.map, 'resize');
+            }
           }
         });
 
@@ -332,9 +349,6 @@ export class MapComponent implements AfterViewInit {
     try {
       rows.forEach((row) => {
         const g = row[this._geoColumn];
-        if (g.startsWith('POINT')) {
-            console.log(g);
-        }
         const geometry = parseWKT(row[this._geoColumn]);
         const feature = {
           type: 'Feature',
@@ -342,7 +356,7 @@ export class MapComponent implements AfterViewInit {
           properties: row};
         layer.addGeoJson(feature);
         layer.overrideStyle(feature, {
-                    zIndex: zIndex
+                    zIndex: geometry.type === 'Point' ? zIndex + 1 : zIndex // point on top of polygons
         });
       });
     } catch (e) {

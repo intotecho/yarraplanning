@@ -1,13 +1,3 @@
-#mapcontainer {
-    height:70%;
-    position: relative; 
-}
-
-.cardcontainer {
-    margin: 0 auto;
-    width: 95%;
-}
-
 
 .floating {
     position: fixed;
@@ -18,10 +8,6 @@
     top: 130px;
 }
 
-.view {
-    display: flex;
-    flex-direction: row-reverse;
-}
 
 .header-profile {
     font-size: 14px;
@@ -38,7 +24,7 @@
 }
 
 .small-description {
-    font-size:10px;
+    font-size: 10px;
     line-height: 12px;
 }
 
@@ -63,19 +49,26 @@
     max-width: 85%;
 }
 
+
+mat-toolbar {
+    min-height: 48px;
+    max-height: 48px
+}
+
+mat-toolbar-single-row {
+    min-height: 48px;
+    max-height: 48px
+}
+
 .sidenav-container {
-    background-color : #fffff6;
+    background-color: #fffff6;
     width: 100%;
     left: 0;
     overflow: hidden;
-    z-index:4;
+    z-index: 4;
+    height: calc(100vh - 48px);
 }
-  
-.example-events {
-    width: 100%;
-    overflow: none;
-    border: 1px solid #555;
-}
+
 
 mat-progress-spinner {
     display: inline-block;
@@ -135,9 +128,18 @@ mat-progress-spinner {
     flex-grow: 0;
 }
 
-.styles-prop-list .rule-badge.computed { background: #fbf7eb; }
-.styles-prop-list .rule-badge.global { background: #F4B400; }
-.styles-prop-list .rule-badge.none { background: #e5e3df; color: #000000; }
+.styles-prop-list .rule-badge.computed {
+    background: #fbf7eb;
+}
+
+.styles-prop-list .rule-badge.global {
+    background: #F4B400;
+}
+
+.styles-prop-list .rule-badge.none {
+    background: #e5e3df;
+    color: #000000;
+}
 
 .mat-toolbar.mat-primary,
 .mat-raised-button.mat-primary,
@@ -207,13 +209,18 @@ mat-progress-spinner {
     align-content: center;
     align-items: center;
     height: 60px;
-  }
-  
-  .restore-slider-margin {
-    margin: 10px;
-  }
+}
 
-  
-  .restore-slider-label {
+.restore-slider-margin {
     margin: 10px;
-  }
+}
+
+
+.restore-slider-label {
+    margin: 10px;
+}
+
+view {
+    display: flex;
+    flex-direction: row-reverse;
+}

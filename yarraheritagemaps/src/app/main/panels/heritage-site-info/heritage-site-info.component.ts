@@ -4,7 +4,7 @@ import { SoSService } from '../../../../../src/app/services/sos.service';
 import { HeritageSiteInfo } from './heritage-site-info';
 import { Observable } from 'rxjs';
 import { OverlayProperties } from '../overlays-properties';
-//import { MatPanel } from  '@qangular/material'
+import { FlexLayoutModule } from '@angular/flex-layout';
 
 const SOS_SLIDE = 2;
 
@@ -43,6 +43,7 @@ export class HeritageSiteInfoComponent {
   naturalWidth = 320;
   naturalHeight = 220;
   currentSlide = -1;
+  showpanel = true;
 
   @ViewChild('myCarousel', {static: false}) myCarousel: NguCarousel<Number>;
   carouselConfig: NguCarouselConfig = {
@@ -146,7 +147,7 @@ export class HeritageSiteInfoComponent {
       const height = evt.srcElement.height;
       const x = evt.srcElement.x;
       const y = evt.srcElement.y;
-      if ((x === 0 ) && (y === 0)) {
+      if ((width > 0 ) && (height > 0)) {
         this.portrait = height > width ? true : false;
         console.log('Loaded: ', width, height, 'portrait: ', this.portrait);
         this.naturalWidth = width;
@@ -157,17 +158,36 @@ export class HeritageSiteInfoComponent {
   }
 
   getImageStyle() {
+    if (this.portrait) {
+      return {
+        'max-width': '100%',
+        'max-height': '30vh%'
+      };
+    } else {
+      return {
+        'max-width': '100%',
+        'max-height': '30vh'
+      };
+    }
+    /*
     const style = {
       'max-width.px': this.naturalWidth,
-      'max-height.px': this.naturalHeight
+      'max-height.px': this.naturalHeight,
+      'width.px': this.naturalWidth,
+      'height.px': this.naturalHeight
     };
     const unusedstyle2 = `{'max-width.px': ${this.naturalWidth},
                     'max-height.px':${this.naturalHeight}}`;
     return style;
+    */
   }
 
   hideFeature(event) {
     this.hideFeature$.emit(this._heritageSiteInfo);
+  }
+
+  closepanel() {
+    this.showpanel = !this.showpanel;
   }
 
 }

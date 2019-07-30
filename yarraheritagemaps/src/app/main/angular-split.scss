@@ -1,0 +1,29 @@
+
+
+:host {
+
+    .heritage-splitter as-split {
+        overflow: inherit;
+        height: calc(100vh - 48px);
+        .as-split-area {
+            background-color: rgb(241, 239, 239);
+
+            & > p {
+               padding: 5px;
+           }
+        }
+
+        ::ng-deep .as-split-gutter.as-dragged .as-split-gutter-icon,
+        ::ng-deep .as-split-gutter-icon:hover {
+            opacity: .1;
+        }
+
+        &.as-vertical {
+            ::ng-deep .as-split-gutter-icon {
+                height: 8px !important;
+                top: -8px;
+                bottom: 8px;
+            }
+        }
+    }
+}

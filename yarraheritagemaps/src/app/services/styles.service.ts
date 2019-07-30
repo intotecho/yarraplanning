@@ -210,8 +210,8 @@ export class StylesService {
     if (this.iconCache.has(iconCacheKey)) { return this.iconCache.get(iconCacheKey); }
 
     // Use large, scaled icon rather than new image for each size.
-    const iconRadius = 256;
-    const iconWidth = 512;
+    const iconRadius = 10;
+    const iconWidth = 20;
 
     // Used cached image if available.
     if (!this.imageCache.has(imageCacheKey)) {

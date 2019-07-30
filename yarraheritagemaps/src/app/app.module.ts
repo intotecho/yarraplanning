@@ -40,7 +40,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
-
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { AppComponent } from './app.component';
 import { MainComponent } from './main/main.component';
 import { MapComponent } from './map/map.component';
@@ -53,12 +53,14 @@ import { environment } from '../environments/environment';
 import {ColorPickerModule} from 'ngx-color-picker';
 import { HttpClientModule } from '@angular/common/http';
 import { NguCarouselModule } from '@ngu/carousel';
+import { AngularSplitModule } from 'angular-split';
 
 import { SoSService } from './services/sos.service';
 import { LayersInfoService } from './services/layers-info-service';
 import { LayerSelectComponent} from './map/layer-control/layer-control.component';
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
+import { SplitComponent, SplitAreaDirective } from 'angular-split';
 
 if ( environment.production ) {
   enableProdMode();
@@ -102,9 +104,11 @@ if ( environment.production ) {
     MatTooltipModule,
     NguCarouselModule,
     FormsModule,
+    FlexLayoutModule,
     ReactiveFormsModule,
     ColorPickerModule,
-    HttpClientModule
+    HttpClientModule,
+    AngularSplitModule.forRoot()
   ],
   providers: [
     SoSService,

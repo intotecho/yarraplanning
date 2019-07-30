@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy } from '@angular/core';
+import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
 import { MatTableDataSource, MatSnackBar, MatSlideToggleChange } from '@angular/material';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
@@ -27,6 +27,8 @@ import { BigQueryService, ColumnStat, Project } from '../services/bigquery.servi
 import { AppSettings } from '../services/appsettings.service';
 import { LayerDescription } from '../services/layers-info-service';
 import {ColorPickerModule} from 'ngx-color-picker';
+import { SplitComponent, SplitAreaDirective } from 'angular-split';
+
 import {
   Step,
   HERITAGE_SITE_QUERY,
@@ -40,6 +42,7 @@ import {
   HERITAGE_SITE_FILL_OPACITY,
   MAX_RESULTS_PREVIEW,
   HERITAGE_SITE_CIRCLE_RADIUS,
+  HERITAGE_SITE_CIRCLE_RADIUS_FIXED,
   HERITAGE_SITE_PROJECT_ID,
   HERITAGE_SITE_DATACENTER,
   HERITAGE_SITE_STROKE_COLOR,
@@ -62,13 +65,21 @@ const DEBOUNCE_MS = 1000;
 
 @Component({
   selector: 'app-main',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './main.component.html',
-  styleUrls: ['./main.component.css']
+  styleUrls: ['./main.component.css', './angular-split.scss' ],
+  providers: [SplitComponent, SplitAreaDirective]
 })
 export class MainComponent implements OnInit, OnDestroy {
+
+  @ViewChild('split', {static: false}) split: SplitComponent;
+  @ViewChild('area1', {static: false}) area1: SplitAreaDirective;
+  @ViewChild('area2', {static: false}) area2: SplitAreaDirective;
+
   shadingSchemes: string[] = ['Heritage Status', 'Established Date'];
 
   hidePropertySubject: Subject<any> = new Subject();
+  mapHeightSubject: Subject<any> = new Subject();
 
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
@@ -116,6 +127,20 @@ export class MainComponent implements OnInit, OnDestroy {
   // styles: Array<StyleRule> = [];
   styles: LayerStyles = new LayerStyles();
 
+  // Angular-Split
+  direction = 'vertical';
+  sizes = {
+    percent: {
+        area1: '*',
+        area2: '*',
+    },
+    pixel: {
+        area1: 120,
+        area2: '*',
+        area3: 160,
+    },
+  };
+
   // CodeMirror configuration
   readonly cmConfig = {
     indentWithTabs: true,
@@ -144,6 +169,12 @@ export class MainComponent implements OnInit, OnDestroy {
       .catch((e) => this.showMessage(
         parseErrorMessage(e, 'Init Error')
         ));
+
+    setTimeout(() => {
+          console.log('>>> split > ', this.split);
+          console.log('>>> area1 > ', this.area1);
+          console.log('>>> area2 > ', this.area2);
+    }, 1000);
   }
 
   ngOnInit() {
@@ -166,7 +197,7 @@ export class MainComponent implements OnInit, OnDestroy {
 
     // Schema form group
     this.schemaFormGroup = this._formBuilder.group({
-      geoColumn: [''],
+      geoColumn: ['bdry'],
       projectID: [HERITAGE_SITE_PROJECT_ID, Validators.required],
       sql: [OVERLAYS_QUERY, Validators.required],
       location: [HERITAGE_SITE_DATACENTER],
@@ -354,7 +385,10 @@ export class MainComponent implements OnInit, OnDestroy {
     this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
     this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
     this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
-    this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+    this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS_FIXED);
+    this.schemaFormGroup.patchValue({ geoColumn: 'bdry'});
+    // this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+    // this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
   }
 
   query(sqlparam: string = null) {
@@ -385,6 +419,7 @@ export class MainComponent implements OnInit, OnDestroy {
             this.stylesFormGroup.controls.fillOpacity.patchValue(OVERLAY_FILL_OPACITY);
             this.stylesFormGroup.controls.strokeColor.patchValue(OVERLAY_STROKE_COLOR);
             this.stylesFormGroup.controls.strokeOpacity.patchValue(OVERLAY_STROKE_OPACITY);
+            this.schemaFormGroup.controls.geoColumn.patchValue({ geoColumn: 'OverlayBoundary'});
 
             this.updateStyles('Overlays');
             if (this._loadSitesForPreviousOverlay === false) {
@@ -392,16 +427,24 @@ export class MainComponent implements OnInit, OnDestroy {
             }
           } else if (this.columnNames.find(h => h === 'Application_Number')) {
             this.loadHeritageShadingScheme();
+            this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
+            this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
+            /*
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
             this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
             this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
             this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
             this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
+            this.schemaFormGroup.patchValue({ geoColumn: 'bdry'});
+            */
+
             this.updateStyles('Application_Number');
             this.showMessage(`Showing Planning Applications within Overlay ${this.overlayProperties.Overlay}`, 5000);
 
           } else if (this.columnNames.find(h => h === 'vhdplaceid')) {
             this.loadHeritageShadingScheme();
+            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+            this.schemaFormGroup.controls.geoColumn.patchValue({ geoColumn: 'bndry'});
             this.updateStyles('vhdplaceid');
             this.showMessage(`Showing Heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
             // TODO Should defer persisting selectedOverlayProperties until load is successful
@@ -570,6 +613,18 @@ export class MainComponent implements OnInit, OnDestroy {
       appSettings.loadSitesForPreviousOverlay = event.checked;
       this.sidenavOpened = this.advancedControlsOpened; // leave opened when advanced.
   }
+
+  dragEnd(unit, {sizes}) {
+    if (unit === 'percent') {
+        this.sizes.percent.area1 = sizes[0];
+        this.sizes.percent.area2 = sizes[1];
+    } else if (unit === 'pixel') {
+        this.sizes.pixel.area1 = sizes[0];
+        this.sizes.pixel.area2 = sizes[1];
+        this.sizes.pixel.area3 = sizes[2];
+    }
+    this.mapHeightSubject.next(this.sizes.percent.area1);
+}
 }
 
 function parseErrorMessage (e, defaultMessage = 'Something went wrong'): string {

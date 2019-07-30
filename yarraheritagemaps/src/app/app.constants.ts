@@ -47,7 +47,6 @@ export const HERITAGE_SITE_PROJECT_ID = 'yarrascrape';
   OriginalAddress,
   vhdLocation,
   Matched,
-  PROPERTY_PFI,
   VHR,
   href,
   SosHash,
@@ -140,7 +139,7 @@ export const HIGHLIGHTED_HERITAGE_OVERLAY_STYLE = {
   strokeOpacity: 0.8,
   fillColor: '#F09090',
   fillOpacity: 0.6,
-  circleRadius: 14
+  circleRadius: 50
 };
 
 export const OVERLAY_FILL_COLOR = {
@@ -176,7 +175,7 @@ export const HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS = {
   domain: ['Contributory', 'Not contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown'],
   range: ['#75954c', '#9DAFB2', '#d279e5', '#e74d4d', '#FFFF00' , '#AAAAAA'],
   caption: ['Contributory', 'Not Contributory', 'Individually Significant', 'Victorian Heritage Register', 'Unknown Status'],
-  circleRadius: 10
+  circleRadius: 50
 };
 
 export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
@@ -187,9 +186,16 @@ export const HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE = {
   domain: [ 1840,           1860,        1880,        1900,        1920,        1940,        1960,        2030],
   range:  [ '#242424',      '#990000',   '#d7301f',   '#ef6548',   '#fc8d59',   '#fdbb84',   '#fdd49e',   '#fed4ff'],
   caption: ['Unknown Date', '1840-1859', '1860-1879', '1890-1899', '1900-1919', '1920-1939', '1940-1959', 'After 1960'],
-  circleRadius: 10
+  circleRadius: 50
 };
 
+
+export const HERITAGE_SITE_CIRCLE_RADIUS_FIXED = {
+  isComputed: false,
+  circleRadius: 50,
+  domain: [],
+  range: []
+};
 
 export const HERITAGE_SITE_CIRCLE_RADIUS = {
   isComputed: true,
@@ -197,7 +203,7 @@ export const HERITAGE_SITE_CIRCLE_RADIUS = {
   function: 'linear',
   domain: [1, 5000000],
   range: [4, 20],
-  circleRadius: 10
+  circleRadius: 50
 };
 
 export const HERITAGE_SITE_STROKE_COLOR = {

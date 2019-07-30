@@ -1,144 +1,107 @@
-<mat-card *ngIf="_heritageSiteInfo.OriginalAddress"
-  [ngClass]="panelHeight=='expanded-mat-panel' ? 'expanded-heritage-site-card' : 'normal-heritage-site-card'">
-  <mat-card-header [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
-    <mat-card-title>
-      <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}</ng-container>
-    </mat-card-title>
-    <mat-card-subtitle>{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</mat-card-subtitle>
-  </mat-card-header>
-  <ng-container *ngIf="panelHeight!='mini-mat-panel'">
-  <mat-card-content >
-    <ngu-carousel #myCarousel [inputs]="carouselConfig" (onMove)="onCarouselMove($event)"
-      (carouselLoad)="carouselTileLoad()" [dataSource]="[first, second, third, fourth]">
-      <div *nguCarouselDef="let item;" class="item">
-        <div class="tile">
-          <ng-container *ngTemplateOutlet="item"></ng-container>
-        </div>
-      </div>
-      <ng-template #first>
-        <div *ngIf="panelHeight=='expanded-mat-panel' ; else normalimage">
-          <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
-            <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
-              alt="Large Photo of Heritage Site from VHD Database">
-          </div>
-        </div>
-        <ng-template #normalimage>
-          <div *ngIf="_heritageSiteInfo.Image" class="center-image">
-            <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()"
-              alt="Photo of Heritage Site from VHD Database">
-          </div>
-        </ng-template>
-      </ng-template>
-      <ng-template #second>
-        <div class="details-tile">  
-          <h4 *ngIf="_heritageSiteInfo['PropertyType']!=='null'">{{_heritageSiteInfo['PropertyType']}}</h4>
-          <p>Estimated Date: {{_heritageSiteInfo['EstimatedDate']}}</p>
-          <p>Established: {{_heritageSiteInfo['earliest']}}</p>
-          <p>Heritage Status: {{_heritageSiteInfo['HeritageStatus']}}</p>
-          <div *ngIf="_heritageSiteInfo.VHR!=='none'" class='vhr'>
-            VHR: <a target="_blank" [href]="vhrLink()">{{_heritageSiteInfo['VHR']}}</a><br />
-          </div>
-          <div class='vhd'>
-            Victorian Heritage Database Records
-              <ul class='vhd'>
-                <li *ngFor="let vhd of _heritageSiteInfo['vhdList'];">
-                  VHD Place Id: <a target="_blank" [href]="_heritageSiteInfo.vhdLink(vhd)">{{vhd}}</a>
-                </li>
-              </ul>
-              </div>
-        </div>
-      </ng-template>
-      <ng-template #third>
-        <mat-expansion-panel [ngClass]="panelHeight"
-          (opened)="getDetails($event)" [(expanded)]="sosExpanded">
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <h3><a target="_blank" [href]="sosLink()"><span class="material-icons">launch</span></a>&ensp;Statement of
-                Significance </h3>
-            </mat-panel-title>
-            <mat-panel-description>
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-          <h4>Summary</h4>
-          <p [innerHTML]="sosDetails$ | async"></p>
-        </mat-expansion-panel>
-      </ng-template>
-      <ng-template #fourth>
-        <div class="details-tile">
-          <div *ngIf="_overlayProperties!=null && _overlayProperties.Overlay">
-            <h3 class='OverlayId'>Overlay {{_overlayProperties.Overlay}}
-              <span class='VHR' *ngIf="_overlayProperties.Included=='true'"> VHR: <a [href]="vhrLink()"
-                  target="_blank">{{_overlayProperties.VHR}}</a></span>
-            </h3>
-            <div *ngIf="_overlayProperties.HeritagePlace!=null">
-              <h3>{{_overlayProperties.heritagePlaceName()}}</h3>
-            </div>
-            <div class='Expiry Controls' *ngIf="_overlayProperties.Status=='Interim'">Interim Overlay Expires:
-              {{_overlayProperties.Expiry}}</div>
-            <div>
-              <h4 title="According to the schedule to clause 43.03 of the Yarra Planning Scheme">Planning Controls for this overlay</h4>
-              <div class='Controls'>
-                <p title="Tree Controls apply in this overlay. A Permit is required to remove, destroy or lop a tree This does not apply:
-                  – To any action which is necessary to keep the whole or any part of a tree clear of an electric line provided the action is carried out in accordance with a code of practice prepared under Section 86 of the Electricity Safety Act 1998.
-                  – If the tree presents an immediate risk of personal injury or damage to property">
-                  Tree Controls: {{_overlayProperties.TreeControls}}</p>
-              </div>
-              <div class='Controls'>
-                <p title="A Permit is required to Externally paint a building.">
-                  Paint Controls: {{_overlayProperties.PaintControls}}</p>
-              </div>
-              <div class='Controls'>
-                <p title="A Permit is required to Internally alter a building.">
-                  Internal Controls: {{_overlayProperties.InternalControls}}</p>
-              </div>
-              <div class='Controls'>
-                <p title="A permit is not required for Demolition or removal of an outbuilding (including a carport, garage, pergola, verandah, deck, shed or similar structure
-                  unless the outbuilding is specified in the schedule to this overlay.">
-                  Fence Controls: {{_overlayProperties.FenceControls}}</p>
-              </div>
-              <div class='Controls'>
-                <p
-                  title="A permit may be granted to use a heritage place for a use which would otherwise be prohibited if all of the following apply:
-                  The schedule to this overlay specifies the heritage place as one where prohibited uses may be permitted.
-                  The use will not adversely affect the significance of the heritage place.
-                  The benefits obtained from the use can be demonstrably applied towards the conservation of the heritage place.">
-                  Prohibited uses may be permitted: {{_overlayProperties.Prohibited}}</p>
-              </div>
-              <div class='Aboriginal Controls'>
-                <p
-                  title="A heritage place specified in the schedule to this overlay as an Aboriginal heritage place is also subject to the requirements of the Aboriginal Heritage Act 2006.">
-                  Aboriginal Heritage Place: {{_overlayProperties.AboriginalHeritagePlace}}</p>
+<div class="title" [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
+    <div>
+      <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}  
+      </ng-container>
+    </div>
+    <div class="subtitle">{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</div>
+</div>
+<div class="container" 
+      *ngIf="_heritageSiteInfo.OriginalAddress && showpanel"
+      fxLayout="row" fxLayout.xs="column" 
+      fxLayoutWrap fxLayoutGap="5%" 
+      fxLayoutAlign="space-around stretch"
+      >
+    <div fxFlex="23%">
+            <div *ngIf="panelHeight=='expanded-mat-panel' ; else normalimage">
+              <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
+                <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
+                  alt="Large Photo of Heritage Site from VHD Database">
               </div>
             </div>
-
-            <ng-template *ngIf="_overlayProperties!=null && _overlayProperties.incorporatedPlan()!=''">
-              <mat-expansion-panel>
-                <mat-expansion-panel-header>
-                  <mat-panel-title>
-                    Incorporated Plan
-                  </mat-panel-title>
-                  <mat-panel-description>
-                    ...
-                  </mat-panel-description>
-                </mat-expansion-panel-header>
-                <p>{{_overlayProperties.incorporatedPlan()}}</p>
-              </mat-expansion-panel>
+            <ng-template #normalimage>
+              <div *ngIf="_heritageSiteInfo.Image" class="center-image">
+                <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()"
+                  alt="Photo of Heritage Site from VHD Database">
+              </div>
             </ng-template>
+    </div>
+    <div fxFlex="23%"
+         class="details-tile">  
+            <h4 *ngIf="_heritageSiteInfo['PropertyType']!=='null'">{{_heritageSiteInfo['PropertyType']}}</h4>
+            <p>Estimated Date: {{_heritageSiteInfo['EstimatedDate']}}</p>
+            <p>Heritage Status: {{_heritageSiteInfo['HeritageStatus']}}</p>
+            <div *ngIf="_heritageSiteInfo.VHR!=='none'" class='vhr'>
+              VHR: <a target="_blank" [href]="vhrLink()">{{_heritageSiteInfo['VHR']}}</a><br />
+            </div>
+            <p class='vhd'>Victorian Heritage Database Record(s)</p>
+            <ul class='vhd'>
+              <li *ngFor="let vhd of _heritageSiteInfo['vhdList'];">
+                VHD Place Id: <a target="_blank" [href]="_heritageSiteInfo.vhdLink(vhd)">{{vhd}}</a>
+              </li>
+            </ul>
           </div>
-        </div>
-      </ng-template>
-    </ngu-carousel>
-  </mat-card-content>
-  <mat-card-actions>
-    <i NguCarouselPrev class="scrollArrows leftRs material-icons" [style.opacity]="myCarousel.isFirst ? 0.1:1"
-      (click)="moveLeft()">chevron_left</i>
-    <i NguCarouselNext class="scrollArrows rightRs material-icons" [style.opacity]="myCarousel.isLast ? 0.1:1"
-      (click)="moveRight()">chevron_right</i>
-    <button mat-button (click)="hideFeature($event)">HIDE</button>
-    <span class="myPoint" NguCarouselPoint>
-      <li *ngFor="let j of myCarousel.pointNumbers; let j = index" [class.active]="j==myCarousel.activePoint"
-        (click)="myCarousel.moveTo(j)"></li>
-    </span>
-  </mat-card-actions>
-</ng-container>
-</mat-card>
+    <div fxFlex="23%"  
+          class="details-tile"
+          *ngIf="_overlayProperties!=null && _overlayProperties.Overlay">
+          <h4 class='OverlayId'>Overlay {{_overlayProperties.Overlay}}
+            <span class='VHR' *ngIf="_overlayProperties.Included=='true'"> VHR: <a [href]="vhrLink()"
+                target="_blank">{{_overlayProperties.VHR}}</a></span>
+          </h4>
+          <div *ngIf="_overlayProperties.HeritagePlace!=null">
+            <h4>{{_overlayProperties.heritagePlaceName()}}</h4>
+          </div>
+          <div class='Expiry Controls' *ngIf="_overlayProperties.Status=='Interim'">Interim Overlay Expires:
+            {{_overlayProperties.Expiry}}</div>
+            <h4 title="According to the schedule to clause 43.03 of the Yarra Planning Scheme">Planning Controls for this overlay</h4>
+            <ul class='Controls'>
+              <li title="Tree Controls apply in this overlay. A Permit is required to remove, destroy or lop a tree This does not apply:
+                – To any action which is necessary to keep the whole or any part of a tree clear of an electric line provided the action is carried out in accordance with a code of practice prepared under Section 86 of the Electricity Safety Act 1998.
+                – If the tree presents an immediate risk of personal injury or damage to property">
+                Tree Controls: {{_overlayProperties.TreeControls}}</li>
+              <li title="A Permit is required to Externally paint a building.">
+                Paint Controls: {{_overlayProperties.PaintControls}}</li>
+              <li title="A Permit is required to Internally alter a building.">
+                Internal Controls: {{_overlayProperties.InternalControls}}</li>
+              <li title="A permit is not required for Demolition or removal of an outbuilding (including a carport, garage, pergola, verandah, deck, shed or similar structure
+                unless the outbuilding is specified in the schedule to this overlay.">
+                Fence Controls: {{_overlayProperties.FenceControls}}</li>
+              <li
+                title="A permit may be granted to use a heritage place for a use which would otherwise be prohibited if all of the following apply:
+                The schedule to this overlay specifies the heritage place as one where prohibited uses may be permitted.
+                The use will not adversely affect the significance of the heritage place.
+                The benefits obtained from the use can be demonstrably applied towards the conservation of the heritage place.">
+                Prohibited uses may be permitted: {{_overlayProperties.Prohibited}}</li>
+              <li class='Aboriginal Controls'
+                title="A heritage place specified in the schedule to this overlay as an Aboriginal heritage place is also subject to the requirements of the Aboriginal Heritage Act 2006.">
+                Aboriginal Heritage Place: {{_overlayProperties.AboriginalHeritagePlace}}</li>
+            </ul>
+          <ng-template *ngIf="_overlayProperties!=null && _overlayProperties.incorporatedPlan()!=''">
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  Incorporated Plan
+                </mat-panel-title>
+                <mat-panel-description>
+                  ...
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <p>{{_overlayProperties.incorporatedPlan()}}</p>
+            </mat-expansion-panel>
+          </ng-template>
+      </div>
+    <div fxFlex="23%">
+        <mat-expansion-panel [ngClass]="panelHeight"
+        (opened)="getDetails($event)" [(expanded)]="sosExpanded">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <h4><a target="_blank" [href]="sosLink()"><span class="material-icons">launch</span></a>&ensp;Statement of
+              Significance </h4>
+          </mat-panel-title>
+          <mat-panel-description>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <h4>Summary</h4>
+        <p [innerHTML]="sosDetails$ | async"></p>
+      </mat-expansion-panel>    
+    </div>
+  </div>

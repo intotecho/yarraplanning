@@ -20,27 +20,27 @@ import { VHD_KEYWORD_SEARCH, GCS_BUCKET_SOS } from '../../../app.constants';
  */
 export class HeritageSiteInfo {
     row_num: Number = 0;
-    EZI_ADD: String = '';
-    HeritageStatus: String = '';
-    Overlay: String ;
-    Name: String = '';
-    vhdplaceid: String = '';
-    vhdPlacesId: String = '';
-    Image: String = '';
-    Authority: String = '';
-    PropertyType: String = '';
-    PROPNUM: String = '';
-    EstimatedDate: String = '';
-    OriginalAddress: String = '';
-    vhdLocation: String = '';
-    Matched: String = '';
-    PROPERTY_PFI: String = '';
-    VHR: String = '';
-    href: String = '';
-    SosHash: String = '';
+    EZI_ADD: string = '';
+    HeritageStatus: string = '';
+    Overlay: string ;
+    Name: string = '';
+    vhdplaceid: string = '';
+    vhdPlacesId: string = '';
+    Image: string = '';
+    Authority: string = '';
+    PropertyType: string = '';
+    PROPNUM: string = '';
+    EstimatedDate: string = '';
+    OriginalAddress: string = '';
+    vhdLocation: string = '';
+    Matched: string = '';
+    PROPERTY_PFI: string = '';
+    VHR: string = '';
+    href: string = '';
+    SosHash: string = '';
     earliest: Number = 0;
-    heritageStatusClass: String = '';
-    vhdList: String[];
+    heritageStatusClass: string = '';
+    vhdList: string[];
 
     constructor(event) {
         if (event && event.feature) {
@@ -59,7 +59,7 @@ export class HeritageSiteInfo {
             this.OriginalAddress = event.feature.getProperty('OriginalAddress');
             this.vhdLocation = event.feature.getProperty('vhdLocation');
             this.Matched = event.feature.getProperty('Matched');
-            this.PROPERTY_PFI = event.feature.getProperty('PROPERTY_PFI');
+            // this.PROPERTY_PFI = event.feature.getProperty('PROPERTY_PFI');
             this.VHR = event.feature.getProperty('VHR');
             this.href = event.feature.getProperty('href');
             this.SosHash = event.feature.getProperty('SosHash');
@@ -89,7 +89,7 @@ export class HeritageSiteInfo {
     /*Take a string formatted as "['asdasd','asd']" and return a list of strings
      */
 
-    StringToList(input_str: String): String[] {
+    StringToList(input_str: string): string[] {
       const a: string = input_str.replace(/'/g, '"');
       return(JSON.parse(a));
     }
@@ -104,7 +104,8 @@ export class HeritageSiteInfo {
 
     vhdLink(vhdIndex = 0) {
       const url = this.href;
-      const removelastdir: String = url.substring(0, url.lastIndexOf('/'));
+      const removelastdir: string = url.substring(0, url.lastIndexOf('/'));
       return removelastdir + '/' + vhdIndex;
     }
+
 }

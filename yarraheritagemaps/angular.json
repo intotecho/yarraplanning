@@ -25,6 +25,12 @@
               "src/theme.scss",
               "src/styles.css"
             ],
+            "stylePreprocessorOptions": {
+              "includePaths": [
+                "src/sass",
+                "src/scss"
+              ]
+            },
             "scripts": [
               "node_modules/hammerjs/hammer.min.js"
             ]
