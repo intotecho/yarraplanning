@@ -46,6 +46,18 @@ export class AppSettings {
     this.saveAppSettings();
   }
 
+  private _area1: number;
+  public get area1() { return this._area1; }
+  public set area1(newValue) {
+    this._area1 = newValue;
+    this.saveAppSettings();
+  }
+  private _area2: number;
+  public get area2() { return this._area2; }
+  public set area2(newValue) {
+    this._area2 = newValue;
+    this.saveAppSettings();
+  }
 
   private _isInit = false;
 
@@ -64,6 +76,8 @@ export class AppSettings {
     this._mapCenter = object['_mapCenter'] || {'lat': -37.83433865, 'lng': 144.96147273999998};
     // if (google) { this._mapCenter = new google.maps.LatLng(-37.83433865, 144.96147273999998);} but google not defined yet!
     this._mapZoom = object['_mapZoom'] || 6;
+    this._area1 = object['_area1'] || 70;
+    this._area2 = object['_area2'] || 30;
     this._isInit = true;
   }
 

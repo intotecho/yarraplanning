@@ -194,7 +194,7 @@
 
     <div class=heritage-splitter>
             <as-split unit="percent" [direction]="direction" (dragEnd)="dragEnd('percent', $event)" #split="asSplit">
-                <as-split-area size="70" #area1="asSplitArea">
+                <as-split-area size="sizes.area1" #area1="asSplitArea">
                     <app-map 
                                          [rows]="rows" 
                                          [geoColumn]="'bndry'"
@@ -204,15 +204,14 @@
                                          (overlaySelected)="handleMapOverlaySelected($event)"
                                          (heritageSiteChanged)="handleMapHeritageSiteHighlighted($event)"
                                          (heritageSiteSelected)="handleMapHeritageSiteSelected($event)"
-                                         [hidePropertySubject]="hidePropertySubject"
-                                         [mapHeightSubject]="mapHeightSubject">                                         
-                                       </app-map>
-                                      
+                                         [hidePropertySubject]="hidePropertySubject">                                         
+                                       </app-map>                                      
                 </as-split-area>
-                <as-split-area size="30" #area2="asSplitArea">
+                <as-split-area size="sizes.area2" #area2="asSplitArea">
                     <app-heritage-site-info 
                     [heritageSiteInfo]="highlightedHeritageSiteInfo"
                     [overlayProperties]="selectedOverlayProperties"
+                    [panelHeightSubject]="splitterSizeSubject"
                     title="Selected" context="fixed"
                     (hideFeature$)="featureHideRequest($event)">          
                     </app-heritage-site-info>      

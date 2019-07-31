@@ -131,8 +131,6 @@ export class MapComponent implements AfterViewInit {
   @Input()
   hidePropertySubject: Subject<any>;
 
-  @Input()
-  mapHeightSubject: Subject<any>;
 
   constructor (
     private injector: Injector,
@@ -186,18 +184,6 @@ export class MapComponent implements AfterViewInit {
             console.log('Heritage Site Removed from Map', event);
           }
         });
-
-        this.mapHeightSubject.subscribe(event => {
-          if (event !== null) {
-            //this.map.setOptions({styles: mapStyles});
-            if(this.mapEl) {
-              console.log(this.mapEl.nativeElement.style.height);
-              //this.mapEl.nativeElement.style.height = event + '%';
-              google.maps.event.trigger(this.map, 'resize');
-            }
-          }
-        });
-
       });
   }
 

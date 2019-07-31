@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, AfterViewInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
 import { MatTableDataSource, MatSnackBar, MatSlideToggleChange } from '@angular/material';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
@@ -26,7 +26,6 @@ import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
 import { AppSettings } from '../services/appsettings.service';
 import { LayerDescription } from '../services/layers-info-service';
-import {ColorPickerModule} from 'ngx-color-picker';
 import { SplitComponent, SplitAreaDirective } from 'angular-split';
 
 import {
@@ -70,17 +69,15 @@ const DEBOUNCE_MS = 1000;
   styleUrls: ['./main.component.css', './angular-split.scss' ],
   providers: [SplitComponent, SplitAreaDirective]
 })
-export class MainComponent implements OnInit, OnDestroy {
+export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @ViewChild('split', {static: false}) split: SplitComponent;
   @ViewChild('area1', {static: false}) area1: SplitAreaDirective;
   @ViewChild('area2', {static: false}) area2: SplitAreaDirective;
 
   shadingSchemes: string[] = ['Heritage Status', 'Established Date'];
-
   hidePropertySubject: Subject<any> = new Subject();
-  mapHeightSubject: Subject<any> = new Subject();
-
+  splitterSizeSubject: Subject<any> = new Subject();
   readonly title = 'Heritage Maps';
   readonly StyleProps = StyleProps;
   events: string[] = [];
@@ -130,15 +127,8 @@ export class MainComponent implements OnInit, OnDestroy {
   // Angular-Split
   direction = 'vertical';
   sizes = {
-    percent: {
-        area1: '*',
-        area2: '*',
-    },
-    pixel: {
-        area1: 120,
-        area2: '*',
-        area3: 160,
-    },
+        area1: 30,
+        area2: 70,
   };
 
   // CodeMirror configuration
@@ -169,20 +159,20 @@ export class MainComponent implements OnInit, OnDestroy {
       .catch((e) => this.showMessage(
         parseErrorMessage(e, 'Init Error')
         ));
-
-    setTimeout(() => {
-          console.log('>>> split > ', this.split);
-          console.log('>>> area1 > ', this.area1);
-          console.log('>>> area2 > ', this.area2);
-    }, 1000);
   }
 
   ngOnInit() {
     this.columns = [];
     this.columnNames = [];
     this.rows = [];
+
+
+
     // Data form group
     const appSettings: AppSettings = new AppSettings();
+    this.sizes.area1 = appSettings.area1;
+    this.sizes.area2 = appSettings.area2;
+
     this.sidenavOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
     this.advancedControlsOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
     this._loadSitesForPreviousOverlay = appSettings.loadSitesForPreviousOverlay;
@@ -256,6 +246,11 @@ export class MainComponent implements OnInit, OnDestroy {
     this.stylesFormGroup.valueChanges.debounceTime(500).subscribe(() => this.updateStyles(''));
   }
 
+  ngAfterViewInit() {
+    const appSettings: AppSettings = new AppSettings();
+    const splitSizes = [appSettings.area1, appSettings.area2];
+    this.split.setVisibleAreaSizes(splitSizes);
+  }
 
   ngOnDestroy() {
     this.cmDebouncerSub.unsubscribe();
@@ -597,7 +592,7 @@ export class MainComponent implements OnInit, OnDestroy {
   showMessage(message: string, duration: number = 5000) {
     console.warn(message);
     this._ngZone.run(() => {
-      this._snackbar.open(message, undefined, { duration: duration });
+      this._snackbar.open(message, undefined, { duration: duration,  verticalPosition: 'top'});
     });
   }
 
@@ -615,16 +610,17 @@ export class MainComponent implements OnInit, OnDestroy {
   }
 
   dragEnd(unit, {sizes}) {
+        this.sizes.area1 = sizes[0];
+        this.sizes.area2 = sizes[1];
     if (unit === 'percent') {
-        this.sizes.percent.area1 = sizes[0];
-        this.sizes.percent.area2 = sizes[1];
-    } else if (unit === 'pixel') {
-        this.sizes.pixel.area1 = sizes[0];
-        this.sizes.pixel.area2 = sizes[1];
-        this.sizes.pixel.area3 = sizes[2];
+      this.splitterSizeSubject.next(sizes);
+
+      const appSettings: AppSettings = new AppSettings();
+      appSettings.area1 = sizes[0];
+      appSettings.area2 = sizes[1];
+      appSettings.saveAppSettings();
     }
-    this.mapHeightSubject.next(this.sizes.percent.area1);
-}
+   }
 }
 
 function parseErrorMessage (e, defaultMessage = 'Something went wrong'): string {

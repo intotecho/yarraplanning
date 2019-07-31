@@ -1,4 +1,4 @@
-<div class="title" [ngClass]="heritageStatusClass()" (click)="handleCardTitleClick()">
+<div class="title" [ngClass]="heritageStatusClass()">
     <div>
       <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}  
       </ng-container>
@@ -11,7 +11,7 @@
       fxLayoutWrap fxLayoutGap="5%" 
       fxLayoutAlign="space-around stretch"
       >
-    <div fxFlex="23%">
+    <div fxFlex="35%">
             <div *ngIf="panelHeight=='expanded-mat-panel' ; else normalimage">
               <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
                 <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
@@ -25,14 +25,14 @@
               </div>
             </ng-template>
     </div>
-    <div fxFlex="23%"
+    <div fxFlex="15%"
          class="details-tile">  
             <h4 *ngIf="_heritageSiteInfo['PropertyType']!=='null'">{{_heritageSiteInfo['PropertyType']}}</h4>
             <p>Estimated Date: {{_heritageSiteInfo['EstimatedDate']}}</p>
             <p>Heritage Status: {{_heritageSiteInfo['HeritageStatus']}}</p>
-            <div *ngIf="_heritageSiteInfo.VHR!=='none'" class='vhr'>
+            <p *ngIf="_heritageSiteInfo.VHR!=='none'" class='vhr'>
               VHR: <a target="_blank" [href]="vhrLink()">{{_heritageSiteInfo['VHR']}}</a><br />
-            </div>
+            </p>
             <p class='vhd'>Victorian Heritage Database Record(s)</p>
             <ul class='vhd'>
               <li *ngFor="let vhd of _heritageSiteInfo['vhdList'];">
@@ -40,7 +40,7 @@
               </li>
             </ul>
           </div>
-    <div fxFlex="23%"  
+    <div fxFlex="15%"  
           class="details-tile"
           *ngIf="_overlayProperties!=null && _overlayProperties.Overlay">
           <h4 class='OverlayId'>Overlay {{_overlayProperties.Overlay}}
@@ -89,19 +89,10 @@
             </mat-expansion-panel>
           </ng-template>
       </div>
-    <div fxFlex="23%">
-        <mat-expansion-panel [ngClass]="panelHeight"
-        (opened)="getDetails($event)" [(expanded)]="sosExpanded">
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <h4><a target="_blank" [href]="sosLink()"><span class="material-icons">launch</span></a>&ensp;Statement of
-              Significance </h4>
-          </mat-panel-title>
-          <mat-panel-description>
-          </mat-panel-description>
-        </mat-expansion-panel-header>
-        <h4>Summary</h4>
-        <p [innerHTML]="sosDetails$ | async"></p>
-      </mat-expansion-panel>    
+    <div fxFlex="30%">
+        <h4><a target="_blank" [href]="sosLink()" (click)="getDetails($event)">
+          <span class="material-icons">launch</span></a>&ensp;
+          Statement of Significance </h4>
+          <p [innerHTML]="sosDetails$ | async"></p>
     </div>
   </div>

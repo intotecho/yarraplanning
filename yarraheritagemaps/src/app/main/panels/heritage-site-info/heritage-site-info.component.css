@@ -12,6 +12,9 @@ p {
     margin-block-end: 1em;
     font-size: 0.7em;
 }
+ul {
+    padding-inline-start: 15px;
+}
 
 li {
     font-family: Roboto, Helvetica, sans-serif;
