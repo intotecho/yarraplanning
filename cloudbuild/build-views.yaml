@@ -148,7 +148,7 @@ steps:
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     SELECT
-      Overlay,
+      Distinct(Overlay),
       CAST(FLOOR(AVG(earliest)) AS INT64)  as Avg_EstablishedDate,
       CAST(FLOOR(MIN(earliest)) AS INT64)  as Min_EstablishedDate,
       CAST(FLOOR(MAX(earliest)) AS INT64)  as Max_EstablishedDate
