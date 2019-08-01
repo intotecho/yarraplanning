@@ -195,8 +195,18 @@ steps:
     # QUERY FOR VIEW: ${_OVERLAYS_VIEW} - BUILT WITH CLOUD BUILD
     WITH
       schedulewithboundary AS (
+         WITH overlayDeduplicated AS ( # remove duplicate rows
+         SELECT k.*
+         FROM (
+          SELECT ARRAY_AGG(x LIMIT 1)[OFFSET(0)] k 
+          FROM  `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_OVERLAYS`  x 
+          GROUP BY ZONE_CODE
+         )
+      )
       SELECT
-        * EXCEPT(geom,
+        * EXCEPT(
+          SCHEMECODE,
+          geom,
           LGA_CODE,
           ZONESTATUS,
           PFI,
@@ -206,8 +216,8 @@ steps:
           UFI),
         SAFE.ST_GeogFromGeoJson(geom) AS OverlayBoundary
         FROM
-          `${_PROJECT_ID}.${_SRC_DATASET}.YARRA_OVERLAYS` AS zones
-        LEFT JOIN
+          overlayDeduplicated AS zones
+        LEFT OUTER JOIN
           `${_PROJECT_ID}.${_SRC_DATASET}.OVERLAY_SCHEDULE` AS schedule
       ON
         zones.ZONE_CODE= schedule.Overlay
@@ -215,11 +225,12 @@ steps:
         LGA='YARRA'
         AND SCHEMECODE='HO' )
     SELECT
-      schedulewithboundary.*,
+      ZONE_CODE as Overlay,
+      schedulewithboundary.* EXCEPT(Overlay, ZONE_CODE),
       dates.* EXCEPT(Overlay)
     FROM
       schedulewithboundary
-    LEFT JOIN
+    LEFT OUTER JOIN
       `${_PROJECT_ID}.${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}` AS dates
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
