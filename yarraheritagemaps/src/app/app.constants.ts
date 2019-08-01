@@ -67,7 +67,7 @@ export const PLANNING_APPS_QUERY = `
     overlay AS (
       SELECT ST_GeogFromGeoJson(geom) AS polygon
       FROM  \`yarrascrape.${environment._DATASET}.YARRA_OVERLAYS\`, params
-      WHERE ZONE_CODE = @overlay
+      WHERE Overlay = @overlay
     ),
     applications AS (
       SELECT
@@ -97,9 +97,8 @@ export const PLANNING_APPS_QUERY = `
 export const OVERLAYS_QUERY = `
     #standardsql
     SELECT
-    ZONE_DESC,
-    ZONE_CODE,
     Overlay,
+    ZONE_DESC,
     HeritagePlace,
     Included,
     VHR,
@@ -109,8 +108,8 @@ export const OVERLAYS_QUERY = `
     FenceControls,
     AboriginalHeritagePlace,
     Prohibited,
-    Status,
     Expiry,
+    Status,
     OverlayBoundary as bndry
     FROM
     \`yarrascrape.${environment._DATASET}.OVERLAYS\` as overlays`;
@@ -131,7 +130,6 @@ export const HERITAGE_OVERLAY_STYLE = {
   fillOpacity: 0.2
 };
 
-
 export const HIGHLIGHTED_HERITAGE_OVERLAY_STYLE = {
   strokeColor: '#F0B0B0',
   zIndex: 50,
@@ -147,9 +145,19 @@ export const OVERLAY_FILL_COLOR = {
   property: 'TreeControls',
   function: 'categorical',
   domain: ['Yes', 'No', '-'],
-  range: ['#00FF00', '#FFFFAA', '#AAAAAA', '#0000FF']
+  range: ['#00FF00', '#FFFFAA', '#FFFFAA', '#0000FF']
 };
-export const OVERLAY_FILL_OPACITY = {isComputed: false, value: 0.1};
+export const OVERLAY_FILL_OPACITY = {
+  /*
+  isComputed: false,
+  value: 0.1
+  */
+  isComputed: true,
+  property: 'Status',
+  function: 'categorical',
+  domain: ['null', 'Interim'],
+  range: [0.1, 0.8]
+};
 
 export const OVERLAY_STROKE_COLOR = {
   isComputed: true,
@@ -164,6 +172,10 @@ export const OVERLAY_STROKE_OPACITY = {
   value: 0.9
 };
 
+export const OVERLAY_STROKE_WIDTH = {
+  isComputed: false,
+  value: 0.9
+};
 
 export const HERITAGE_SITE_FILL_OPACITY = {isComputed: false, value: 0.3};
 export const HERITAGE_SITE_ZINDEX = 200; // higher than overlay

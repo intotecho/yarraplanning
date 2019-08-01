@@ -6,18 +6,18 @@ export interface Overlay {
 
 
 export class OverlayProperties {
-    Overlay: String = '';
-    HeritagePlace: String = '';
-    PaintControls: String = '';
-    InternalControls: String = '';
-    TreeControls: String = '';
-    FenceControls: String = '';
+    Overlay: string = '';
+    HeritagePlace: string = '';
+    PaintControls: string = '';
+    InternalControls: string = '';
+    TreeControls: string = '';
+    FenceControls: string = '';
     IncludedInVHR = false;
-    Included: String = '';
-    VHR: String = '';
-    Prohibited: String = '';
-    AboriginalHeritagePlace: String = '';
-    Status: String = '';
+    Included: string = '';
+    VHR: string = '';
+    Prohibited: string = '';
+    AboriginalHeritagePlace: string = '';
+    Status: string = '';
     Expiry: Date = new Date('1900/01/01');
 
     constructor(event: google.maps.Data.MouseEvent) {
@@ -39,7 +39,7 @@ export class OverlayProperties {
 
     public setOverlayFromRows(row: Object) {
         if (row) {
-            this.Overlay =  row['ZONE_CODE'];
+            this.Overlay =  row['Overlay'];
             this.HeritagePlace = row['HeritagePlace'];
             this.Included = row['Included'];
             this.VHR = row['VHR'];

@@ -1,6 +1,4 @@
 import { Component,
-         ChangeDetectionStrategy,
-         ChangeDetectorRef,
          AfterViewInit,
          Input,
          Output,
@@ -10,10 +8,9 @@ import { SoSService } from '../../../../../src/app/services/sos.service';
 import { HeritageSiteInfo } from './heritage-site-info';
 import { Observable, Subject} from 'rxjs';
 import { OverlayProperties } from '../overlays-properties';
+import { OverlayInfoComponent } from '../overlay-info/overlay-info.component';
+
 import { FlexLayoutModule } from '@angular/flex-layout';
-
-const SOS_SLIDE = 2;
-
 
 @Component({
   selector: 'app-heritage-site-info',
@@ -35,6 +32,7 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
   set overlayProperties(overlayProperties: OverlayProperties) {
     this._overlayProperties = overlayProperties;
   }
+
   @Input()
   panelHeightSubject: Subject<any>;
 
@@ -43,11 +41,7 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
   _heritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   _overlayProperties: OverlayProperties = null;
   sosDetails$: Observable<String>;
-  // sosExpanded = false;
-  // panelHeight = 'normal-mat-panel';
   portrait =  false;
-  // naturalWidth = 320;
-  // naturalHeight = 220;
   showpanel = true;
   _panelHeight = 30.0; // spliter output as a percent
   _browserHeight: number; // window height pixels.
@@ -72,8 +66,6 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
   onResizeWindow(event?) {
         this._browserHeight = window.innerHeight;
   }
-
-
 
   sosLink() {
     return this._heritageSiteInfo.sosLink();
@@ -107,7 +99,7 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
       // const y = evt.srcElement.y;
       if ((width > 0 ) && (height > 0)) {
         this.portrait = height > width ? true : false;
-        console.log('Loaded: ', width, height, 'portrait: ', this.portrait);
+        // console.log('Loaded: ', width, height, 'portrait: ', this.portrait);
       }
     }
   }
@@ -116,7 +108,7 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
     const heightPx = this._browserHeight * this._panelHeight / 100 - 36;
     const imageHeight = `${heightPx}px`;
     return {
-      'max-width': '100%',
+      'max-width': '120%',
       'max-height': imageHeight
     };
   }

@@ -12,6 +12,7 @@ heritage_register/Yarra C191 Database of Heritage Significant Areas January 2019
 heritage_register/tabula-City of Yarra Heritage Review Appendix 8 Revised Feb 2017.csv
 assets/test/
 scrape_vhd/yarra_vhd-20190517.csv
+scrape_vhd/env
 yarraheritagemaps/src/assets/nightmap.json
 yarraheritagemaps/documentation
 Yarra data pipeline workspace.code-workspace

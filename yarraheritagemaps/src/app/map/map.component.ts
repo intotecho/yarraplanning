@@ -365,7 +365,7 @@ export class MapComponent implements AfterViewInit {
     }
     const bounds = new google.maps.LatLngBounds(); // = map.getBounds();
 
-    const isZonelayer =  ('ZONE_CODE' in this._rows[0]) ? true : false;
+    const isZonelayer =  ('ZONE_DESC' in this._rows[0]) ? true : false;
     const isPlanningLayer =  ('Estimated_Cost' in this._rows[0]) ? true : false;
 
     if (isZonelayer) {
@@ -382,7 +382,7 @@ export class MapComponent implements AfterViewInit {
 
       this._overlaysLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
         if (event.feature) {
-          this.highlightedOverlay = null; // event.feature.getProperty('ZONE_CODE');
+          this.highlightedOverlay = null; // event.feature.getProperty('Overlay');
           this.overlayChanged.emit(this.highlightedOverlay);
           this._overlaysLayer.overrideStyle(event.feature, {strokeWeight: 1});
         }
@@ -472,7 +472,7 @@ export class MapComponent implements AfterViewInit {
 
       this.overrideStyleOnMatchingFeaturesInLayer(
               this._overlaysLayer,
-              'ZONE_CODE',
+              'Overlay',
               this.seletedOverlay.Overlay,
               { clickable: false, strokeWeight: 3},
               { clickable: true, strokeWeight: 1}
@@ -606,7 +606,7 @@ export class MapComponent implements AfterViewInit {
         properties[key] = key === this._geoColumn ? truncateWKT(value) : value;
       });
 
-      if (properties.hasOwnProperty('ZONE_CODE')) {
+      if (properties.hasOwnProperty('ZONE_DESCRIPTION')) {
         // Clicked on Overlay
         if (this.overlayInfoComponentRef) {
           this.overlayInfoComponentRef.destroy();
@@ -711,7 +711,7 @@ export class MapComponent implements AfterViewInit {
         this.infoWindow.setContent(htmlContentString);
 
       } else {
-        // this.infoWindow.setContent(`Heritage Overlay <b>${properties['ZONE_CODE']}</b>`);
+        // this.infoWindow.setContent(`Heritage Overlay <b>${properties['Overlay']}</b>`);
         // this.infoWindow.setContent(`<app-overlay-info [overlayProperties]='overlayProperties'></app-overlay-info>`);
         // We need to run dynamic component  in angular2 zone
         this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));

@@ -235,10 +235,11 @@ export class BigQueryService {
         return rowObject;
       });
 
+      /*
       if (rows.length === 0) {
         throw new Error('No results.');
       }
-
+      */
       return {columns, columnNames, rows, stats} as BigQueryResponse;
     });
   }

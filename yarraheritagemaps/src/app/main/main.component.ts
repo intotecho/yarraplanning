@@ -126,10 +126,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Angular-Split
   direction = 'vertical';
-  sizes = {
-        area1: 30,
-        area2: 70,
-  };
 
   // CodeMirror configuration
   readonly cmConfig = {
@@ -151,7 +147,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     // Debounce CodeMirror change events to avoid running extra dry runs.
     this.cmDebouncerSub = this.cmDebouncer
       .debounceTime(DEBOUNCE_MS)
-      .subscribe((value: string) => { this._dryRun(); });
+      .subscribe((value: string) => {
+        this._dryRun();
+      });
 
     // Set up BigQuery service.
     this.dataService.onSigninChange(() => this.onSigninChange());
@@ -166,12 +164,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.columnNames = [];
     this.rows = [];
 
-
-
     // Data form group
     const appSettings: AppSettings = new AppSettings();
-    this.sizes.area1 = appSettings.area1;
-    this.sizes.area2 = appSettings.area2;
 
     this.sidenavOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
     this.advancedControlsOpened = appSettings.advancedControlsOpened; // leave opened when advanced.
@@ -250,6 +244,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     const appSettings: AppSettings = new AppSettings();
     const splitSizes = [appSettings.area1, appSettings.area2];
     this.split.setVisibleAreaSizes(splitSizes);
+    this.splitterSizeSubject.next(splitSizes);
   }
 
   ngOnDestroy() {
@@ -405,7 +400,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
         const appSettings: AppSettings = new AppSettings();
 
-        if (this.columnNames.find(h => h === 'ZONE_CODE')) {
+        if (this.columnNames.find(h => h === 'ZONE_DESC')) {
             this.handleQueryOverlaysResponse();
             // setup custom styling
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
@@ -458,7 +453,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       })
       .then(() => {
         this.pending = false;
-        this._changeDetectorRef.detectChanges();
+  
       });
   }
 
@@ -610,11 +605,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   dragEnd(unit, {sizes}) {
-        this.sizes.area1 = sizes[0];
-        this.sizes.area2 = sizes[1];
     if (unit === 'percent') {
       this.splitterSizeSubject.next(sizes);
-
       const appSettings: AppSettings = new AppSettings();
       appSettings.area1 = sizes[0];
       appSettings.area2 = sizes[1];

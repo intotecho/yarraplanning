@@ -10,3 +10,45 @@ color-picker .color-picker {
     box-shadow: 1px 0px 4px 2px rgba(0,0,0,0.15);
     border-radius: 2px;
 }
+
+
+p {
+    font-family: Roboto, Helvetica, sans-serif;
+    display: block;
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    font-size: 0.7em;
+}
+ul {
+    padding-inline-start: 15px;
+}
+
+li {
+    font-family: Roboto, Helvetica, sans-serif;
+    font-size: 0.7em;
+}
+
+h4 {
+    font-size: 0.8em;
+    font-family: Roboto, Helvetica, sans-serif;
+    display: block;
+    margin-block-start: 0.5em;
+    margin-block-end: 0.5em;
+    font-weight: bold;
+}
+
+h4 a {
+    vertical-align: middle;   
+    text-decoration: none;
+}
+
+
+.details-tile {
+    margin-left: 20px;
+}
+
+.vhr {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #ac332f;
+}

@@ -23,9 +23,14 @@
     flex-grow: 1;
 }
 
+.overlay-title {
+    text-align: centre !important;
+}
+
 .small-description {
     font-size: 10px;
     line-height: 12px;
+    text-align: centre;
 }
 
 .drawer {
@@ -139,12 +144,6 @@ mat-progress-spinner {
 .styles-prop-list .rule-badge.none {
     background: #e5e3df;
     color: #000000;
-}
-
-.mat-toolbar.mat-primary,
-.mat-raised-button.mat-primary,
-.mat-step-header .mat-step-icon {
-    color: $primary;
 }
 
 .mat-raised-button[disabled] {

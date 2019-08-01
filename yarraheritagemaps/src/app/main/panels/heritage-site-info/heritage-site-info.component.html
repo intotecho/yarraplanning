@@ -1,10 +1,11 @@
 <div class="title" [ngClass]="heritageStatusClass()">
-    <div>
-      <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}  
-      </ng-container>
-    </div>
-    <div class="subtitle">{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</div>
+  <div>
+    <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}  
+    </ng-container>
+  </div>
+  <div class="subtitle">{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</div>
 </div>
+<ng-container *ngIf="_heritageSiteInfo.OriginalAddress;else no_heritagesite_selected">
 <div class="container" 
       *ngIf="_heritageSiteInfo.OriginalAddress && showpanel"
       fxLayout="row" fxLayout.xs="column" 
@@ -40,55 +41,10 @@
               </li>
             </ul>
           </div>
-    <div fxFlex="15%"  
-          class="details-tile"
-          *ngIf="_overlayProperties!=null && _overlayProperties.Overlay">
-          <h4 class='OverlayId'>Overlay {{_overlayProperties.Overlay}}
-            <span class='VHR' *ngIf="_overlayProperties.Included=='true'"> VHR: <a [href]="vhrLink()"
-                target="_blank">{{_overlayProperties.VHR}}</a></span>
-          </h4>
-          <div *ngIf="_overlayProperties.HeritagePlace!=null">
-            <h4>{{_overlayProperties.heritagePlaceName()}}</h4>
-          </div>
-          <div class='Expiry Controls' *ngIf="_overlayProperties.Status=='Interim'">Interim Overlay Expires:
-            {{_overlayProperties.Expiry}}</div>
-            <h4 title="According to the schedule to clause 43.03 of the Yarra Planning Scheme">Planning Controls for this overlay</h4>
-            <ul class='Controls'>
-              <li title="Tree Controls apply in this overlay. A Permit is required to remove, destroy or lop a tree This does not apply:
-                – To any action which is necessary to keep the whole or any part of a tree clear of an electric line provided the action is carried out in accordance with a code of practice prepared under Section 86 of the Electricity Safety Act 1998.
-                – If the tree presents an immediate risk of personal injury or damage to property">
-                Tree Controls: {{_overlayProperties.TreeControls}}</li>
-              <li title="A Permit is required to Externally paint a building.">
-                Paint Controls: {{_overlayProperties.PaintControls}}</li>
-              <li title="A Permit is required to Internally alter a building.">
-                Internal Controls: {{_overlayProperties.InternalControls}}</li>
-              <li title="A permit is not required for Demolition or removal of an outbuilding (including a carport, garage, pergola, verandah, deck, shed or similar structure
-                unless the outbuilding is specified in the schedule to this overlay.">
-                Fence Controls: {{_overlayProperties.FenceControls}}</li>
-              <li
-                title="A permit may be granted to use a heritage place for a use which would otherwise be prohibited if all of the following apply:
-                The schedule to this overlay specifies the heritage place as one where prohibited uses may be permitted.
-                The use will not adversely affect the significance of the heritage place.
-                The benefits obtained from the use can be demonstrably applied towards the conservation of the heritage place.">
-                Prohibited uses may be permitted: {{_overlayProperties.Prohibited}}</li>
-              <li class='Aboriginal Controls'
-                title="A heritage place specified in the schedule to this overlay as an Aboriginal heritage place is also subject to the requirements of the Aboriginal Heritage Act 2006.">
-                Aboriginal Heritage Place: {{_overlayProperties.AboriginalHeritagePlace}}</li>
-            </ul>
-          <ng-template *ngIf="_overlayProperties!=null && _overlayProperties.incorporatedPlan()!=''">
-            <mat-expansion-panel>
-              <mat-expansion-panel-header>
-                <mat-panel-title>
-                  Incorporated Plan
-                </mat-panel-title>
-                <mat-panel-description>
-                  ...
-                </mat-panel-description>
-              </mat-expansion-panel-header>
-              <p>{{_overlayProperties.incorporatedPlan()}}</p>
-            </mat-expansion-panel>
-          </ng-template>
-      </div>
+    <div fxFlex="15%">  
+    <app-overlay-info [overlayProperties]="_overlayProperties" [title]="'Details'">
+    </app-overlay-info>
+    </div>    
     <div fxFlex="30%">
         <h4><a target="_blank" [href]="sosLink()" (click)="getDetails($event)">
           <span class="material-icons">launch</span></a>&ensp;
@@ -96,3 +52,8 @@
           <p [innerHTML]="sosDetails$ | async"></p>
     </div>
   </div>
+</ng-container>
+<ng-template #no_heritagesite_selected>
+  <app-overlay-info [overlayProperties]="_overlayProperties" [title]="'No Individual Heritage Sites Found in this Overlay'">
+  </app-overlay-info>
+</ng-template>
