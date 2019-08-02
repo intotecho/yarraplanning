@@ -5,44 +5,38 @@ Extract some key reference info into the output CSV
 
 USAGE:
 Refer to README.md in parent folder.
-
-cd yarraplanning/scrape_vhd
-TO SCRAPE INDEX
->scrpay crawl scraevhd buildindex='True'
->rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl scrapevhd -a index="True" -o yarra_vhd_index-$DATE.csv  > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
-
-TO READ INDEX AND SCRAPE PLACE DETAILS
-rm yarra_vhd-$DATE.csv stderr-$DATE.log; scrapy crawl  -a index="yarra_vhd_index-$DATE.csv" -o yarra_vhd-$DATE.csv scrapevhd > >(tee -a stdout.log) 2> >(tee -a stderr-$DATE.log >&2)
+#cd yarraplanning/scrape_vhd/scrape_vhd
 '''
 
-from scrapy.spiders import CrawlSpider, Rule
-from scrapy.linkextractors import LinkExtractor
-import scrapy
+from scrapy.spiders import CrawlSpider
 import re
 import pandas as pd
 import numpy as np
 import os.path
 # https://vhd.heritagecouncil.vic.gov.au/search?kw=YARRA&aut_off=1&collapse=true&spage=1&tab=places&view=detailed&rpp=25&ppage=946
 
+
 def placeToURL(place_id):
     return 'https://vhd.heritagecouncil.vic.gov.au/places/{}'.format(place_id)
 
-class ScrapevhdSpider(CrawlSpider):
+
+class ScrapeVhdSpider(CrawlSpider):
     name = 'scrapevhd'
     allowed_domains = ['vhd.heritagecouncil.vic.gov.au']
     start_urls = []
-    details_filename = 'yarra_vhd-20190423.csv'
+    vhr_list = 'vhr_overlay_index.csv'
     buildindex = 'True'  # Replaced by index attribute on command line -a index="True"
+    mode = 'True'
     custom_settings = {
         'CONCURRENT_REQUESTS': 3,
         'DOWNLOAD_TIMEOUT': 360
     }
 
-
     def __init__(self, index='',  **kwargs):
         pages = range(0, 824)
-        #pages = range(0, 824)
-        #pages = range(30, 34) For testing a small number of pages...
+        # pages = range(0, 824)
+        # pages = range(30, 34) For testing a small number of pages...
+        self.mode = index
         if index == u'True':
             self.buildindex = u'True'
             self.logger.info( "\n\n BUILDING INDEX")
@@ -52,6 +46,27 @@ class ScrapevhdSpider(CrawlSpider):
             # specifies exported fields and order
             self.custom_settings['FEED_EXPORT_FIELDS'] = [
                 'page',
+                0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+                10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+                20, 21, 22, 23, 24
+                ]
+        if index == u'VHR':
+            self.buildindex = u'True'
+            self.logger.info( "\n\n BUILDING VHR INDEX")
+
+            vhrOverlayList = self.readVHRList()
+            vhrOverlayList.head()
+            vhrlist = vhrOverlayList['VHR'].tolist()
+
+            for p in vhrlist:
+                p = int(p[1:])
+                x = 'H' + format(p, '04') # pad with leading zeroes
+                url='https://vhd.heritagecouncil.vic.gov.au/search?idnt=vhr&idn={}&type=place'.format(x)
+                self.start_urls.append(url)
+            print self.start_urls
+            # specifies exported fields and order
+            self.custom_settings['FEED_EXPORT_FIELDS'] = [
+               'page',
                 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
                 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
                 20, 21, 22, 23, 24
@@ -79,18 +94,20 @@ class ScrapevhdSpider(CrawlSpider):
             ]
             self.buildindex = index
             df_index = self.readIndex()
+            if df_index.empty:
+                print 'ERROR: Index file is not found or empty!'
+                exit(0)
+
+            df_index = df_index.drop("page", axis=1)
             total_pages = df_index.size
-            df_index = df_index.applymap(lambda p : 'https://vhd.heritagecouncil.vic.gov.au/places/{}'.format(p))
-            self.logger.debug("\n\n INDEX CONTAINS {} DETAIL PAGES TO SCRAPE \n\n".format(df_index.size))
-
-            pages = df_index.to_numpy().copy()
-            pages = np.resize(pages, total_pages)
-            # self.logger.debug("\n\n PAGES {} \n\n".format(pages))
-
-            self.start_urls = pages[0:].tolist()
+            allsites  = df_index.to_numpy().copy()
+            sites = allsites[allsites != 0].tolist()
+            for p in sites:
+                self.start_urls.append('https://vhd.heritagecouncil.vic.gov.au/places/{}'.format(p))
+            self.logger.debug("\n\n INDEX CONTAINS {} DETAIL PAGES TO SCRAPE \n\n".format(len(sites)))
             self.logger.debug("\n\n START URLS {} \n\n".format(self.start_urls))
 
-        super(ScrapevhdSpider, self).__init__(**kwargs)
+        super(ScrapeVhdSpider, self).__init__(**kwargs)
         self.logger.info(u'=== INIT ====')
         # self.logger.info(self.start_urls)
 
@@ -106,17 +123,16 @@ class ScrapevhdSpider(CrawlSpider):
                 exit()
             return index_df
         else:
-            return pd.DataFrame() # Empty
-    '''
-    def readDetails(self):
+            return pd.DataFrame()  # Empty
+
+    def readVHRList(self):
         # Read the details data and only scrape pages we don't have already.
         try:
-            details = pd.read_csv(self.details_filename, encoding='utf8')
+            details = pd.read_csv(self.vhr_list, encoding='utf8')
         except Exception as e:
-            self.logger.error("Error Reading Details File. Exception {} ".format(e))
+            self.logger.error("Error Reading VHR List. Exception {} ".format(e))
             exit()
-        return details_df
-    '''
+        return details
 
     def parse_start_url(self, response):
         if self.buildindex == u'True':
@@ -196,6 +212,8 @@ class ScrapevhdSpider(CrawlSpider):
         except:
             item['VHRlat'] = u'0'
             item['VHRlng'] = u'0'
+        # if 'YARRA' in item['Municipality'].upper(): # Looking  for outliers
+        #     return
         self.logger.info("\n\n\n === YIELDING PLACE DETAILS id:{} hash:{} ===\n\n\n".format(item['vhdplaceid'], item['SoSHash']  ))
         yield item
 
@@ -203,7 +221,7 @@ class ScrapevhdSpider(CrawlSpider):
     parse search results page
     '''
 
-    def store_site(self, response, site):
+    def store_site_result(self, response, site):
         item = {}
         href = site.css("div.col-name-details").css("p.name") \
                    .css("a.red-link::attr(href)").get()
@@ -222,25 +240,65 @@ class ScrapevhdSpider(CrawlSpider):
                                 .css("img::attr(src)").get()
         item['Summary'] = True
         item['Overlay'] = u''
-        item['VHR'] = u''
+        vhrStr = site.css("span.vhr-hi-number-container::text").get()
+        if vhrStr.startswith("VHR "):
+            item['VHR'] = vhrStr[4:]
+        else:
+            item['VHR'] = vhrStr
+
         # self.logger.info("\n\n\n === FINISH SITE  {} ===\n\n\n".format(item['vhdplaceid']))
+        # print item
         return item
 
     def parse_search_results_page(self, response):
-        pagematch = re.search(r'ppage=(\d*)',  response.url)
-        if pagematch is not None:
-            page = pagematch.group(1)
 
-        items = {}
+        #   pagematch = re.search(r'page=(\d*)',  response.url)
+        #   if pagematch is not None:
+        #       page = pagematch.group(1)
+
+        items = {
+            0: '0',
+            1: '0',
+            2: '0',
+            3: '0',
+            4: '0',
+            5: '0',
+            6: '0',
+            7: '0',
+            8: '0',
+            9: '0',
+            10: '0',
+            11: '0',
+            12: '0',
+            13: '0',
+            14: '0',
+            15: '0',
+            16: '0',
+            17: '0',
+            18: '0',
+            19: '0',
+            20: '0',
+            21: '0',
+            22: '0',
+            23: '0',
+            24: '0',
+            'page': '1'
+        }
         result = 0
         sites = response.css("li.row")
-        self.log('\n\n === RESULTS PAGE {} HAS  {} SITES TO SCRAPE\n\n'.format(page, len(sites)))
-        items['page'] = page
+        self.log('\n\n === RESULTS PAGE  HAS  {} SITES TO SCRAPE\n\n'.format(len(sites)))
+
+        if not sites:
+            items['page'] = response.request.url
+
         for site in sites:
-            # self.logger.info(
-            #    "\n\n\n === APPENDING SITE  {} ===\n\n\n".format(result))
-            item = self.store_site(response, site)
+            self.logger.info(
+                "\n\n\n === APPENDING SITE  {} ===\n\n\n".format(result))
+            item = self.store_site_result(response, site)
             items[result] = item['vhdplaceid']
             result = result+1
+            if self.mode == u'VHR':
+                items['page'] = item['VHR']
+
         self.logger.info("\n=== SEARCH FINISHED PAGE  ===\n")
         yield items
