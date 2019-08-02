@@ -44,5 +44,10 @@
       <p>{{_overlayProperties.incorporatedPlan()}}</p>
     </mat-expansion-panel>
   </ng-template>
+  <div *ngIf="_overlayProperties.Image!='null'" class="center-image">
+    
+    <img src="{{_overlayProperties.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()">
+  </div>
 </div>
+
 <ng-template #no_overlay_selected><p class="instructions">Click an Overlay on the map for more details</p></ng-template>

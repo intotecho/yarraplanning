@@ -15,6 +15,7 @@ export class OverlayProperties {
     IncludedInVHR = false;
     Included: string = '';
     VHR: string = '';
+    Image: string = '';
     Prohibited: string = '';
     AboriginalHeritagePlace: string = '';
     Status: string = '';
@@ -26,6 +27,7 @@ export class OverlayProperties {
             this.HeritagePlace = event.feature.getProperty('HeritagePlace');
             this.Included = event.feature.getProperty('Included');
             this.VHR = event.feature.getProperty('VHR');
+            this.Image = event.feature.getProperty('Image');
             this.PaintControls = event.feature.getProperty('PaintControls');
             this.InternalControls = event.feature.getProperty('InternalControls');
             this.TreeControls = event.feature.getProperty('TreeControls');
@@ -43,6 +45,7 @@ export class OverlayProperties {
             this.HeritagePlace = row['HeritagePlace'];
             this.Included = row['Included'];
             this.VHR = row['VHR'];
+            this.Image = row['Image'];
             this.PaintControls = row['PaintControls'];
             this.InternalControls = row['InternalControls'];
             this.TreeControls = row['TreeControls'];
@@ -53,27 +56,6 @@ export class OverlayProperties {
             this.Expiry = row['Expiry'];
         }
     }
-/*
-    public setOverlayInfo(event: google.maps.Data.MouseEvent) {
-        if (event && event.feature) {
-          this.Overlay = event.feature.getProperty('Overlay');
-          this.HeritagePlace = event.feature.getProperty('HeritagePlace');
-          this.Included = event.feature.getProperty('Included');
-          this.VHR = event.feature.getProperty('VHR');
-          this.PaintControls = event.feature.getProperty('PaintControls');
-          this.InternalControls = event.feature.getProperty('InternalControls');
-          this.TreeControls = event.feature.getProperty('TreeControls');
-          this.FenceControls = event.feature.getProperty('FenceControls');
-          this.Prohibited = event.feature.getProperty('Prohibited');
-          this.AboriginalHeritagePlace = event.feature.getProperty('AboriginalHeritagePlace');
-          this.Status = event.feature.getProperty('Status');
-          this.Expiry = event.feature.getProperty('Expiry');
-          return this;
-        } else {
-          return null;
-        }
-      }
-*/
 
     public heritagePlaceName() {
         const name = this.HeritagePlace.split('Incorporated plan')[0];
@@ -88,6 +70,7 @@ export class OverlayProperties {
     public vhrLink() {
         return 'https://vhd.heritagecouncil.vic.gov.au/search?kw=' + this.VHR;
     }
+
 }
 
 

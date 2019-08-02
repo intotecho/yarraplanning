@@ -587,7 +587,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   showMessage(message: string, duration: number = 5000) {
     console.warn(message);
     this._ngZone.run(() => {
-      this._snackbar.open(message, undefined, { duration: duration,  verticalPosition: 'top'});
+      this._snackbar.open(message, undefined, { duration: duration,  verticalPosition: 'top', horizontalPosition: 'left'});
     });
   }
 

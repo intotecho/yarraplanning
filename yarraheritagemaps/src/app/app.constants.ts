@@ -102,6 +102,7 @@ export const OVERLAYS_QUERY = `
     HeritagePlace,
     Included,
     VHR,
+    Image,
     TreeControls,
     PaintControls,
     InternalControls,
