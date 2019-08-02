@@ -144,6 +144,7 @@ steps:
     Based on tables
       YARRAHERITAGEMAPS_PROPERTIES
       OVERLAY_SCHEDULE
+      VHR_DETAILS - for images.
   - |
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
@@ -227,6 +228,7 @@ steps:
     SELECT
       ZONE_CODE as Overlay,
       schedulewithboundary.* EXCEPT(Overlay, ZONE_CODE),
+      vhrd.Image,
       dates.* EXCEPT(Overlay)
     FROM
       schedulewithboundary
@@ -234,8 +236,11 @@ steps:
       `${_PROJECT_ID}.${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}` AS dates
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
+    LEFT OUTER JOIN
+      `yarrascrape.YarraPlanning.VHR_DETAILS` AS vhrd
+    ON
+      CAST(SUBSTR(vhrd.VHR, 2) AS INT64) = CAST(SUBSTR( schedulewithboundary.VHR, 2) AS INT64)
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
-
 
 substitutions:
   # PROJECT PARAMS
@@ -270,3 +275,4 @@ substitutions:
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
       - VHD from VHD
+
