@@ -225,8 +225,7 @@ export const HERITAGE_SITE_STROKE_COLOR = {
 };
 
 export const PLANNING_APP_STROKE_COLOR = {
-  isComputed: false,
-  value: '#202020'
+  isComputed: false,  value: '#202020'
 };
 
 

@@ -13,20 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Component, Renderer2, ChangeDetectorRef, NgZone, OnInit, AfterViewInit, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component,
+         Renderer2,
+         ChangeDetectorRef,
+         NgZone,
+         OnInit,
+         AfterViewInit,
+         OnDestroy,
+         ViewChild,
+         ChangeDetectionStrategy
+      } from '@angular/core';
 import { FormBuilder, FormGroup, FormControl, FormArray, Validators } from '@angular/forms';
 import { MatTableDataSource, MatSnackBar, MatSlideToggleChange } from '@angular/material';
+import { MediaMatcher } from '@angular/cdk/layout';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
 import { Subject } from 'rxjs/Subject';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/debounceTime.js';
 import 'rxjs/add/operator/map.js';
+import { SplitComponent, SplitAreaDirective } from 'angular-split';
 
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
 import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
 import { AppSettings } from '../services/appsettings.service';
 import { LayerDescription } from '../services/layers-info-service';
-import { SplitComponent, SplitAreaDirective } from 'angular-split';
 
 import {
   Step,
@@ -126,6 +136,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // Angular-Split
   direction = 'vertical';
+  minTitleHeight: number;
 
   // CodeMirror configuration
   readonly cmConfig = {
@@ -142,6 +153,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private _renderer: Renderer2,
     private _snackbar: MatSnackBar,
     private _changeDetectorRef: ChangeDetectorRef,
+    private _media: MediaMatcher,
     private _ngZone: NgZone) {
 
     // Debounce CodeMirror change events to avoid running extra dry runs.
@@ -172,6 +184,12 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this._loadSitesForPreviousOverlay = appSettings.loadSitesForPreviousOverlay;
 
     const shadingSchemesOptions = appSettings.selectedShadingScheme;
+    const browserHeight = window.innerHeight;
+    const isHandheld = this._media.matchMedia('(max-width: 480px)');
+    const minHeightPix = (isHandheld) ? 48 : 33; // Add dragger height which varies by device type?
+    if ( browserHeight  > 0) {
+      this.minTitleHeight = (minHeightPix * 100 / browserHeight );
+    }
 
     this.dataFormGroup = this._formBuilder.group({
       overlayId: ['HO0'],
@@ -243,6 +261,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     const appSettings: AppSettings = new AppSettings();
     const splitSizes = [appSettings.area1, appSettings.area2];
+    if (splitSizes[1] < this.minTitleHeight ) {
+      splitSizes[0] = 100 - this.minTitleHeight;
+      splitSizes[1] = this.minTitleHeight;
+    }
     this.split.setVisibleAreaSizes(splitSizes);
     this.splitterSizeSubject.next(splitSizes);
   }
@@ -258,7 +280,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   signout() {
     this.dataService.signout();
   }
-
 
   onSigninChange() {
     this._ngZone.run(() => {
@@ -333,9 +354,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   dryRun() {
-    this.cmDebouncer.next();
+    //this.cmDebouncer.next(); disable the prequery for now. 
+    // Reintroduce it to only trigger when user changes the code editor content.
   }
-
+  /*
   _dryRun() {
 
     const { overlayId, mmbwMap, shadingSchemesOptions } = this.dataFormGroup.getRawValue();
@@ -350,6 +372,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         this.bytesProcessed = -1;
         this.lintMessage = parseErrorMessage(e, 'Prequery Error: ');
         this.showMessage(this.lintMessage);
+        this.signout();
         gtag('event', 'exception', {
           event_category: `prequery`,
           event_label: `${overlayId}`,
@@ -357,8 +380,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         });
       });
   }
-
-   getHeritageShadingFill() {
+  */
+  getHeritageShadingFill() {
     const appSettings: AppSettings = new AppSettings();
     const heritageFill = appSettings.selectedShadingScheme === 'Heritage Status' ?
           HERITAGE_SITE_FILL_COLOR_HERITAGESTATUS :
@@ -453,7 +476,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
       })
       .then(() => {
         this.pending = false;
-  
       });
   }
 

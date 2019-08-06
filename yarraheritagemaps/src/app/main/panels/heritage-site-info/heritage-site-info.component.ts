@@ -8,9 +8,6 @@ import { SoSService } from '../../../../../src/app/services/sos.service';
 import { HeritageSiteInfo } from './heritage-site-info';
 import { Observable, Subject} from 'rxjs';
 import { OverlayProperties } from '../overlays-properties';
-import { OverlayInfoComponent } from '../overlay-info/overlay-info.component';
-
-import { FlexLayoutModule } from '@angular/flex-layout';
 
 @Component({
   selector: 'app-heritage-site-info',
@@ -33,10 +30,9 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
     this._overlayProperties = overlayProperties;
   }
 
-  @Input()
-  panelHeightSubject: Subject<any>;
+  @Input() panelHeightSubject: Subject<any>;
 
-  @Output() hideFeature$: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
+  @Output() hideFeature$: EventEmitter<HeritageSiteInfo> = new EventEmitter();
 
   _heritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   _overlayProperties: OverlayProperties = null;
@@ -50,7 +46,7 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
     private sosService: SoSService
   ) {
      this.sosDetails$  = new Observable();
-   }
+    }
 
   ngAfterViewInit() {
     this.onResizeWindow();

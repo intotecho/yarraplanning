@@ -204,10 +204,14 @@
             (heritageSiteSelected)="handleMapHeritageSiteSelected($event)" [hidePropertySubject]="hidePropertySubject">
           </app-map>
         </as-split-area>
-        <as-split-area size="sizes.area2" #area2="asSplitArea">
-          <app-heritage-site-info [heritageSiteInfo]="highlightedHeritageSiteInfo"
-            [overlayProperties]="selectedOverlayProperties" [panelHeightSubject]="splitterSizeSubject" title="Selected"
-            context="fixed" (hideFeature$)="featureHideRequest($event)">
+        <as-split-area size="sizes.area2" #area2="asSplitArea" [minSize]="minTitleHeight">
+          <app-heritage-site-info #heritage_info
+                [heritageSiteInfo]="highlightedHeritageSiteInfo"
+                [overlayProperties]="selectedOverlayProperties"
+                [panelHeightSubject]="splitterSizeSubject"
+                title="Selected"
+                context="fixed"
+                (hideFeature$)="featureHideRequest($event)">
           </app-heritage-site-info>
         </as-split-area>
       </as-split>
