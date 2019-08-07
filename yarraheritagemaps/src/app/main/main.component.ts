@@ -357,9 +357,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     //this.cmDebouncer.next(); disable the prequery for now. 
     // Reintroduce it to only trigger when user changes the code editor content.
   }
-  /*
-  _dryRun() {
 
+  _dryRun() {
+    /*
     const { overlayId, mmbwMap, shadingSchemesOptions } = this.dataFormGroup.getRawValue();
     const { projectID, sql, location } = this.schemaFormGroup.getRawValue();
 
@@ -379,8 +379,9 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           value: `sql: ${sql}, error: ${this.lintMessage}`
         });
       });
-  }
   */
+  }
+
   getHeritageShadingFill() {
     const appSettings: AppSettings = new AppSettings();
     const heritageFill = appSettings.selectedShadingScheme === 'Heritage Status' ?

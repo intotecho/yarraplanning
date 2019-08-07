@@ -4,7 +4,9 @@
   "license": "TBD",
   "scripts": {
     "start": "ng serve",
-    "installcors": "gsutil cors set gcsbucket-cors-config.json  gs://historic_map_overlays",
+    "installcors": "gsutil.cmd cors set gcsbucket-cors-config.json  gs://historic_map_overlays",
+    "builddocs": "pandoc -f markdown -t html --css=src/styles.css --self-contained --metadata pagetitle='User Guide' userdocs/userguide.md -o userdocs/userguide.html",
+    "deploydocs": "gsutil.cmd cp userdocs/userguide.html gs://historic_map_overlays",
     "ng": "ng",
     "dev": "ng serve",
     "build": "ng build --configuration=production",
