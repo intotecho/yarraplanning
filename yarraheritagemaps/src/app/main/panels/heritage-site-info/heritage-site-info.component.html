@@ -1,59 +1,56 @@
-<div class="title" [ngClass]="heritageStatusClass()">
-  <div>
-    <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}  
-    </ng-container>
-  </div>
-  <div class="subtitle">{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</div>
-</div>
-<ng-container *ngIf="_heritageSiteInfo.OriginalAddress;else no_heritagesite_selected">
-<div class="container" 
-      *ngIf="_heritageSiteInfo.OriginalAddress && showpanel"
-      fxLayout="row" fxLayout.xs="column" 
-      fxLayoutWrap fxLayoutGap="5%" 
-      fxLayoutAlign="space-around stretch"
-      >
-    <div fxFlex="35%">
-            <div *ngIf="panelHeight=='expanded-mat-panel' ; else normalimage">
-              <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
-                <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
-                  alt="Large Photo of Heritage Site from VHD Database">
-              </div>
-            </div>
-            <ng-template #normalimage>
-              <div *ngIf="_heritageSiteInfo.Image" class="center-image">
-                <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()"
-                  alt="Photo of Heritage Site from VHD Database">
-              </div>
-            </ng-template>
+<ng-container *ngIf="_heritageSiteInfo; else no_heritagesite_selected">
+  <div class="title" [ngClass]="heritageStatusClass()">
+    <div>
+      <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">{{_heritageSiteInfo['OriginalAddress']}}
+      </ng-container>
     </div>
-    <div fxFlex="15%"
-         class="details-tile">  
-            <h4 *ngIf="_heritageSiteInfo['PropertyType']!=='null'">{{_heritageSiteInfo['PropertyType']}}</h4>
-            <p>Estimated Date: {{_heritageSiteInfo['EstimatedDate']}}</p>
-            <p>Heritage Status: {{_heritageSiteInfo['HeritageStatus']}}</p>
-            <p *ngIf="_heritageSiteInfo.VHR!=='none'" class='vhr'>
-              VHR: <a target="_blank" [href]="vhrLink()">{{_heritageSiteInfo['VHR']}}</a><br />
-            </p>
-            <p class='vhd'>Victorian Heritage Database Record(s)</p>
-            <ul class='vhd'>
-              <li *ngFor="let vhd of _heritageSiteInfo['vhdList'];">
-                VHD Place Id: <a target="_blank" [href]="_heritageSiteInfo.vhdLink(vhd)">{{vhd}}</a>
-              </li>
-            </ul>
+    <div class="subtitle">{{_heritageSiteInfo['HeritageStatus']}} {{_heritageSiteInfo['EstimatedDate']}}</div>
+  </div>
+  <ng-container *ngIf="_heritageSiteInfo.OriginalAddress">
+    <div class="container" *ngIf="_heritageSiteInfo.OriginalAddress && showpanel" fxLayout="row" fxLayout.xs="column"
+      fxLayoutWrap fxLayoutGap="5%" fxLayoutAlign="space-around stretch">
+      <div fxFlex="35%">
+        <div *ngIf="panelHeight=='expanded-mat-panel' ; else normalimage">
+          <div *ngIf="_heritageSiteInfo.Image" class="center-image expanded-image">
+            <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)"
+              alt="Large Photo of Heritage Site from VHD Database">
           </div>
-    <div fxFlex="15%">  
-    <app-overlay-info [overlayProperties]="_overlayProperties" [title]="'Details'">
-    </app-overlay-info>
-    </div>    
-    <div fxFlex="30%">
+        </div>
+        <ng-template #normalimage>
+          <div *ngIf="_heritageSiteInfo.Image" class="center-image">
+            <img src="{{_heritageSiteInfo.Image}}" (load)="onImageLoad($event)" [ngStyle]="getImageStyle()"
+              alt="Photo of Heritage Site from VHD Database">
+          </div>
+        </ng-template>
+      </div>
+      <div fxFlex="15%" class="details-tile">
+        <h4 *ngIf="_heritageSiteInfo['PropertyType']!=='null'">{{_heritageSiteInfo['PropertyType']}}</h4>
+        <p>Estimated Date: {{_heritageSiteInfo['EstimatedDate']}}</p>
+        <p>Heritage Status: {{_heritageSiteInfo['HeritageStatus']}}</p>
+        <p *ngIf="_heritageSiteInfo.VHR!=='none'" class='vhr'>
+          VHR: <a target="_blank" [href]="vhrLink()">{{_heritageSiteInfo['VHR']}}</a><br />
+        </p>
+        <p class='vhd'>Victorian Heritage Database Record(s)</p>
+        <ul class='vhd'>
+          <li *ngFor="let vhd of _heritageSiteInfo['vhdList'];">
+            VHD Place Id: <a target="_blank" [href]="_heritageSiteInfo.vhdLink(vhd)">{{vhd}}</a>
+          </li>
+        </ul>
+      </div>
+      <div fxFlex="15%">
+        <app-overlay-info [overlayProperties]="_overlayProperties" [title]="'Details'">
+        </app-overlay-info>
+      </div>
+      <div fxFlex="30%">
         <h4><a target="_blank" [href]="sosLink()" (click)="getDetails($event)">
-          <span class="material-icons">launch</span></a>&ensp;
+            <span class="material-icons">launch</span></a>&ensp;
           Statement of Significance </h4>
-          <p [innerHTML]="sosDetails$ | async"></p>
+        <p [innerHTML]="sosDetails$ | async"></p>
+      </div>
     </div>
-  </div>
+  </ng-container>
 </ng-container>
 <ng-template #no_heritagesite_selected>
-  <app-overlay-info [overlayProperties]="_overlayProperties" [title]="'Overlay Details '">
+  <app-overlay-info [overlayProperties]="_overlayProperties" [title]="'Selected'">
   </app-overlay-info>
 </ng-template>

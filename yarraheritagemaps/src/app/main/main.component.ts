@@ -292,7 +292,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           this._changeDetectorRef.detectChanges();
         });
 
-      this.query(); // kick off inital query to load the overlays
+      this.query(); // kick off initial query to load the overlays
     });
   }
 

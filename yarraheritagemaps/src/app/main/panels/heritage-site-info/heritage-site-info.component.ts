@@ -21,8 +21,10 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
   @Input()
   set heritageSiteInfo(heritageSiteInfo: HeritageSiteInfo) {
     this._heritageSiteInfo = heritageSiteInfo;
-    gtag('event', 'site', { event_label: `siteinfo ${heritageSiteInfo.OriginalAddress}` });
-    this.getDetails();
+    if (heritageSiteInfo) {
+      gtag('event', 'site', { event_label: `siteinfo ${heritageSiteInfo.OriginalAddress}` });
+      this.getDetails();
+    }
   }
 
   @Input()
@@ -31,7 +33,7 @@ export class HeritageSiteInfoComponent implements AfterViewInit {
   }
 
   @Input() panelHeightSubject: Subject<any>;
-
+  // hideFeature$ is used to remove polygons from the map e.g. if there are duplicates.
   @Output() hideFeature$: EventEmitter<HeritageSiteInfo> = new EventEmitter();
 
   _heritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);

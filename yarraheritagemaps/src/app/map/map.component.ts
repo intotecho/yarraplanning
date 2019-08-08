@@ -79,10 +79,10 @@ export class MapComponent implements AfterViewInit {
   @Output() overlayChanged: EventEmitter<OverlayProperties> =   new EventEmitter();
   @Output() overlaySelected: EventEmitter<OverlayProperties> =   new EventEmitter();
   private highlightedOverlay: OverlayProperties = new OverlayProperties(null);
-  private seletedOverlay: OverlayProperties = new OverlayProperties(null);
+  private selectedOverlay: OverlayProperties = new OverlayProperties(null);
 
   @Output() heritageSiteChanged: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
-  @Output() heritgeSiteSelected: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
+  @Output() heritageSiteSelected: EventEmitter<HeritageSiteInfo> =   new EventEmitter();
   private highlightedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
   private selectedHeritageSiteInfo: HeritageSiteInfo = new HeritageSiteInfo(null);
 
@@ -175,7 +175,8 @@ export class MapComponent implements AfterViewInit {
         this._planningLayer = new google.maps.Data();
 
         this.map.addListener('click', (event: google.maps.MouseEvent) => {
-            console.log(`click lat:${event.latLng.lat}, lng:${event.latLng.lng}`);
+            // clicked on map, not on any feature ...
+            console.log(`click lat:${event.latLng.lat()}, lng:${event.latLng.lng()}`);
         });
 
         this.hidePropertySubject.subscribe(event => {
@@ -383,7 +384,7 @@ export class MapComponent implements AfterViewInit {
       this._overlaysLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
         if (event.feature) {
           this.highlightedOverlay = null; // event.feature.getProperty('Overlay');
-          this.overlayChanged.emit(this.highlightedOverlay);
+          this.overlayChanged.emit(null);
           this._overlaysLayer.overrideStyle(event.feature, {strokeWeight: 1});
         }
       });
@@ -392,8 +393,8 @@ export class MapComponent implements AfterViewInit {
         if (event.feature) {
           this.highlightedOverlay = new OverlayProperties(event);
           this.overlayChanged.emit(this.highlightedOverlay );
-          this.seletedOverlay = this.highlightedOverlay;
-          this.overlaySelected.emit(this.seletedOverlay);
+          this.selectedOverlay = this.highlightedOverlay;
+          this.overlaySelected.emit(this.selectedOverlay);
           this.zone.run(() => this.onMarkerClick(this._overlaysLayer, event));
         }
       });
@@ -417,8 +418,8 @@ export class MapComponent implements AfterViewInit {
       this.removeFeaturesFromLayer(this._planningLayer); // remove property details from last render.
       this._planningLayer.setMap(null);
 
-      if (this.seletedOverlay.Overlay === '') {
-        this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
+      if (this.selectedOverlay.Overlay === '') {
+        this.selectedOverlay.Overlay = this._rows[0]['Overlay'];
       }
 
       this._planningLayer.addListener('addfeature', function(e) {
@@ -453,7 +454,7 @@ export class MapComponent implements AfterViewInit {
 
       this._planningLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
         this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
-        this.heritgeSiteSelected.emit(this.selectedHeritageSiteInfo);
+        this.heritageSiteSelected.emit(this.selectedHeritageSiteInfo);
         const feature = event ? event.feature : null;
         if (feature) {
           // this.showInfoWindow(e, e.latLng);
@@ -466,14 +467,14 @@ export class MapComponent implements AfterViewInit {
       this.removeFeaturesFromLayer(this._propertiesLayer); // remove property details from last render.
       this._propertiesLayer.setMap(null);
       // const bounds = new google.maps.LatLngBounds();
-      if (this.seletedOverlay.Overlay === '') {
-        this.seletedOverlay.Overlay = this._rows[0]['Overlay'];
+      if (this.selectedOverlay.Overlay === '') {
+        this.selectedOverlay.Overlay = this._rows[0]['Overlay'];
       }
 
       this.overrideStyleOnMatchingFeaturesInLayer(
               this._overlaysLayer,
               'Overlay',
-              this.seletedOverlay.Overlay,
+              this.selectedOverlay.Overlay,
               { clickable: false, strokeWeight: 3},
               { clickable: true, strokeWeight: 1}
       );
@@ -501,11 +502,13 @@ export class MapComponent implements AfterViewInit {
             zIndex: HERITAGE_SITE_ZINDEX
           });
         } else {
-         //  console.log('mouse over no feautre');
+         //  console.log('mouse over no feature');
         }
       });
 
       this._propertiesLayer.addListener('mouseout', (event: google.maps.Data.MouseEvent) => {
+        this.highlightedHeritageSiteInfo = null;
+        this.heritageSiteChanged.emit(null);
         if (event.feature) {
           this._propertiesLayer.overrideStyle(event.feature, {
               strokeWeight: 1,
@@ -515,7 +518,7 @@ export class MapComponent implements AfterViewInit {
       });
       this._propertiesLayer.addListener('click', (event: google.maps.Data.MouseEvent) => {
         this.selectedHeritageSiteInfo = new HeritageSiteInfo(event);
-        this.heritgeSiteSelected.emit(this.selectedHeritageSiteInfo);
+        this.heritageSiteSelected.emit(this.selectedHeritageSiteInfo);
         const feature = event ? event.feature : null;
         if (feature) {
           this.zone.run(() => this.onMarkerClick(this._propertiesLayer, event));
