@@ -22,8 +22,7 @@ steps:
   - '--autodetect=true'
   - '${_TARGET_DATASET}.${_VHD_DETAILS}'
   - '${_SOURCE_VHD_DETAILS_CSV}'
-  - |
-    # TABLE - ${_VHD_DETAILS} - LOADED BY CLOUD BUILD build-tables.yaml
+
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
