@@ -18,10 +18,10 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '--skip_leading_rows=1'
   - '--source_format=CSV'
-  - '--path_to_source=_SOURCE_VHD_DETAILS_CSV'
   - '--replace=true'
   - '--autodetect=true'
-  - '--destination_table=${_TARGET_DATASET}.${_VHD_DETAILS}'
+  - '${_TARGET_DATASET}.${_VHD_DETAILS}'
+  - '${_SOURCE_VHD_DETAILS_CSV}'
   - |
     # TABLE - ${_VHD_DETAILS} - LOADED BY CLOUD BUILD build-tables.yaml
 substitutions:
@@ -30,11 +30,10 @@ substitutions:
   _SRC_DATASET: YarraPlanning
   _TARGET_DATASET: PROD_DATASET
 
-  # INPUTS TABLES
-  _YARRA_OVERLAYS: YARRA_OVERLAYS
+  # INPUT FILES
   _SOURCE_VHD_DETAILS_CSV: gs://yarra_planning_applications_au/yarra_vhr_20190802.csv
   
-  # OUTPUTS
+  # OUTPUT TABLES IN TARGET_DATASET
   _VHD_DETAILS: VHD_DETAILS
   
   # DECSCRIPTIONS
