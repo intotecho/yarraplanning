@@ -33,7 +33,7 @@ substitutions:
   _SOURCE_VHD_DETAILS_CSV: gs://yarra_planning_applications_au/yarra_vhr_20190802.csv
   
   # OUTPUT TABLES IN TARGET_DATASET
-  _VHD_DETAILS: VHD_DETAILS
+  _VHD_DETAILS: VHR_DETAILS
   
   # DECSCRIPTIONS
   _VHD_DETAILS_DESCR:  |
