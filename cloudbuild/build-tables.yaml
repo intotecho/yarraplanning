@@ -27,7 +27,7 @@ substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
   _SRC_DATASET: YarraPlanning
-  _TARGET_DATASET: PROD_DATASET
+  #_TARGET_DATASET: PROD_DATASET - Add this in the trigger configuration
 
   # INPUT FILES
   _SOURCE_VHD_DETAILS_CSV: gs://yarra_planning_applications_au/yarra_vhr_20190802.csv
