@@ -116,7 +116,7 @@ steps:
   entrypoint: 'bq'
   args: 
   - 'update'
-  - '--set_label=build:coudbuild-yaml'
+  - '--set_label=build:build-views-yaml'
   - '--set_label=heritage-maps:required'
   - '--expiration=0'
   - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
@@ -140,7 +140,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:coudbuild-yaml'
+  - '--label=build:build-views-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -184,7 +184,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:coudbuild-yaml'
+  - '--label=build:build-views-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -245,7 +245,7 @@ steps:
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
     LEFT OUTER JOIN
-      `yarrascrape.YarraPlanning.VHR_DETAILS` AS vhrd
+      `yarrascrape.YarraPlanning.VHD_DETAILS` AS vhrd
     ON
       CAST(SUBSTR(vhrd.VHR, 2) AS INT64) = CAST(SUBSTR( schedulewithboundary.VHR, 2) AS INT64)
     )

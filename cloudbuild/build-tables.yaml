@@ -23,6 +23,17 @@ steps:
   - '${_TARGET_DATASET}.${_VHD_DETAILS}'
   - '${_SOURCE_VHD_DETAILS_CSV}'
 
+# 3 UPDATE TABLE: ${_VHD_DETAILS}
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'update'
+  - '--set_label=build:build-tables-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
+  - '--description=${_VHD_DETAILS_DESCR}'
+  - '${_TARGET_DATASET}.${_VHD_DETAILS}'
+
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
