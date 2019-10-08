@@ -13,11 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+const BigQueryPublicAccessKey = 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw';
+const YarraScrapeOAuthClientID = '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com';
 
 export const environment = {
   production: true,
-  authClientID: '805117261004-oul8f6c5uhbvi4n043klqpj5u7jd74co.apps.googleusercontent.com',
+  authClientID: YarraScrapeOAuthClientID,
   authScope: 'https://www.googleapis.com/auth/bigquery',
   projectId: 'yarrascrape',
-  _DATASET: 'PROD_DATASET'
+  _DATASET: 'PROD_DATASET',
+  BigQueryPublicAccessKey: 'AIzaSyArlp3qQv07_qjGr9P6fjHwy10HXeFj-Fw'
 };

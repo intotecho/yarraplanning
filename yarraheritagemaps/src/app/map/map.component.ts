@@ -157,7 +157,7 @@ export class MapComponent implements AfterViewInit {
           const mapOptions =  {
           center: mapCenter,
           zoom: mapZoom,
-          mapTypeControl: false, // hide the Map and Satellite options
+          mapTypeControl: true, // hide the Map and Satellite options
           zoomControl: true,
           zoomControlOptions: {
               position: google.maps.ControlPosition.TOP_RIGHT
