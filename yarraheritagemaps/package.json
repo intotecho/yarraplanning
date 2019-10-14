@@ -14,8 +14,8 @@
     "lint": "ng lint",
     "predeploy": "npm run build",
     "predeploy:dev": "npm run predeploy",
-    "deploy": "cp app.yaml dist/app.yaml && cd dist && gcloud app deploy  --project yarrascrape --version production",
-    "deploy:dev": "cp app.yaml dist/app.yaml && cd dist && gcloud app deploy --project google.com:intotecho --version yarraheritagemaps --no-promote",
+    "deploy": "cd api && gcloud app deploy  --project yarrascrape --version production",
+    "deploy:dev": "cd api && app deploy --project google.com:intotecho --version yarraheritagemaps --no-promote",
     "compodoc": "npx compodoc -p src/tsconfig.app.json"
   },
   "private": true,

@@ -117,7 +117,7 @@ export const OVERLAYS_QUERY = `
     `;
 
   /*
-  // Fileter to 1.2km from Queens Parade
+  // Filter to 1.2km from Queens Parade
   WHERE ST_Distance(ST_GeogPoint(144.99239829890257,
       -37.78826382320532),
     OverlayBoundary) < 1200

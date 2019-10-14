@@ -1,0 +1,54 @@
+runtime: python27
+threadsafe: true
+api_version: 1
+basic_scaling:
+  max_instances: 2
+
+#[START_EXCLUDE]
+skip_files:
+#- ^(.*/)?#.*#$
+#- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+#- ^(.*/)?\..*$
+- ^(.*/)?setuptools/script \(dev\).tmpl$
+#[END_EXCLUDE]
+
+handlers:
+# The endpoints handler must be mapped to /_ah/api.
+- url: /_ah/api/.*
+  script: main.api
+
+- url: /
+  secure: always
+  static_files: app/index.html
+  upload: app/index.html
+
+- url: /terms
+  secure: always
+  static_files: app/index.html
+  upload: app/index.html
+
+- url: /(favicon.ico*)$
+  secure: always
+  static_files: app/\1
+  upload: app/(.*)
+
+- url: /(.*\.(js|css|map|json|ico|kml))$
+  secure: always
+  static_files: app/\1
+  upload: app/(.*)
+
+libraries:
+- name: pycrypto
+  version: 2.6.1
+- name: ssl
+  version: 2.7.11
+
+# [START env_vars]
+env_variables:
+  # The following values are to be replaced by information from the output of
+  # 'gcloud endpoints services deploy swagger.json' command.
+  ENDPOINTS_SERVICE_NAME: yarrascrape.appspot.com
+  ENDPOINTS_SERVICE_VERSION: 2019-10-09r0
+# [END env_vars]
