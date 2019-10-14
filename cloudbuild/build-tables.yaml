@@ -1,3 +1,6 @@
+# Cloud Build command to load and config VHD_DETAILS from cloud store.
+# @TODO Add commands to build all the tables, especially if a schema is requried.
+  
 steps:
 
 # 1 REMOVE TABLE  _VHD_DETAILS
@@ -37,7 +40,6 @@ steps:
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
-  _SRC_DATASET: YarraPlanning
   #_TARGET_DATASET: PROD_DATASET - Add this in the trigger configuration
 
   # INPUT FILES
