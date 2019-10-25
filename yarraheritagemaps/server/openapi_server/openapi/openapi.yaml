@@ -1,0 +1,188 @@
+openapi: 3.0.0
+info:
+  license:
+    name: MIT
+  title: Heritage Maps Overlays API
+  version: 1.0.0
+servers:
+- url: http://yarrascrape.appspot.com
+paths:
+  /:
+    get:
+      description: Displays the index html page
+      operationId: go_home
+      responses:
+        200:
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successfully loaded html page.
+      summary: home page.
+      tags:
+      - frontend
+      x-openapi-router-controller: openapi_server.controllers.frontend_controller
+  /terms:
+    get:
+      description: Displays the index html page.
+      operationId: go_home_terms
+      responses:
+        200:
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successfully loaded html page.
+      summary: home page.
+      tags:
+      - frontend
+      x-openapi-router-controller: openapi_server.controllers.frontend_controller
+  /assets/{filename}:
+    get:
+      description: Serve app assets
+      operationId: serve_assets
+      parameters:
+      - explode: false
+        in: path
+        name: filename
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            text/*:
+              schema:
+                type: string
+            application/*:
+              schema:
+                type: string
+          description: Successfully loaded html page.
+      summary: angular assets.
+      tags:
+      - frontend
+      x-openapi-router-controller: openapi_server.controllers.frontend_controller
+  /overlays:
+    get:
+      operationId: list_overlays
+      parameters:
+      - description: heritage or other overlay types
+        explode: true
+        in: query
+        name: type
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Overlays'
+          description: A list of overlays
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: List all overlays
+      tags:
+      - overlays
+      x-openapi-router-controller: openapi_server.controllers.overlays_controller
+  /overlays/{overlay_id}:
+    get:
+      operationId: show_overlay_by_id
+      parameters:
+      - description: The id of the overlay to retrieve
+        explode: false
+        in: path
+        name: overlay_id
+        required: true
+        schema:
+          type: string
+        style: simple
+      - description: If infotype='planning' return planning applications.
+        explode: true
+        in: query
+        name: infotype
+        required: false
+        schema:
+          type: string
+        style: form
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Overlay'
+          description: Expected response to a valid request
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: unexpected error
+      summary: Info for a specific overlay
+      tags:
+      - overlays
+      x-openapi-router-controller: openapi_server.controllers.overlays_controller
+  /{filename}:
+    get:
+      description: Displays the index html page
+      operationId: serve_file
+      parameters:
+      - explode: false
+        in: path
+        name: filename
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        200:
+          content:
+            text/html:
+              schema:
+                type: string
+          description: Successfully loaded html page.
+      summary: home page.
+      tags:
+      - frontend
+      x-openapi-router-controller: openapi_server.controllers.frontend_controller
+components:
+  schemas:
+    Overlay:
+      example:
+        name: name
+        id: 0
+        tag: tag
+      properties:
+        id:
+          format: int64
+          type: integer
+        name:
+          type: string
+        tag:
+          type: string
+      required:
+      - id
+      - name
+      type: object
+    Overlays:
+      items:
+        $ref: '#/components/schemas/Overlay'
+      type: array
+    Error:
+      properties:
+        code:
+          format: int32
+          type: integer
+        message:
+          type: string
+      required:
+      - code
+      - message
+      type: object
