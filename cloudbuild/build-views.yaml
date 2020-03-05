@@ -255,6 +255,16 @@ steps:
     OverlayBoundary) < ${_RANGE_FROM_HO330}
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
+# 10 UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'update'
+  - '--set_label=build:build-views-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
@@ -289,4 +299,3 @@ substitutions:
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
       - VHD from VHD
-

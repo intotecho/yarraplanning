@@ -9,7 +9,7 @@ It is part of a CI/CD data pipeline.
 
 #Dependencies
 
-The build  does not load the tables created by  python scripts, but depends on them. These tables are stored in the Dataset yarraPlanning.
+The build does not load the tables created by python scripts, but depends on them. These tables are stored in the Dataset yarraPlanning.
 
 
 ## Environments
