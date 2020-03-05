@@ -78,12 +78,14 @@
       <mat-expansion-panel id='advanced-controls' *ngIf="isSignedIn" [expanded]="advancedControlsOpened"
         (opened)="openAccordion(true)" (closed)="openAccordion(false)">
         <mat-expansion-panel-header>
+            <!-- above disables the advanced controls -->
           <mat-panel-title>
             Advanced Settings
           </mat-panel-title>
-          <mat-panel-description>...
+          <mat-panel-description>
           </mat-panel-description>
         </mat-expansion-panel-header>
+        Advanced Settings are not working! Please Close
         <mat-vertical-stepper linear (selectionChange)="onStepperChange($event)" #stepper>
           <mat-step [stepControl]="schemaFormGroup" label="Define columns">
             <div style="margin-bottom: 2em">

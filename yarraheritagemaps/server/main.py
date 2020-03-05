@@ -2,10 +2,7 @@ import connexion
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 import logging
-
-import os; 
-os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = \
-    "C:/yarrascrapy/yarraplanning/yarraheritagemaps/server/secrets/yarrascrape-b30815080477.json"
+import os
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,7 +23,10 @@ CORS(app.app)
 
 
 if __name__ == '__main__':
-  # This is used when running locally only. When deploying use a webserver process to serve the app.
+  # This code only runs when running locally. 
+  # When deployed to cloud, A webserver process serves the app.
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = \
+    "C:/yarrascrapy/yarraplanning/yarraheritagemaps/server/secrets/yarrascrape-b30815080477.json"
     app.run(host='127.0.0.1', port=8080, debug=True)
 
 '''    

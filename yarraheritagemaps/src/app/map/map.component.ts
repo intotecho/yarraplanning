@@ -398,7 +398,8 @@ export class MapComponent implements AfterViewInit {
         }
       });
       const appSettings: AppSettings = new AppSettings(); // get copy of current values
-      if (appSettings.loadSitesForPreviousOverlay === false) {
+      if ((appSettings.loadSitesForPreviousOverlay === false) ||
+          appSettings.previousSelectedOverlay === '') {
         // no need to do zoom to this unless a new detail map layer is not about to be loaded.
         this._overlaysLayer.addListener('addfeature', function(e) {
           recursiveExtendBounds(e.feature.getGeometry(), bounds.extend, bounds);

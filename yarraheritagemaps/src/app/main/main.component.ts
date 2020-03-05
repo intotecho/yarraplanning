@@ -123,7 +123,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   columnNames: Array<string>;
   bytesProcessed: Number = 0;
   lintMessage = '';
-  pending = false;
+  pending = true;
   rows: Array<Object>;
   data: MatTableDataSource<Object>;
   stats: Map<String, ColumnStat> = new Map();
@@ -406,11 +406,10 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
 
   queryOverlays(param: string = null) {
-    if (this.pending) { return; }
-    if (param !== 'initial') {
-      this.pending = true;
+    if ((param !== 'initial') && (this.pending === true)) {
+        return;
     }
-
+    this.pending = true;
     this.dataService.getOverlays().subscribe(response =>
     {
       this.pending = false;
@@ -434,7 +433,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
             this.updateStyles('Overlays');
             if (this._loadSitesForPreviousOverlay === false) {
-              this.showMessage('Click an Overlay on the map for more details', 5000);
+              this.showMessage('Zoom to the City of Yarra, near Melbourne then click an overlay on the map for its details', 5000);
             }
           }
       /*
