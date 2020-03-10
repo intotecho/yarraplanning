@@ -34,7 +34,7 @@ import 'rxjs/add/operator/map.js';
 import { SplitComponent, SplitAreaDirective } from 'angular-split';
 
 import { StyleProps, StyleRule, LayerStyles } from '../services/styles.service';
-import { BigQueryService, ColumnStat, Project } from '../services/bigquery.service';
+import { OverlaysAPIService,  OverlaysResponse, ColumnStat } from '../services/overlays-api.service';
 import { AppSettings } from '../services/appsettings.service';
 import { LayerDescription } from '../services/layers-info-service';
 
@@ -70,6 +70,9 @@ import {
 
 import { HeritageSiteInfo } from './panels/heritage-site-info/heritage-site-info';
 import { MapComponent } from '../map/map.component';
+//import { HttpClient } from 'selenium-webdriver/http';
+import { HttpClient, HttpHandler } from '@angular/common/http';
+
 const DEBOUNCE_MS = 1000;
 
 @Component({
@@ -77,7 +80,7 @@ const DEBOUNCE_MS = 1000;
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './main.component.html',
   styleUrls: ['./main.component.css', './angular-split.scss' ],
-  providers: [SplitComponent, SplitAreaDirective]
+  providers: [SplitComponent, SplitAreaDirective, OverlaysAPIService]
 })
 export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -95,10 +98,8 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   advancedControlsOpened: boolean;
   _loadSitesForPreviousOverlay: boolean;
   // GCP session data
-  readonly dataService = new BigQueryService();
-  isSignedIn: boolean;
+  isSignedIn = true;
   user: Object;
-  matchingProjects: Array<Project> = [];
 
   // private _layersInfo: Array<LayerDescription>;
   selectedLayersInfo: Array<LayerDescription> = [];
@@ -117,19 +118,19 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   schemaFormGroup: FormGroup;
   stylesFormGroup: FormGroup;
 
-  // BigQuery response data
+  // Overlays response data
   columns: Array<Object>;
   columnNames: Array<string>;
   bytesProcessed: Number = 0;
   lintMessage = '';
-  pending = false;
+  pending = true;
   rows: Array<Object>;
   data: MatTableDataSource<Object>;
   stats: Map<String, ColumnStat> = new Map();
   mapsLib = [];
   // UI state
   stepIndex: Number = 0;
-
+  
   // Current style rules
   // styles: Array<StyleRule> = [];
   styles: LayerStyles = new LayerStyles();
@@ -149,6 +150,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
   cmDebouncerSub: Subscription;
 
   constructor(
+    private dataService:  OverlaysAPIService,
     private _formBuilder: FormBuilder,
     private _renderer: Renderer2,
     private _snackbar: MatSnackBar,
@@ -156,19 +158,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     private _media: MediaMatcher,
     private _ngZone: NgZone) {
 
-    // Debounce CodeMirror change events to avoid running extra dry runs.
-    this.cmDebouncerSub = this.cmDebouncer
-      .debounceTime(DEBOUNCE_MS)
-      .subscribe((value: string) => {
-        this._dryRun();
-      });
-
-    // Set up BigQuery service.
-    this.dataService.onSigninChange(() => this.onSigninChange());
-    this.dataService.init()
-      .catch((e) => this.showMessage(
-        parseErrorMessage(e, 'Init Error')
-        ));
   }
 
   ngOnInit() {
@@ -200,18 +189,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     // Schema form group
     this.schemaFormGroup = this._formBuilder.group({
       geoColumn: ['bdry'],
-      projectID: [HERITAGE_SITE_PROJECT_ID, Validators.required],
-      sql: [OVERLAYS_QUERY, Validators.required],
-      location: [HERITAGE_SITE_DATACENTER],
-    });
-
-    this.schemaFormGroup.controls.projectID.valueChanges.debounceTime(200).subscribe(() => {
-      this.dataService.getProjects()
-        .then((projects) => {
-          this.matchingProjects = projects.filter((project) => {
-            return project['id'].indexOf(this.schemaFormGroup.controls.projectID.value) >= 0;
-          });
-        });
     });
 
     this.dataFormGroup.controls.overlayId.valueChanges.debounceTime(200).subscribe(() => {
@@ -221,7 +198,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
         if (this.selectedOverlayProperties) {
           this.showMessage(`Loading Heritage Sites for Overlay ${this.selectedOverlayProperties.Overlay}`, 3000);
           this.schemaFormGroup.patchValue({ sql: HERITAGE_SITE_QUERY });
-          this.query(); // kick off inital query to load the overlays
+          this.queryHeritageSites(this.selectedOverlayProperties.Overlay); // kick off initial query to load the overlays
           }
         } else {
         console.log('Overlay not found in form data!');
@@ -267,33 +244,11 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.split.setVisibleAreaSizes(splitSizes);
     this.splitterSizeSubject.next(splitSizes);
+    this.queryOverlays('initial');
   }
 
   ngOnDestroy() {
     this.cmDebouncerSub.unsubscribe();
-  }
-
-  signin() {
-    this.dataService.signin();
-  }
-
-  signout() {
-    this.dataService.signout();
-  }
-
-  onSigninChange() {
-    this._ngZone.run(() => {
-      this.isSignedIn = this.dataService.isSignedIn;
-      if (!this.dataService.isSignedIn) { return; }
-      this.user = this.dataService.getUserImageUrl();
-      this.dataService.getProjects()
-        .then((projects) => {
-          this.matchingProjects = projects;
-          this._changeDetectorRef.detectChanges();
-        });
-
-      this.query(); // kick off initial query to load the overlays
-    });
   }
 
   islayerSelected(layerInfo: Array<LayerDescription>, name: string): boolean {
@@ -312,7 +267,7 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     this.selectedLayersInfo = event;
     this._changeDetectorRef.detectChanges();
     if (this.islayerSelected(this.selectedLayersInfo, 'Planning')) {
-        this.query(PLANNING_APPS_QUERY);
+        this.queryPlanningApplications(this.selectedOverlayProperties.Overlay);
         if (this.selectedOverlayProperties.Overlay.length > 0 ) {
           this.showMessage(`Loading Planning Applications for Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
         } else {
@@ -353,35 +308,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     gtag('event', 'step', { event_label: `step ${this.stepIndex}` });
   }
 
-  dryRun() {
-    //this.cmDebouncer.next(); disable the prequery for now. 
-    // Reintroduce it to only trigger when user changes the code editor content.
-  }
-
-  _dryRun() {
-    /*
-    const { overlayId, mmbwMap, shadingSchemesOptions } = this.dataFormGroup.getRawValue();
-    const { projectID, sql, location } = this.schemaFormGroup.getRawValue();
-
-    this.dataService.prequery(overlayId, projectID, sql, location)
-      .then((bytesProcessed) => {
-        this.bytesProcessed = bytesProcessed;
-        this.lintMessage = '';
-      })
-      .catch((e) => {
-        this.bytesProcessed = -1;
-        this.lintMessage = parseErrorMessage(e, 'Prequery Error: ');
-        this.showMessage(this.lintMessage);
-        this.signout();
-        gtag('event', 'exception', {
-          event_category: `prequery`,
-          event_label: `${overlayId}`,
-          value: `sql: ${sql}, error: ${this.lintMessage}`
-        });
-      });
-  */
-  }
-
   getHeritageShadingFill() {
     const appSettings: AppSettings = new AppSettings();
     const heritageFill = appSettings.selectedShadingScheme === 'Heritage Status' ?
@@ -389,7 +315,6 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
           HERITAGE_SITE_FILL_COLOR_EARLIESTDECADE;
     return heritageFill;
    }
-
 
    loadHeritageShadingScheme() {
     const opaqueStyle = {isComputed: false, value: 0.3};
@@ -405,26 +330,97 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
     // this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
   }
 
-  query(sqlparam: string = null) {
+  queryHeritageSites(overlayId: string = null) {
     if (this.pending) { return; }
     this.pending = true;
 
-    const { overlayId, mmbwMap, shadingSchemesOptions } = this.dataFormGroup.getRawValue();
-    const {  projectID, sql, location } = this.schemaFormGroup.getRawValue();
-    const sqlarg = sqlparam ? sqlparam : sql;
-    this.dataService.query(overlayId, projectID, sqlarg, location)
-      .then(({ columns, columnNames, rows, stats }) => {
-        this.columns = columns;
-        this.columnNames = columnNames;
-        this.rows = rows;
-        this.stats = stats;
-        this.data = new MatTableDataSource(rows.slice(0, MAX_RESULTS_PREVIEW));
-        const heritageFill = this.getHeritageShadingFill();
-        const opaqueStyle = {isComputed: false, value: 0.3};
-        const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
-        const appSettings: AppSettings = new AppSettings();
+    this.dataService.getOverlay(overlayId).subscribe(response =>
+    {
+      this.pending = false;
+      this.columns = Object.keys(response[0]);
+      this.rows = response;
+      const heritageFill = this.getHeritageShadingFill();
+      const opaqueStyle = {isComputed: false, value: 0.3};
+      const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+      const appSettings: AppSettings = new AppSettings();
 
-        if (this.columnNames.find(h => h === 'ZONE_DESC')) {
+      if (response[0].hasOwnProperty('vhdplaceid')) {
+            this.loadHeritageShadingScheme();
+            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
+            this.schemaFormGroup.controls.geoColumn.patchValue({ geoColumn: 'bndry'});
+            this.updateStyles('vhdplaceid');
+            this.showMessage(`Showing Heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
+            // TODO Should defer persisting selectedOverlayProperties until load is successful
+            appSettings.previousSelectedOverlay = this.selectedOverlayProperties.Overlay as string;
+      }
+      /*
+      .catch((e) => {
+        this.lintMessage = parseErrorMessage('Error fetching overlays: ', e);
+        this.showMessage(this.lintMessage);
+        gtag('event', 'exception', {
+          event_category: `query`,
+          event_label: `${overlayId}`,
+          value: `sql: ${sql}, error: ${this.lintMessage}`
+        });
+
+      })
+      */
+   });
+  }
+
+  queryPlanningApplications(overlayId: string = null) {
+    if (this.pending) { return; }
+    this.pending = true;
+
+    this.dataService.getPlanningApplications(overlayId).subscribe(response => {
+      this.pending = false;
+      console.log(response);
+      this.columns = Object.keys(response[0]);
+      this.rows = response;
+      const heritageFill = this.getHeritageShadingFill();
+      const opaqueStyle = {isComputed: false, value: 0.3};
+      const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+      const appSettings: AppSettings = new AppSettings();
+
+      if (response[0].hasOwnProperty('Application_Number')) {
+        this.loadHeritageShadingScheme();
+        this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
+        this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
+        this.updateStyles('Application_Number');
+        this.showMessage(`Showing Planning Applications within Overlay ${this.overlayProperties.Overlay}`, 5000);
+      }
+      /*
+      .catch((e) => {
+        this.lintMessage = parseErrorMessage('Error fetching overlays: ', e);
+        this.showMessage(this.lintMessage);
+        gtag('event', 'exception', {
+          event_category: `query`,
+          event_label: `${overlayId}`,
+          value: `sql: ${sql}, error: ${this.lintMessage}`
+        });
+
+      })
+      */
+   });
+  }
+
+
+  queryOverlays(param: string = null) {
+    if ((param !== 'initial') && (this.pending === true)) {
+        return;
+    }
+    this.pending = true;
+    this.dataService.getOverlays().subscribe(response =>
+    {
+      this.pending = false;
+      this.columns = Object.keys(response[0]);
+      this.rows = response;
+      const heritageFill = this.getHeritageShadingFill();
+      const opaqueStyle = {isComputed: false, value: 0.3};
+      const heritageOpacity = opaqueStyle; // HERITAGE_SITE_FILL_OPACITY;
+      const appSettings: AppSettings = new AppSettings();
+
+      if (response[0].hasOwnProperty('ZONE_DESC')) {
             this.handleQueryOverlaysResponse();
             // setup custom styling
             this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, OVERLAY_FILL_COLOR.domain.length);
@@ -437,52 +433,22 @@ export class MainComponent implements OnInit, AfterViewInit, OnDestroy {
 
             this.updateStyles('Overlays');
             if (this._loadSitesForPreviousOverlay === false) {
-              this.showMessage('Click an Overlay on the map for more details', 5000);
+              this.showMessage('Zoom to the City of Yarra, near Melbourne then click an overlay on the map for its details', 5000);
             }
-          } else if (this.columnNames.find(h => h === 'Application_Number')) {
-            this.loadHeritageShadingScheme();
-            this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
-            this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
-            /*
-            this.setNumStops(<FormGroup>this.stylesFormGroup.controls.fillColor, heritageFill.domain.length);
-            this.stylesFormGroup.controls.fillOpacity.patchValue(heritageOpacity);
-            this.stylesFormGroup.controls.fillColor.patchValue(heritageFill);
-            this.stylesFormGroup.controls.strokeColor.patchValue(PLANNING_APP_STROKE_COLOR);
-            this.stylesFormGroup.controls.circleRadius.patchValue(HERITAGE_SITE_CIRCLE_RADIUS);
-            this.schemaFormGroup.patchValue({ geoColumn: 'bdry'});
-            */
-
-            this.updateStyles('Application_Number');
-            this.showMessage(`Showing Planning Applications within Overlay ${this.overlayProperties.Overlay}`, 5000);
-
-          } else if (this.columnNames.find(h => h === 'vhdplaceid')) {
-            this.loadHeritageShadingScheme();
-            this.stylesFormGroup.controls.strokeColor.patchValue(HERITAGE_SITE_STROKE_COLOR);
-            this.schemaFormGroup.controls.geoColumn.patchValue({ geoColumn: 'bndry'});
-            this.updateStyles('vhdplaceid');
-            this.showMessage(`Showing Heritage properties within Overlay ${this.selectedOverlayProperties.Overlay}`, 5000);
-            // TODO Should defer persisting selectedOverlayProperties until load is successful
-            appSettings.previousSelectedOverlay = this.selectedOverlayProperties.Overlay as string;
           }
-      })
+      /*
       .catch((e) => {
-        this.lintMessage = parseErrorMessage('Error handling query: ', e);
+        this.lintMessage = parseErrorMessage('Error fetching overlays: ', e);
         this.showMessage(this.lintMessage);
         gtag('event', 'exception', {
           event_category: `query`,
           event_label: `${overlayId}`,
           value: `sql: ${sql}, error: ${this.lintMessage}`
         });
-
       })
-      .then(() => {
-        this.pending = false;
-      });
+      */
+   });
   }
-
-   /* convert row to overlays in form drop down.
-   * Optionally if the selectedOverlay is included in the data, request details of it.
-   */
 
   getPreviousOverlay(appSettings: AppSettings): OverlayProperties {
     // Get selection from previous session to initialise.

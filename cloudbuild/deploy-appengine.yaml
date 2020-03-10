@@ -1,0 +1,9 @@
+steps:
+- name: "gcr.io/cloud-builders/gcloud"
+  args: ["app", "deploy", "../yarraheritagemaps/app.yaml"]
+timeout: "1600s"
+
+substitutions:
+  # PROJECT PARAMS
+  _PROJECT_ID: yarrascrape
+  

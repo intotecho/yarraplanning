@@ -1,0 +1,28 @@
+runtime: python37
+basic_scaling:
+  max_instances: 2
+
+handlers:
+# The endpoints handler must be mapped to /_ah/api.
+- url: /overlays/v1/.*
+  script: auto
+
+- url: /
+  secure: always
+  static_files: app/index.html
+  upload: app/index.html
+
+- url: /terms
+  secure: always
+  static_files: app/index.html
+  upload: app/index.html
+
+- url: /(favicon.ico*)$
+  secure: always
+  static_files: app/\1
+  upload: app/(.*)
+
+- url: /(.*\.(js|css|map|json|ico|kml))$
+  secure: always
+  static_files: app/\1
+  upload: app/(.*)

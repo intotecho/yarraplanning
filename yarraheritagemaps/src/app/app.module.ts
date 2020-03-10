@@ -52,11 +52,12 @@ import { environment } from '../environments/environment';
 
 import {ColorPickerModule} from 'ngx-color-picker';
 import { HttpClientModule } from '@angular/common/http';
-import { NguCarouselModule } from '@ngu/carousel';
 import { AngularSplitModule } from 'angular-split';
 
 import { SoSService } from './services/sos.service';
 import { LayersInfoService } from './services/layers-info-service';
+import { OverlaysAPIService } from './services/overlays-api.service';
+
 import { LayerSelectComponent} from './map/layer-control/layer-control.component';
 import { OverlayInfoComponent } from './main/panels/overlay-info/overlay-info.component';
 import { HeritageSiteInfoComponent } from './main/panels/heritage-site-info/heritage-site-info.component';
@@ -102,7 +103,6 @@ if ( environment.production ) {
     MatRadioModule,
     MatSlideToggleModule,
     MatTooltipModule,
-    NguCarouselModule,
     FormsModule,
     FlexLayoutModule,
     ReactiveFormsModule,
@@ -112,7 +112,8 @@ if ( environment.production ) {
   ],
   providers: [
     SoSService,
-    LayersInfoService
+    OverlaysAPIService,
+    LayersInfoService,
   ],
   bootstrap: [AppComponent]
 })

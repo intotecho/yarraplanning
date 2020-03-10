@@ -113,8 +113,15 @@ export const OVERLAYS_QUERY = `
     Status,
     OverlayBoundary as bndry
     FROM
-    \`yarrascrape.${environment._DATASET}.OVERLAYS\` as overlays`;
+    \`yarrascrape.${environment._DATASET}.OVERLAYS\` as overlays
+    `;
+
   /*
+  // Filter to 1.2km from Queens Parade
+  WHERE ST_Distance(ST_GeogPoint(144.99239829890257,
+      -37.78826382320532),
+    OverlayBoundary) < 1200
+
     WHERE Overlay LIKE '%HO88%'
     OR Overlay LIKE '%HO91%'
     OR Overlay LIKE '%HO330%'

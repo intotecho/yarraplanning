@@ -12,7 +12,7 @@
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
             "preserveSymlinks": true,
-            "outputPath": "dist",
+            "outputPath": "server/app/",
             "index": "src/index.html",
             "main": "src/main.ts",
             "tsConfig": "src/tsconfig.app.json",
@@ -34,6 +34,11 @@
             "scripts": [
               "node_modules/hammerjs/hammer.min.js"
             ]
+          },
+          "environments": {
+            "dev": "environments/environment.dev.ts",
+            "prod": "environments/environment.prod.ts",
+            "staging": "environments/environment.staging.ts"
           },
           "configurations": {
             "production": {

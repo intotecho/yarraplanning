@@ -4,6 +4,10 @@
 /dist
 /tmp
 /out-tsc
+/api/app
+
+# Python API. Directory must be compiled by API with py2.7 - see readme.md
+/api/lib
 
 # dependencies
 /node_modules

@@ -106,18 +106,23 @@ steps:
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry
         FROM propnumboundaries
 
-# 2 UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
+
+# 3 REMOVE TABLE  _VHD_DETAILS
+
+# 4 CREATE TABLE: ${_VHD_DETAILS}
+
+# 5 UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
   - 'update'
-  - '--set_label=build:coudbuild-yaml'
+  - '--set_label=build:build-views-yaml'
   - '--set_label=heritage-maps:required'
   - '--expiration=0'
   - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
   - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 
-# 3 REMOVE VIEW: _OVERLAYS_AVG_DATE
+# 6 REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -127,7 +132,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# 4 CREATE VIEW  _OVERLAYS_AVG_DATE
+# 7 CREATE VIEW  _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -135,7 +140,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:coudbuild-yaml'
+  - '--label=build:build-views-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -161,7 +166,7 @@ steps:
       Overlay
   - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# 5 Remove ${_OVERLAYS_VIEW}
+# 8 Remove ${_OVERLAYS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -171,7 +176,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
-# 6 Create View ${_OVERLAYS_VIEW} from QUERY
+# 9 Create View ${_OVERLAYS_VIEW} from QUERY
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
   args: 
@@ -179,7 +184,7 @@ steps:
   - '--use_legacy_sql=false'
   - '--project_id=${_PROJECT_ID}'
   - '--expiration=0'
-  - '--label=build:coudbuild-yaml'
+  - '--label=build:build-views-yaml'
   - '--label=heritage-maps:required'
   - |
     --description=
@@ -187,6 +192,7 @@ steps:
     Merge the Boundary Geometry from YARRA_OVERLAYS with the OVERLAY_SCHEDULE and OVERLAY_AVG_DATE
     Filter out not Yarra LGA overlays and no HO zone types
     Merge in the Average, Min and Max Established dates for each overlay.
+    Finally filters out overlays more than _RANGE_FROM_HO330 meters from HO300 (given by a point, could be a param)
     Based on tables
       OVERLAY_SCHEDULE  from ${_SRC_DATASET}
       YARRA_OVERLAYS  from ${_SRC_DATASET}
@@ -194,6 +200,8 @@ steps:
   - |
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_VIEW} - BUILT WITH CLOUD BUILD
+    WITH
+      AllOverlays AS (
     WITH
       schedulewithboundary AS (
          WITH overlayDeduplicated AS ( # remove duplicate rows
@@ -237,9 +245,24 @@ steps:
     ON
       schedulewithboundary.ZONE_CODE = dates.Overlay
     LEFT OUTER JOIN
-      `yarrascrape.YarraPlanning.VHR_DETAILS` AS vhrd
+      `yarrascrape.YarraPlanning.VHD_DETAILS` AS vhrd
     ON
       CAST(SUBSTR(vhrd.VHR, 2) AS INT64) = CAST(SUBSTR( schedulewithboundary.VHR, 2) AS INT64)
+    )
+    SELECT *
+    FROM AllOverlays
+    WHERE ST_Distance(ST_GeogPoint(144.994705262,-37.785239409),
+    OverlayBoundary) < ${_RANGE_FROM_HO330}
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+
+# 10 UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'update'
+  - '--set_label=build:build-views-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
   - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
 substitutions:
@@ -247,7 +270,8 @@ substitutions:
   _PROJECT_ID: yarrascrape
   _SRC_DATASET: YarraPlanning
   _TARGET_DATASET: PROD_DATASET
-  
+  _RANGE_FROM_HO330: 1200
+
   # INPUTS TABLES
   _HERITAGE_REGISTER: HERITAGE_REGISTER_C191_WITHVHD
   _YARRA_PROPS: YARRA_PROPERTIES 
@@ -275,4 +299,3 @@ substitutions:
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
       - VHD from VHD
-

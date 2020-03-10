@@ -15,4 +15,10 @@ scrape_vhd/yarra_vhd-20190517.csv
 scrape_vhd/env
 yarraheritagemaps/src/assets/nightmap.json
 yarraheritagemaps/documentation
-Yarra data pipeline workspace.code-workspace
+yarraheritagemaps/api/*
+yarraheritagemaps/server/Lib/*
+yarraheritagemaps/server/Scripts/*
+yarraheritagemaps/server/Include/*
+yarraheritagemaps/server/app/*
+yarraheritagemaps/server/secrets/*
+server/get-pip.*

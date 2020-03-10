@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+### FILE NOT USED. See api/app.yaml
+
+
 runtime: python27
 api_version: 1
 threadsafe: true
@@ -21,27 +24,18 @@ handlers:
   secure: always
   static_files: index.html
   upload: index.html
-  http_headers:
-    X-Frame-Options: DENY
-    content_type: text/javascript
 
 - url: /(.*\.(js))$
   secure: always
   static_files: \1
   upload: (.*)
-  http_headers:
-    content_type: text/javascript
 
 - url: /terms
   secure: always
   static_files: index.html
   upload: index.html
-  http_headers:
-    X-Frame-Options: DENY
 
 - url: /(.*)
   secure: always
   static_files: \1
   upload: (.*)
-  http_headers:
-    content_type: text/javascript
