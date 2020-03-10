@@ -1,3 +1,4 @@
+# This clodbuild config is not working.
 steps:
 
   # Install node packages
@@ -8,10 +9,7 @@ steps:
   - name: 'gcr.io/cloud-builders/npm'
     args: [ '--prefix', 'yarraheritagemaps', 'run', 'build', ' --prod']
 
-  # Deploy to google cloud app egnine
-  - name: "gcr.io/cloud-builders/gcloud"
-    args: ["app", "deploy", '--version=prod', "yarraheritagemaps/server/app.yaml"]
-
+npm run 
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
