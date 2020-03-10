@@ -9,13 +9,8 @@ steps:
     args: [ 'run', 'build', '--prod' ]
 
   # Deploy to google cloud app egnine
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args: ['app', 'deploy', '--version=prod']
-
-
   - name: "gcr.io/cloud-builders/gcloud"
-    args: ["app", "deploy", "yarraheritagemaps/server/app.yaml"]
-    timeout: "1600s"
+    args: ["app", "deploy", '--version=prod', "yarraheritagemaps/server/app.yaml"]
 
 substitutions:
   # PROJECT PARAMS
