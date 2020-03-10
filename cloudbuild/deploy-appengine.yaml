@@ -1,6 +1,6 @@
 steps:
 - name: "gcr.io/cloud-builders/gcloud"
-  args: ["app", "deploy", "../yarraheritagemaps/server/app.yaml"]
+  args: ["app", "deploy", "server/app.yaml"]
 timeout: "1600s"
 
 substitutions:
