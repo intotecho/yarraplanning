@@ -2,11 +2,11 @@ steps:
 
   # Install node packages
   - name: 'gcr.io/cloud-builders/npm'
-    args: [ '--prefix', 'yarraheritagemaps/server', 'install' ]
+    args: [ '--prefix', 'yarraheritagemaps', 'install' ]
 
   # Build productive files
   - name: 'gcr.io/cloud-builders/npm'
-    args: [ '--prefix', 'yarraheritagemaps/server', 'run', 'build', ' --prod']
+    args: [ '--prefix', 'yarraheritagemaps', 'run', 'build', ' --prod']
 
   # Deploy to google cloud app egnine
   - name: "gcr.io/cloud-builders/gcloud"
