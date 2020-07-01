@@ -165,6 +165,16 @@ steps:
     GROUP BY
       Overlay
   - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+# 7B Make view permanent  VIEW  _OVERLAYS_AVG_DATE
+# UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'update'
+  - '--set_label=build:build-views-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
+  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
 # 8 Remove ${_OVERLAYS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
