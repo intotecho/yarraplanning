@@ -21,7 +21,7 @@ steps:
    '--project_id=${_PROJECT_ID}',
    '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}',
    '--replace=true',
-   'WITH propnumboundaries AS (
+   "WITH propnumboundaries AS (
       WITH pfiboundaries AS (
         WITH deduplicatedvhd AS (
           WITH mergedRegister AS (
@@ -48,8 +48,8 @@ steps:
               register.OriginalAddress,
               vhd.Location AS vhdLocation,
               register.Matched,
-              REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
-              REGEXP_REPLACE(register.PROPERTY_PFI, r"\'", "") AS PROPERTY_PFI,
+              REGEXP_EXTRACT(PropertyId, ${_STRING1}) as PROPNUM,
+              REGEXP_REPLACE(register.PROPERTY_PFI, ${_STRING2}, ${_STRING3}) AS PROPERTY_PFI,
               vhd.VHR,
               vhd.href,
               vhd.SoSHash,
@@ -64,7 +64,7 @@ steps:
             LEFT OUTER JOIN
               vhdDeduplicated AS vhd
             ON
-              REGEXP_EXTRACT(register.vhdplaceid, r"\[(\d{3,12}).*\]"") = CAST(vhd.vhdplaceid AS STRING)
+              REGEXP_EXTRACT(register.vhdplaceid, ${_STRING4}) = CAST(vhd.vhdplaceid AS STRING)
           )
           SELECT k.* # remove duplicate rows in result
               FROM (
@@ -102,7 +102,7 @@ steps:
       SELECT 
         propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry
-        FROM propnumboundaries'
+        FROM propnumboundaries"
   ]
 
 
@@ -293,6 +293,13 @@ substitutions:
   _OVERLAYS_AVG_DATE: OVERLAYS_AVG_ESTABLISHED_DATE
   _OVERLAYS_VIEW: OVERLAYS
   _HERITAGE_PROPS_TABLE: YARRAHERITAGEMAPS_PROPERTIES
+  
+
+  # REGEX
+  _STRING1:  r''[\d]*''
+  _STRING2:  r"\'"
+  _STRING3: ""
+  _STRING4: r"\[(\d{3,12}).*\]"
   
   # DECSCRIPTIONS
   _HERITAGE_PROPS_TABLE_DESCR:  |
