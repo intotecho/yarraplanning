@@ -3,26 +3,25 @@ steps:
 # 1 REMOVE TABLE  _HERITAGE_PROPS_TABLE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'rm'
-  - '-f'
-  - '-t'
-  - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  args: [
+    'rm',
+    '-f',
+    '-t',
+    '--project_id=${_PROJECT_ID}',
+    '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  ]
 
-# 2 CREATE TABLE: ${_HERITAGE_PROPS_TABLE}
+# 2 CREATE TABLE: ${_HERITAGE_PROPS_TABLE}     # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
+
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'query'
-  - '--use_legacy_sql=false'
-  - '--project_id=${_PROJECT_ID}'
-  - '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
-  - '--replace=true'
-  - |
-    # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
-
-    WITH propnumboundaries AS (
+  args: [
+   'query',
+   '--use_legacy_sql=false',
+   '--project_id=${_PROJECT_ID}',
+   '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}',
+   '--replace=true',
+   "WITH propnumboundaries AS (
       WITH pfiboundaries AS (
         WITH deduplicatedvhd AS (
 
@@ -50,7 +49,7 @@ steps:
               register.OriginalAddress,
               vhd.Location AS vhdLocation,
               register.Matched,
-              REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
+              REGEXP_EXTRACT(PropertyId, r'[\d]*') as PROPNUM,
               REGEXP_REPLACE(register.PROPERTY_PFI, r'\'', '') AS PROPERTY_PFI,
               vhd.VHR,
               vhd.href,
@@ -104,7 +103,8 @@ steps:
       SELECT 
         propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry
-        FROM propnumboundaries
+        FROM propnumboundaries"
+  ]
 
 
 # 3 REMOVE TABLE  _VHD_DETAILS
@@ -114,44 +114,44 @@ steps:
 # 5 UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'update'
-  - '--set_label=build:build-views-yaml'
-  - '--set_label=heritage-maps:required'
-  - '--expiration=0'
-  - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  args: [
+    'update',
+    '--set_label=build:build-views-yaml',
+    '--set_label=heritage-maps:required',
+    '--expiration=0',
+    '--description=${_HERITAGE_PROPS_TABLE_DESCR}',
+    '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  ]
 
 # 6 REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'rm'
-  - '-f'
-  - '-t'
-  - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+  args: [
+    'rm',
+    '-f',
+    '-t',
+    '--project_id=${_PROJECT_ID}',
+    '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+  ]
 
 # 7 CREATE VIEW  _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'mk'
-  - '--use_legacy_sql=false'
-  - '--project_id=${_PROJECT_ID}'
-  - '--expiration=0'
-  - '--label=build:build-views-yaml'
-  - '--label=heritage-maps:required'
-  - |
-    --description=
+  args: [
+  'mk',
+  '--use_legacy_sql=false',
+  '--project_id=${_PROJECT_ID}',
+  '--expiration=0',
+  '--label=build:build-views-yaml',
+  '--label=heritage-maps:required',
+  '  --description=
     QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD.
     Extract Details of the dates of all properties in each overlay
     Based on tables
       YARRAHERITAGEMAPS_PROPERTIES
       OVERLAY_SCHEDULE
-      VHR_DETAILS - for images.
-  - |
-    --view=
+      VHR_DETAILS - for images.',
+  '--view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     SELECT
       Distinct(Overlay),
@@ -163,41 +163,43 @@ steps:
     WHERE
       earliest > 1800
     GROUP BY
-      Overlay
-  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+      Overlay',
+  '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+  ]
 # 7B Make view permanent  VIEW  _OVERLAYS_AVG_DATE
 # UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'update'
-  - '--set_label=build:build-views-yaml'
-  - '--set_label=heritage-maps:required'
-  - '--expiration=0'
-  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+  args: [
+  'update',
+  '--set_label=build:build-views-yaml',
+  '--set_label=heritage-maps:required',
+  '--expiration=0',
+  '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
+  ]
 
 # 8 Remove ${_OVERLAYS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'rm'
-  - '-f'
-  - '-t'
-  - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+  args: [
+    'rm',
+    '-f',
+    '-t',
+    '--project_id=${_PROJECT_ID}',
+    '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+  ]
 
 # 9 Create View ${_OVERLAYS_VIEW} from QUERY
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'mk'
-  - '--use_legacy_sql=false'
-  - '--project_id=${_PROJECT_ID}'
-  - '--expiration=0'
-  - '--label=build:build-views-yaml'
-  - '--label=heritage-maps:required'
-  - |
-    --description=
+  args: [
+  'mk',
+  '--use_legacy_sql=false',
+  '--project_id=${_PROJECT_ID}',
+  '--expiration=0',
+  '--label=build:build-views-yaml',
+  '--label=heritage-maps:required',
+  '--description=
     QUERY FOR VIEW ${_OVERLAYS_VIEW} BUILT WITH CLOUD BUILD
     Merge the Boundary Geometry from YARRA_OVERLAYS with the OVERLAY_SCHEDULE and OVERLAY_AVG_DATE
     Filter out not Yarra LGA overlays and no HO zone types
@@ -206,9 +208,8 @@ steps:
     Based on tables
       OVERLAY_SCHEDULE  from ${_SRC_DATASET}
       YARRA_OVERLAYS  from ${_SRC_DATASET}
-      ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}
-  - |
-    --view=
+      ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}',
+    "--view=
     # QUERY FOR VIEW: ${_OVERLAYS_VIEW} - BUILT WITH CLOUD BUILD
     WITH
       AllOverlays AS (
@@ -262,18 +263,20 @@ steps:
     SELECT *
     FROM AllOverlays
     WHERE ST_Distance(ST_GeogPoint(144.994705262,-37.785239409),
-    OverlayBoundary) < ${_RANGE_FROM_HO330}
-  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+    OverlayBoundary) < ${_RANGE_FROM_HO330}",
+    '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+  ]
 
 # 10 UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: 
-  - 'update'
-  - '--set_label=build:build-views-yaml'
-  - '--set_label=heritage-maps:required'
-  - '--expiration=0'
-  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+  args: [ 'update',
+          '--set_label=build:build-views-yaml',
+          '--set_label=heritage-maps:required',
+          '--expiration=0',
+          '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+        ]
+
 
 substitutions:
   # PROJECT PARAMS
