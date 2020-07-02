@@ -296,8 +296,8 @@ substitutions:
   
 
   # REGEX
-  _STRING1:  r''[\d]*''
-  _STRING2:  r"\'"
+  _STRING1:  r"[\d]*"
+  _STRING2:  r"\'''"
   _STRING3: ""
   _STRING4: r"\[(\d{3,12}).*\]"
   
