@@ -8,7 +8,7 @@ steps:
   - '-f'
   - '-t'
   - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  - '${_TARGET_DATASET}.YARRAHERITAGEMAPS_PROPERTIES'
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
