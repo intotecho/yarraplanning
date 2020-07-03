@@ -19,7 +19,7 @@ steps:
   - '--project_id=${_PROJECT_ID}'
   - '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
   - '--replace=true'
-- >- # folded block scalar; newlines are folded into spaces
+  - >- # folded block scalar; newlines are folded into spaces
     # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
     WITH propnumboundaries AS (
       WITH pfiboundaries AS (
@@ -202,7 +202,7 @@ steps:
       OVERLAY_SCHEDULE  from ${_SRC_DATASET}
       YARRA_OVERLAYS  from ${_SRC_DATASET}
       ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}
-  - >- # folded block scalar; newlines are folded into spaces
+  - >- 
     --view=
     # QUERY FOR VIEW: ${_OVERLAYS_VIEW} - BUILT WITH CLOUD BUILD
     WITH
