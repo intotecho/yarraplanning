@@ -1,3 +1,14 @@
+steps:
+
+# 1A REMOVE TABLE  _HERITAGE_PROPS_TABLE
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
@@ -16,32 +27,5 @@ substitutions:
   _HERITAGE_PROPS_TABLE: YARRAHERITAGEMAPS_PROPERTIES
   
   # DECSCRIPTIONS
-  _HERITAGE_PROPS_TABLE_DESCR:  |
-    TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
-    cloudbuild/build-views.yaml. 
-    JOINS TABLES 
-      - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
-      - YARRA_PROPERTIES from ${_SRC_DATASET}
-      - VHD from VHD
-    ${_HERITAGE_REGISTER} has been matched to PFIs and vhdplacesId. 
-    The query to create this table merges data from VHD properties and de-duplicates.
-    It then merges boundary geometry from YARRA_PROPERTIES checking each of the PROPERTY_PFI rows for a geometry that contains the VHDLocation.
-    It then merges boundary geometry from YARRA_PROPERTIES matching  PROPNUM if its geometry contains the VHDLocation.
-    If no boundary is found, then the vhdPoint is set as the bndry.
-    USES TABLES 
-      - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
-      - YARRA_PROPERTIES from ${_SRC_DATASET}
-      - VHD from VHD table.
-
-steps:
-
-# 1A REMOVE TABLE  _HERITAGE_PROPS_TABLE
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bq'
-  args: 
-  - 'rm'
-  - '-f'
-  - '-t'
-  - '--project_id=${_PROJECT_ID}'
-  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  _HERITAGE_PROPS_TABLE_DESCR:  dummy description see older version in repo
 
