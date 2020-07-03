@@ -1,29 +1,30 @@
 steps:
 
-# 1 REMOVE TABLE  _HERITAGE_PROPS_TABLE
+# 1A REMOVE TABLE  _HERITAGE_PROPS_TABLE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-    'rm',
-    '-f',
-    '-t',
-    '--project_id=${_PROJECT_ID}',
-    '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
-  ]
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 
-# 2 CREATE TABLE: ${_HERITAGE_PROPS_TABLE}     # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
-
+# 1B CREATE TABLE: ${_HERITAGE_PROPS_TABLE}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-   'query',
-   '--use_legacy_sql=false',
-   '--project_id=${_PROJECT_ID}',
-   '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}',
-   '--replace=true',
-   "WITH propnumboundaries AS (
+  args: 
+  - 'query'
+  - '--use_legacy_sql=false'
+  - '--project_id=${_PROJECT_ID}'
+  - '--destination_table=${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
+  - '--replace=true'
+- >- # folded block scalar; newlines are folded into spaces
+    # TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
+    WITH propnumboundaries AS (
       WITH pfiboundaries AS (
         WITH deduplicatedvhd AS (
+
           WITH mergedRegister AS (
             WITH vhdDeduplicated AS ( # remove duplicate rows in VHD
             SELECT k.*
@@ -48,8 +49,8 @@ steps:
               register.OriginalAddress,
               vhd.Location AS vhdLocation,
               register.Matched,
-              REGEXP_EXTRACT(PropertyId, ${_STRING1}) as PROPNUM,
-              REGEXP_REPLACE(register.PROPERTY_PFI, ${_STRING2}, ${_STRING3}) AS PROPERTY_PFI,
+              REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
+              REGEXP_REPLACE(register.PROPERTY_PFI, r'\'', '') AS PROPERTY_PFI,
               vhd.VHR,
               vhd.href,
               vhd.SoSHash,
@@ -64,7 +65,7 @@ steps:
             LEFT OUTER JOIN
               vhdDeduplicated AS vhd
             ON
-              REGEXP_EXTRACT(register.vhdplaceid, ${_STRING4}) = CAST(vhd.vhdplaceid AS STRING)
+              REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
           )
           SELECT k.* # remove duplicate rows in result
               FROM (
@@ -102,55 +103,50 @@ steps:
       SELECT 
         propnumboundaries.* EXCEPT(pfibndry_arr,propnumbndry, pfibndry, vhdPoint, eziAddressPoint, property_pfi),
         COALESCE(propnumbndry, pfibndry, ST_ASTEXT(vhdPoint)) as bndry
-        FROM propnumboundaries"
-  ]
+        FROM propnumboundaries
 
-
-# 3 REMOVE TABLE  _VHD_DETAILS
-
-# 4 CREATE TABLE: ${_VHD_DETAILS}
-
-# 5 UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
+# 1C UPDATE TABLE: ${_HERITAGE_PROPS_TABLE}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-    'update',
-    '--set_label=build:build-views-yaml',
-    '--set_label=heritage-maps:required',
-    '--expiration=0',
-    '--description=${_HERITAGE_PROPS_TABLE_DESCR}',
-    '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
-  ]
+  args: 
+  - 'update'
+  - '--set_label=build:build-views-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
+  - '--description=${_HERITAGE_PROPS_TABLE_DESCR}'
+  - '${_TARGET_DATASET}.${_HERITAGE_PROPS_TABLE}'
 
-# 6 REMOVE VIEW: _OVERLAYS_AVG_DATE
+
+# 2A REMOVE VIEW: _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-    'rm',
-    '-f',
-    '-t',
-    '--project_id=${_PROJECT_ID}',
-    '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
-  ]
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# 7 CREATE VIEW  _OVERLAYS_AVG_DATE
+# 2B CREATE VIEW  _OVERLAYS_AVG_DATE
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-  'mk',
-  '--use_legacy_sql=false',
-  '--project_id=${_PROJECT_ID}',
-  '--expiration=0',
-  '--label=build:build-views-yaml',
-  '--label=heritage-maps:required',
-  '  --description=
+  args: 
+  - 'mk'
+  - '--use_legacy_sql=false'
+  - '--project_id=${_PROJECT_ID}'
+  - '--expiration=0'
+  - '--label=build:build-views-yaml'
+  - '--label=heritage-maps:required'
+  - |
+    --description=
     QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD.
     Extract Details of the dates of all properties in each overlay
     Based on tables
       YARRAHERITAGEMAPS_PROPERTIES
       OVERLAY_SCHEDULE
-      VHR_DETAILS - for images.',
-  '--view=
+      VHR_DETAILS - for images.
+  - >- # folded block scalar; newlines are folded into spaces
+    --view=
     # QUERY FOR VIEW: ${_OVERLAYS_AVG_DATE} - BUILT WITH CLOUD BUILD
     SELECT
       Distinct(Overlay),
@@ -162,43 +158,41 @@ steps:
     WHERE
       earliest > 1800
     GROUP BY
-      Overlay',
-  '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
-  ]
-# 7B Make view permanent  VIEW  _OVERLAYS_AVG_DATE
-# UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
-- name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: 'bq'
-  args: [
-  'update',
-  '--set_label=build:build-views-yaml',
-  '--set_label=heritage-maps:required',
-  '--expiration=0',
-  '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
-  ]
+      Overlay
+  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# 8 Remove ${_OVERLAYS_VIEW}
+# 2C UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_AVG_DATE} 
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-    'rm',
-    '-f',
-    '-t',
-    '--project_id=${_PROJECT_ID}',
-    '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
-  ]
+  args: 
+  - 'update'
+  - '--set_label=build:build-views-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
+  - '${_TARGET_DATASET}.${_OVERLAYS_AVG_DATE}'
 
-# 9 Create View ${_OVERLAYS_VIEW} from QUERY
+# 3A Remove ${_OVERLAYS_VIEW}
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [
-  'mk',
-  '--use_legacy_sql=false',
-  '--project_id=${_PROJECT_ID}',
-  '--expiration=0',
-  '--label=build:build-views-yaml',
-  '--label=heritage-maps:required',
-  '--description=
+  args: 
+  - 'rm'
+  - '-f'
+  - '-t'
+  - '--project_id=${_PROJECT_ID}'
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
+
+# 3B Create View ${_OVERLAYS_VIEW} from QUERY
+- name: 'gcr.io/cloud-builders/gcloud'
+  entrypoint: 'bq'
+  args: 
+  - 'mk'
+  - '--use_legacy_sql=false'
+  - '--project_id=${_PROJECT_ID}'
+  - '--expiration=0'
+  - '--label=build:build-views-yaml'
+  - '--label=heritage-maps:required'
+  - |
+    --description=
     QUERY FOR VIEW ${_OVERLAYS_VIEW} BUILT WITH CLOUD BUILD
     Merge the Boundary Geometry from YARRA_OVERLAYS with the OVERLAY_SCHEDULE and OVERLAY_AVG_DATE
     Filter out not Yarra LGA overlays and no HO zone types
@@ -207,8 +201,9 @@ steps:
     Based on tables
       OVERLAY_SCHEDULE  from ${_SRC_DATASET}
       YARRA_OVERLAYS  from ${_SRC_DATASET}
-      ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}',
-    "--view=
+      ${_OVERLAYS_AVG_DATE} VIEW from ${_TARGET_DATASET}
+  - >- # folded block scalar; newlines are folded into spaces
+    --view=
     # QUERY FOR VIEW: ${_OVERLAYS_VIEW} - BUILT WITH CLOUD BUILD
     WITH
       AllOverlays AS (
@@ -262,27 +257,25 @@ steps:
     SELECT *
     FROM AllOverlays
     WHERE ST_Distance(ST_GeogPoint(144.994705262,-37.785239409),
-    OverlayBoundary) < ${_RANGE_FROM_HO330}",
-    '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
-  ]
+    OverlayBoundary) < ${_RANGE_FROM_HO330}
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
-# 10 UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
+# 3C UPDATE VIEW TO NOT EXPIRE: ${_OVERLAYS_VIEW} 
 - name: 'gcr.io/cloud-builders/gcloud'
   entrypoint: 'bq'
-  args: [ 'update',
-          '--set_label=build:build-views-yaml',
-          '--set_label=heritage-maps:required',
-          '--expiration=0',
-          '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
-        ]
-
+  args: 
+  - 'update'
+  - '--set_label=build:build-views-yaml'
+  - '--set_label=heritage-maps:required'
+  - '--expiration=0'
+  - '${_TARGET_DATASET}.${_OVERLAYS_VIEW}'
 
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
   _SRC_DATASET: YarraPlanning
-  _TARGET_DATASET: YarraPlanning
-  _RANGE_FROM_HO330: 30000
+  _TARGET_DATASET: PROD_DATASET
+  _RANGE_FROM_HO330: 1200
 
   # INPUTS TABLES
   _HERITAGE_REGISTER: HERITAGE_REGISTER_C191_WITHVHD
@@ -294,13 +287,6 @@ substitutions:
   _OVERLAYS_VIEW: OVERLAYS
   _HERITAGE_PROPS_TABLE: YARRAHERITAGEMAPS_PROPERTIES
   
-
-  # REGEX
-  _STRING1:  r'[\d]*'
-  _STRING2:  r"\'"
-  _STRING3: ''
-  _STRING4: r'\[(\d{3,12}).*\]'
-  
   # DECSCRIPTIONS
   _HERITAGE_PROPS_TABLE_DESCR:  |
     TABLE - ${_HERITAGE_PROPS_TABLE} - BUILT WITH CLOUD BUILD
@@ -310,11 +296,11 @@ substitutions:
       - YARRA_PROPERTIES from ${_SRC_DATASET}
       - VHD from VHD
     ${_HERITAGE_REGISTER} has been matched to PFIs and vhdplacesId. 
-    The query to create this table merges data from VHD peroperties and deduplicates.
+    The query to create this table merges data from VHD properties and de-duplicates.
     It then merges boundary geometry from YARRA_PROPERTIES checking each of the PROPERTY_PFI rows for a geometry that contains the VHDLocation.
     It then merges boundary geometry from YARRA_PROPERTIES matching  PROPNUM if its geometry contains the VHDLocation.
     If no boundary is found, then the vhdPoint is set as the bndry.
     USES TABLES 
       - ${_HERITAGE_REGISTER} from ${_SRC_DATASET}
       - YARRA_PROPERTIES from ${_SRC_DATASET}
-      - VHD from VHD
+      - VHD from VHD table.
