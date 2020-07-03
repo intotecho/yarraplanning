@@ -50,7 +50,7 @@ steps:
               vhd.Location AS vhdLocation,
               register.Matched,
               REGEXP_EXTRACT(PropertyId, r"[\d]*") as PROPNUM,
-              REGEXP_REPLACE(register.PROPERTY_PFI, r'\'', '') AS PROPERTY_PFI,
+              REGEXP_REPLACE(register.PROPERTY_PFI, r"\'", "") AS PROPERTY_PFI,
               vhd.VHR,
               vhd.href,
               vhd.SoSHash,
@@ -65,7 +65,7 @@ steps:
             LEFT OUTER JOIN
               vhdDeduplicated AS vhd
             ON
-              REGEXP_EXTRACT(register.vhdplaceid, r'\[(\d{3,12}).*\]') = CAST(vhd.vhdplaceid AS STRING)
+              REGEXP_EXTRACT(register.vhdplaceid, r"\[(\d{3,12}).*\]") = CAST(vhd.vhdplaceid AS STRING)
           )
           SELECT k.* # remove duplicate rows in result
               FROM (
