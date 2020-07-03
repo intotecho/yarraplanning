@@ -9,12 +9,12 @@ steps:
   - '-t'
   - '--project_id=${_PROJECT_ID}'
   - '${_TARGET_DATASET}.YARRAHERITAGEMAPS_PROPERTIES'
+
 substitutions:
   # PROJECT PARAMS
   _PROJECT_ID: yarrascrape
   _SRC_DATASET: YarraPlanning
   _TARGET_DATASET: YarraPlanning
-  _RANGE_FROM_HO330: 30000
 
   # INPUTS TABLES
   _HERITAGE_REGISTER: HERITAGE_REGISTER_C191_WITHVHD
