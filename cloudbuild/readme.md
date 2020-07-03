@@ -18,7 +18,7 @@ Prod and Dev should have different DataSets. TBD.
 
 ## Substitutions
 
-There are substitution parameters in the script.
+There are substitution parameters in the script that can be overridden.
 - _TARGET_DATASET: YarraPlanning
 - _SOURCE_DATASET: YarraPlanning
 - _PROJECT_ID: yarrascrape
@@ -29,7 +29,9 @@ There are substitution parameters in the script.
 
 These can be overridden in the cloud build console.
 
-
-
+Test script locally first before checking in with:
+> gcloud builds submit --config=build-tables.yaml
+> gcloud builds submit --config=build-views.yaml
+Make sure it succeeeds and the app runs correctly.
 
 
